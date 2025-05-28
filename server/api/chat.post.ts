@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event)
 
-  const { message, model = 'gemma3:4b' } = body
+  const { message, model = 'gemma3:4b', context } = body
 
   if (!message) {
     throw createError({
@@ -52,17 +52,24 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
 
   try {
+    const requestBody: any = {
+      model,
+      prompt: message,
+      stream: true
+    }
+
+    // Add context if provided
+    if (context && Array.isArray(context)) {
+      requestBody.context = context
+    }
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${Buffer.from(`${ollamaApiUser}:${ollamaApiKey}`).toString('base64')}`
       },
-      body: JSON.stringify({
-        model,
-        prompt: message,
-        stream: true
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {

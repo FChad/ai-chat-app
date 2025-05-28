@@ -1,10 +1,42 @@
 <template>
-  <div class="container mx-auto px-4 py-8 h-[calc(100vh-4rem)]">
-    <div class="max-w-4xl mx-auto h-full flex flex-col">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2">ChadGPT</h1>
-        <p class="text-gray-300">Chatte mit Chad's KI-Assistant</p>
+  <div class="container mx-auto px-4 h-full">
+    <div class="max-w-7xl mx-auto h-full flex flex-col py-6">
+      <!-- Top Controls -->
+      <div class="flex justify-between items-center mb-6">
+        <!-- Model Selection - Top Left -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            KI-Modell
+            <span v-if="conversationContext && messages.length > 0" class="text-yellow-400 text-xs ml-2">
+              ⚠️ Wechsel setzt Kontext zurück
+            </span>
+          </label>
+          <select
+            v-model="selectedModel"
+            :disabled="isTyping"
+            class="px-4 py-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-w-[200px] appearance-none cursor-pointer hover:bg-black/30 transition-colors"
+            style="color-scheme: dark;"
+            :title="conversationContext && messages.length > 0 ? 'Achtung: Modellwechsel setzt den Kontext zurück!' : 'Wähle ein KI-Modell'"
+          >
+            <option v-for="model in availableModels" :key="model.name" :value="model.name" class="bg-gray-800 text-white">
+              {{ model.name }} ({{ model.details.parameter_size }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Clear Conversation Button - Top Right -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">&nbsp;</label>
+          <button
+            @click="clearConversation"
+            :disabled="messages.length === 0 || isTyping"
+            class="px-4 py-2 bg-red-700/70 hover:bg-red-600 disabled:bg-red-800/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+            :title="messages.length === 0 ? 'Keine Unterhaltung zum Löschen' : isTyping ? 'Warten bis Antwort fertig ist' : 'Unterhaltung löschen'"
+          >
+            <Icon name="heroicons:trash" class="h-4 w-4" />
+            <span>Unterhaltung löschen</span>
+          </button>
+        </div>
       </div>
 
       <!-- Chat container -->
@@ -12,7 +44,8 @@
         <!-- Messages -->
         <div 
           ref="messagesContainer"
-          class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-4 min-h-0"
+          @scroll="handleScroll"
+          class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-2 min-h-0"
         >
           <div v-if="messages.length === 0" class="text-center text-gray-400 mt-20">
             <Icon name="heroicons:chat-bubble-left-right" class="h-16 w-16 mx-auto mb-4 opacity-50" />
@@ -78,11 +111,33 @@ interface Message {
   timestamp: string
 }
 
+interface ModelDetails {
+  parent_model: string
+  format: string
+  family: string
+  families: string[] | null
+  parameter_size: string
+  quantization_level: string
+}
+
+interface OllamaModel {
+  name: string
+  model: string
+  modified_at: string
+  size: number
+  digest: string
+  details: ModelDetails
+}
+
 const messages = ref<Message[]>([])
 const newMessage = ref('')
 const isTyping = ref(false)
 const messagesContainer = ref<HTMLElement>()
 const textareaRef = ref<HTMLTextAreaElement>()
+const isAtBottom = ref(true)
+const conversationContext = ref<number[] | null>(null)
+const selectedModel = ref('gemma3:4b')
+const availableModels = ref<OllamaModel[]>([])
 
 const formatTime = (date: Date) => {
   return date.toLocaleTimeString('de-DE', { 
@@ -95,6 +150,7 @@ const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      isAtBottom.value = true
     }
   })
 }
@@ -121,14 +177,22 @@ const sendMessage = async () => {
   isTyping.value = true
 
   try {
+    const requestBody: any = {
+      message: userMessage,
+      model: selectedModel.value
+    }
+
+    // Add context if available
+    if (conversationContext.value) {
+      requestBody.context = conversationContext.value
+    }
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        message: userMessage
-      })
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
@@ -155,6 +219,7 @@ const sendMessage = async () => {
     scrollToBottom()
 
     const decoder = new TextDecoder()
+    let lastResponseData: any = null
     
     while (true) {
       const { done, value } = await reader.read()
@@ -168,10 +233,14 @@ const sendMessage = async () => {
         if (line.trim()) {
           try {
             const data = JSON.parse(line)
+            lastResponseData = data
             if (data.response) {
               assistantMessage += data.response
               messages.value[assistantMessageIndex].content = assistantMessage
-              scrollToBottom()
+              // Only auto-scroll if user is at bottom
+              if (isAtBottom.value) {
+                scrollToBottom()
+              }
             }
           } catch (e) {
             // Ignore parsing errors for incomplete JSON
@@ -179,6 +248,12 @@ const sendMessage = async () => {
         }
       }
     }
+
+    // Update context from the last response
+    if (lastResponseData && lastResponseData.context) {
+      conversationContext.value = lastResponseData.context
+    }
+
   } catch (error) {
     console.error('Error sending message:', error)
     isTyping.value = false
@@ -216,7 +291,38 @@ watch(newMessage, () => {
 })
 
 // Auto-resize on mount
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const response = await fetch('/api/models')
+    if (response.ok) {
+      const data = await response.json()
+      availableModels.value = data.models || []
+      
+      // Set default model if available
+      if (availableModels.value.length > 0 && !selectedModel.value) {
+        selectedModel.value = availableModels.value[0].name
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load models:', error)
+    // Fallback to default model
+    availableModels.value = [{
+      name: 'gemma3:4b',
+      model: 'gemma3:4b',
+      modified_at: '',
+      size: 0,
+      digest: '',
+      details: {
+        parent_model: '',
+        format: 'gguf',
+        family: 'gemma3',
+        families: ['gemma3'],
+        parameter_size: '4.3B',
+        quantization_level: 'Q4_K_M'
+      }
+    }]
+  }
+  
   if (textareaRef.value) {
     autoResize()
   }
@@ -224,6 +330,44 @@ onMounted(() => {
 
 // Auto-scroll when new messages are added
 watch(messages, () => {
-  scrollToBottom()
+  // Only auto-scroll if user is at bottom
+  if (isAtBottom.value) {
+    scrollToBottom()
+  }
 }, { deep: true })
+
+const handleScroll = () => {
+  if (messagesContainer.value) {
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value
+    // Check if user is at bottom (with small threshold)
+    isAtBottom.value = scrollTop + clientHeight >= scrollHeight - 10
+  }
+}
+
+const clearConversation = () => {
+  if (isTyping.value) return
+  messages.value = []
+  conversationContext.value = null
+}
+
+// Watch for model changes and reset context
+watch(selectedModel, (newModel, oldModel) => {
+  if (oldModel && newModel !== oldModel && conversationContext.value) {
+    // Reset context when model changes
+    conversationContext.value = null
+    
+    // Add a system message to inform the user
+    if (messages.value.length > 0) {
+      messages.value.push({
+        role: 'assistant',
+        content: `🔄 Modell gewechselt zu **${newModel}**. Der Kontext wurde zurückgesetzt für eine neue Unterhaltung.`,
+        timestamp: formatTime(new Date())
+      })
+      
+      nextTick(() => {
+        scrollToBottom()
+      })
+    }
+  }
+})
 </script> 

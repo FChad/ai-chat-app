@@ -1,6 +1,6 @@
 <template>
   <div class="flex" :class="isUser ? 'justify-end' : 'justify-start'">
-    <div class="flex max-w-xs lg:max-w-2xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
+    <div class="flex max-w-xs lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
       <!-- Avatar -->
       <div class="flex-shrink-0" :class="isUser ? 'ml-3' : 'mr-3'">
         <div class="w-8 h-8 rounded-full flex items-center justify-center" 
@@ -14,9 +14,9 @@
       
       <!-- Message bubble -->
       <div class="relative">
-        <div class="px-4 py-3 rounded-2xl" 
+        <div class="px-3 py-2 rounded-2xl" 
              :class="isUser 
-               ? 'bg-purple-600 text-white' 
+               ? 'bg-teal-700 text-white' 
                : (isAi ? 'bg-blue-600/20 text-blue-100 border border-blue-500/30' : 'bg-green-600/20 text-green-100 border border-green-500/30')">
           
           <!-- Typing indicator -->
@@ -63,7 +63,17 @@ marked.setOptions({
 // Compute rendered markdown
 const renderedMessage = computed(() => {
   if (!props.message) return ''
-  return marked(props.message)
+  
+  // Escape HTML characters to prevent PHP tags and other HTML from being interpreted
+  const escapeHtml = (text: string) => {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+  
+  // First escape HTML, then process markdown
+  const escapedMessage = escapeHtml(props.message)
+  return marked(escapedMessage)
 })
 
 // Get appropriate prose classes based on message type
@@ -82,71 +92,210 @@ const getProseClasses = () => {
 /* Custom styles for markdown elements */
 :deep(.prose) {
   color: inherit;
+  max-width: none;
 }
 
+/* Headings */
 :deep(.prose h1),
 :deep(.prose h2),
 :deep(.prose h3),
 :deep(.prose h4),
 :deep(.prose h5),
 :deep(.prose h6) {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-:deep(.prose h1) { font-size: 1.25rem; }
-:deep(.prose h2) { font-size: 1.125rem; }
-:deep(.prose h3) { font-size: 1rem; }
+:deep(.prose h1) { 
+  font-size: 1.4rem; 
+  color: inherit;
+}
+:deep(.prose h2) { 
+  font-size: 1.25rem; 
+  color: inherit;
+}
+:deep(.prose h3) { 
+  font-size: 1.1rem; 
+  color: inherit;
+}
 
+/* Paragraphs */
 :deep(.prose p) {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  line-height: 1.5;
+  color: inherit;
 }
 
+/* Strong/Bold text - much more visible */
+:deep(.prose strong) {
+  font-weight: 700;
+  color: inherit;
+  text-shadow: 0 0 1px currentColor;
+}
+
+/* Lists - much better visibility */
 :deep(.prose ul),
 :deep(.prose ol) {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding-left: 1.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 2rem;
+  color: inherit;
+}
+
+:deep(.prose ul) {
+  list-style-type: disc;
+}
+
+:deep(.prose ol) {
+  list-style-type: decimal;
 }
 
 :deep(.prose li) {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
+  line-height: 1.5;
+  color: inherit;
+  position: relative;
 }
 
-:deep(.prose strong) {
+/* Custom bullet points for better visibility */
+:deep(.prose ul li::marker) {
+  color: inherit;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+:deep(.prose ol li::marker) {
+  color: inherit;
+  font-weight: bold;
+}
+
+/* Nested lists */
+:deep(.prose ul ul),
+:deep(.prose ol ol),
+:deep(.prose ul ol),
+:deep(.prose ol ul) {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+/* Code elements */
+:deep(.prose code) {
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 600;
 }
 
-:deep(.prose code) {
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+/* Code styling for different message types */
+.bg-teal-700 :deep(.prose code) {
+  background-color: rgba(15, 118, 110, 0.4);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
+.bg-blue-600\/20 :deep(.prose code) {
+  background-color: rgba(30, 58, 138, 0.5);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.bg-green-600\/20 :deep(.prose code) {
+  color: #86efac;
+}
+
+/* Code blocks */
 :deep(.prose pre) {
-  padding: 0.75rem;
+  padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bg-teal-700 :deep(.prose pre) {
+  background-color: rgba(15, 118, 110, 0.5);
+}
+
+.bg-blue-600\/20 :deep(.prose pre) {
+  background-color: rgba(30, 58, 138, 0.5);
+}
+
+.bg-green-600\/20 :deep(.prose pre) {
+  background-color: rgba(5, 46, 22, 0.5);
 }
 
 :deep(.prose pre code) {
   padding: 0;
   background: transparent;
   font-size: 0.875rem;
+  border: none;
+  color: inherit;
 }
 
+/* Links */
 :deep(.prose a) {
   text-decoration: underline;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.bg-teal-700 :deep(.prose a) {
+  color: #fbbf24;
+}
+
+.bg-blue-600\/20 :deep(.prose a) {
+  color: #60a5fa;
+}
+
+.bg-green-600\/20 :deep(.prose a) {
+  color: #34d399;
 }
 
 :deep(.prose a:hover) {
   text-decoration: none;
+  opacity: 0.8;
+}
+
+/* Blockquotes */
+:deep(.prose blockquote) {
+  border-left: 4px solid currentColor;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Tables */
+:deep(.prose table) {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+}
+
+:deep(.prose th),
+:deep(.prose td) {
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: left;
+}
+
+:deep(.prose th) {
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Horizontal rules */
+:deep(.prose hr) {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Typing animation */

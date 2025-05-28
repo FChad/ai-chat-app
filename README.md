@@ -1,11 +1,12 @@
 # Nuxt Ollama Chat
 
-Eine moderne Chat-Anwendung mit Ollama-Integration, die sowohl normalen Chat als auch KI-zu-KI Gespräche unterstützt.
+Eine moderne Chat-Anwendung mit Ollama-Integration für direkten Chat mit KI-Modellen.
 
 ## Features
 
-- 🤖 **Normaler Chat**: Chatte direkt mit der KI
-- 🔄 **KI vs KI**: Lass zwei KI-Modelle miteinander sprechen
+- 🤖 **KI-Chat**: Chatte direkt mit verschiedenen KI-Modellen
+- 🔄 **Modell-Auswahl**: Wähle zwischen verfügbaren Ollama-Modellen
+- 🧠 **Kontext-Erhaltung**: Unterhaltungen behalten ihren Kontext bei
 - 🎨 **Modernes UI**: Schöne, responsive Benutzeroberfläche mit Tailwind CSS
 - 🔒 **Sichere API**: Environment-basierte Konfiguration für API-Credentials
 - 📱 **Responsive**: Funktioniert auf Desktop und Mobile
@@ -41,22 +42,19 @@ Die Anwendung ist dann unter `http://localhost:3000` verfügbar.
 
 ## Verwendung
 
-### Normaler Chat
+### Chat
 - Gehe zu `/` (Hauptseite)
+- Wähle ein KI-Modell aus der Dropdown-Liste
 - Schreibe eine Nachricht und drücke Enter oder klicke "Senden"
 - Die KI antwortet in Echtzeit mit Streaming
-
-### KI vs KI Chat
-- Gehe zu `/ai-chat`
-- Gib eine Startnachricht ein (z.B. "Erzählt euch eine Geschichte")
-- Stelle die maximale Anzahl von Nachrichten ein
-- Klicke "Start" um die Unterhaltung zu beginnen
-- Die KIs werden abwechselnd antworten
+- Der Kontext wird automatisch zwischen den Nachrichten beibehalten
+- Nutze "Unterhaltung löschen" um eine neue Unterhaltung zu starten
 
 ## Technische Details
 
 ### API-Endpunkte
 - `POST /api/chat` - Sendet Nachrichten an Ollama und streamt die Antwort
+- `GET /api/models` - Lädt verfügbare Ollama-Modelle
 
 ### Sicherheit
 - API-Credentials werden nur serverseitig verwendet
@@ -95,11 +93,7 @@ Stelle sicher, dass die folgenden Environment-Variablen in deiner Production-Umg
 
 ### Andere Ollama-Modelle verwenden
 
-Du kannst das Standard-Modell in `server/api/chat.post.ts` ändern:
-
-```typescript
-const { message, model = 'dein-model-name' } = body
-```
+Die verfügbaren Modelle werden automatisch von der Ollama API geladen. Du kannst das Standard-Modell in den Komponenten ändern.
 
 ### UI-Styling anpassen
 
@@ -110,6 +104,6 @@ Die Styles befinden sich in:
 ### Weitere Features hinzufügen
 
 - Conversation History speichern
-- Verschiedene KI-Modelle auswählen
 - Chat-Export Funktionalität
 - Benutzer-Authentifizierung
+- Datei-Upload für Dokumente

@@ -13,12 +13,5 @@ export default defineNuxtConfig({
     ollamaApiUrl: process.env.OLLAMA_API_URL,
     ollamaApiUser: process.env.OLLAMA_API_USER,
     ollamaApiKey: process.env.OLLAMA_API_KEY,
-    // Public keys (exposed to client-side)
-    public: {
-      // Add any public config here if needed
-      ollamaApiUrl: process.env.OLLAMA_API_URL,
-      ollamaApiUser: process.env.OLLAMA_API_USER,
-      ollamaApiKey: process.env.OLLAMA_API_KEY,
-    }
   }
 })

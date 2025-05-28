@@ -1,29 +1,29 @@
 <template>
   <div class="flex" :class="isUser ? 'justify-end' : 'justify-start'">
-    <div class="flex max-w-xs lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
+    <div class="flex max-w-[85%] sm:max-w-xs lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
       <!-- Avatar -->
-      <div class="flex-shrink-0" :class="isUser ? 'ml-3' : 'mr-3'">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center" 
+      <div class="flex-shrink-0" :class="isUser ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'">
+        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center" 
              :class="isUser ? 'bg-purple-600' : (isAi ? 'bg-blue-600' : 'bg-green-600')">
           <Icon 
             :name="isUser ? 'heroicons:user' : (isAi ? 'heroicons:cpu-chip' : 'heroicons:sparkles')" 
-            class="h-5 w-5 text-white flex-shrink-0" 
+            class="h-3 w-3 sm:h-5 sm:w-5 text-white flex-shrink-0" 
           />
         </div>
       </div>
       
       <!-- Message bubble -->
       <div class="relative">
-        <div class="px-3 py-2 rounded-2xl" 
+        <div class="px-2 py-1 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl text-sm sm:text-base" 
              :class="isUser 
                ? 'bg-teal-700 text-white' 
                : (isAi ? 'bg-blue-600/20 text-blue-100 border border-blue-500/30' : 'bg-green-600/20 text-green-100 border border-green-500/30')">
           
           <!-- Typing indicator -->
           <div v-if="isTyping" class="flex items-center space-x-1">
-            <div class="typing-dot w-2 h-2 bg-current rounded-full"></div>
-            <div class="typing-dot w-2 h-2 bg-current rounded-full"></div>
-            <div class="typing-dot w-2 h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
           </div>
           
           <!-- Message content with markdown support -->
@@ -102,30 +102,30 @@ const getProseClasses = () => {
 :deep(.prose h4),
 :deep(.prose h5),
 :deep(.prose h6) {
-  margin-top: 0.8rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.3rem;
   font-weight: 700;
   line-height: 1.3;
 }
 
 :deep(.prose h1) { 
-  font-size: 1.4rem; 
+  font-size: 1.2rem;
   color: inherit;
 }
 :deep(.prose h2) { 
-  font-size: 1.25rem; 
+  font-size: 1.1rem;
   color: inherit;
 }
 :deep(.prose h3) { 
-  font-size: 1.1rem; 
+  font-size: 1rem;
   color: inherit;
 }
 
 /* Paragraphs */
 :deep(.prose p) {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
   color: inherit;
 }
 
@@ -139,9 +139,9 @@ const getProseClasses = () => {
 /* Lists - much better visibility */
 :deep(.prose ul),
 :deep(.prose ol) {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding-left: 2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
   color: inherit;
 }
 
@@ -154,9 +154,9 @@ const getProseClasses = () => {
 }
 
 :deep(.prose li) {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-  line-height: 1.5;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  line-height: 1.4;
   color: inherit;
   position: relative;
 }
@@ -165,7 +165,7 @@ const getProseClasses = () => {
 :deep(.prose ul li::marker) {
   color: inherit;
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
 
 :deep(.prose ol li::marker) {
@@ -178,16 +178,16 @@ const getProseClasses = () => {
 :deep(.prose ol ol),
 :deep(.prose ul ol),
 :deep(.prose ol ul) {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding-left: 1.5rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
+  padding-left: 1rem;
 }
 
 /* Code elements */
 :deep(.prose code) {
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.375rem;
-  font-size: 0.9rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 600;
 }
@@ -211,12 +211,13 @@ const getProseClasses = () => {
 
 /* Code blocks */
 :deep(.prose pre) {
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
   overflow-x: auto;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8rem;
 }
 
 .bg-teal-700 :deep(.prose pre) {
@@ -234,7 +235,7 @@ const getProseClasses = () => {
 :deep(.prose pre code) {
   padding: 0;
   background: transparent;
-  font-size: 0.875rem;
+  font-size: inherit;
   border: none;
   color: inherit;
 }

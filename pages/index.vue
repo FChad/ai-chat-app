@@ -1,20 +1,20 @@
 <template>
-  <div class="container mx-auto px-4 h-full">
-    <div class="max-w-7xl mx-auto h-full flex flex-col py-6">
+  <div class="container mx-auto px-2 sm:px-4 h-full">
+    <div class="max-w-7xl mx-auto h-full flex flex-col py-3 sm:py-6">
       <!-- Top Controls -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <!-- Model Selection - Top Left -->
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">
+        <div class="w-full sm:w-auto">
+          <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2">
             KI-Modell
-            <span v-if="conversationContext && messages.length > 0" class="text-yellow-400 text-xs ml-2">
-              ⚠️ Wechsel setzt Kontext zurück
+            <span v-if="conversationContext && messages.length > 0" class="text-yellow-400 text-xs ml-1 sm:ml-2">
+              ⚠️ <span class="hidden sm:inline">Wechsel setzt Kontext zurück</span><span class="sm:hidden">Kontext wird zurückgesetzt</span>
             </span>
           </label>
           <select
             v-model="selectedModel"
             :disabled="isTyping"
-            class="px-4 py-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-w-[200px] appearance-none cursor-pointer hover:bg-black/30 transition-colors"
+            class="w-full sm:min-w-[200px] px-3 sm:px-4 py-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer hover:bg-black/30 transition-colors text-sm sm:text-base"
             style="color-scheme: dark;"
             :title="conversationContext && messages.length > 0 ? 'Achtung: Modellwechsel setzt den Kontext zurück!' : 'Wähle ein KI-Modell'"
           >
@@ -25,31 +25,32 @@
         </div>
 
         <!-- Clear Conversation Button - Top Right -->
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">&nbsp;</label>
+        <div class="w-full sm:w-auto">
+          <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1 sm:mb-2 sm:invisible">&nbsp;</label>
           <button
             @click="clearConversation"
             :disabled="messages.length === 0 || isTyping"
-            class="px-4 py-2 bg-red-700/70 hover:bg-red-600 disabled:bg-red-800/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+            class="w-full sm:w-auto px-3 sm:px-4 py-2 bg-red-700/70 hover:bg-red-600 disabled:bg-red-800/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center sm:justify-start space-x-2 text-sm sm:text-base"
             :title="messages.length === 0 ? 'Keine Unterhaltung zum Löschen' : isTyping ? 'Warten bis Antwort fertig ist' : 'Unterhaltung löschen'"
           >
             <Icon name="heroicons:trash" class="h-4 w-4" />
-            <span>Unterhaltung löschen</span>
+            <span class="hidden sm:inline">Unterhaltung löschen</span>
+            <span class="sm:hidden">Löschen</span>
           </button>
         </div>
       </div>
 
       <!-- Chat container -->
-      <div class="flex-1 bg-black/20 backdrop-blur-lg rounded-2xl border border-white/10 flex flex-col max-w-full min-h-0">
+      <div class="flex-1 bg-black/20 backdrop-blur-lg rounded-xl sm:rounded-2xl border border-white/10 flex flex-col max-w-full min-h-0">
         <!-- Messages -->
         <div 
           ref="messagesContainer"
           @scroll="handleScroll"
-          class="flex-1 p-6 overflow-y-auto scrollbar-thin space-y-2 min-h-0"
+          class="flex-1 p-3 sm:p-6 overflow-y-auto scrollbar-thin space-y-1 sm:space-y-2 min-h-0"
         >
-          <div v-if="messages.length === 0" class="text-center text-gray-400 mt-20">
-            <Icon name="heroicons:chat-bubble-left-right" class="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <p>Starte eine Unterhaltung!</p>
+          <div v-if="messages.length === 0" class="text-center text-gray-400 mt-10 sm:mt-20">
+            <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 opacity-50" />
+            <p class="text-sm sm:text-base">Starte eine Unterhaltung!</p>
           </div>
           
           <ChatMessage
@@ -71,14 +72,14 @@
         </div>
 
         <!-- Input area -->
-        <div class="p-6 border-t border-white/10">
-          <form @submit.prevent="sendMessage" class="flex items-end space-x-4">
-            <div class="flex-1">
+        <div class="p-3 sm:p-6 border-t border-white/10">
+          <form @submit.prevent="sendMessage" class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
+            <div class="flex-1 w-full">
               <textarea
                 ref="textareaRef"
                 v-model="newMessage"
                 placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin"
+                class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[2.5rem] sm:min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin text-sm sm:text-base"
                 :disabled="isTyping"
                 @keydown="handleKeydown"
                 rows="1"
@@ -87,9 +88,9 @@
             <button
               type="submit"
               :disabled="!newMessage.trim() || isTyping"
-              class="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center space-x-2 flex-shrink-0 self-start"
+              class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm sm:text-base"
             >
-              <Icon name="heroicons:paper-airplane" class="h-5 w-5" />
+              <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Senden</span>
             </button>
           </form>

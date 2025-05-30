@@ -1,37 +1,39 @@
+import type { OllamaModel } from '~/types/chat'
+
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
-  // Get environment variables
-  const ollamaApiUrl = runtimeConfig.ollamaApiUrl
-  const ollamaApiUser = runtimeConfig.ollamaApiUser
-  const ollamaApiKey = runtimeConfig.ollamaApiKey
-
-  // Validate environment variables
-  if (!ollamaApiUrl) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'OLLAMA_API_URL environment variable is not set'
-    })
-  }
-
-  if (!ollamaApiUser) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'OLLAMA_API_USER environment variable is not set'
-    })
-  }
-
-  if (!ollamaApiKey) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'OLLAMA_API_KEY environment variable is not set'
-    })
-  }
-
-  // Construct the full URL for tags endpoint
-  const apiUrl = `${ollamaApiUrl}/tags`
-
   try {
+    // Get environment variables
+    const ollamaApiUrl = runtimeConfig.ollamaApiUrl
+    const ollamaApiUser = runtimeConfig.ollamaApiUser
+    const ollamaApiKey = runtimeConfig.ollamaApiKey
+
+    // Validate environment variables
+    if (!ollamaApiUrl) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'OLLAMA_API_URL environment variable is not set'
+      })
+    }
+
+    if (!ollamaApiUser) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'OLLAMA_API_USER environment variable is not set'
+      })
+    }
+
+    if (!ollamaApiKey) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'OLLAMA_API_KEY environment variable is not set'
+      })
+    }
+
+    // Construct the full URL for tags endpoint
+    const apiUrl = `${ollamaApiUrl}/tags`
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
@@ -41,19 +43,39 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error')
       throw createError({
         statusCode: response.status,
-        statusMessage: `Ollama API error: ${response.statusText}`
+        statusMessage: `Ollama API error: ${response.statusText} - ${errorText}`
       })
     }
 
     const data = await response.json()
-    return data
-  } catch (error) {
-    console.error('Ollama Models API error:', error)
+    
+    // Validate response structure
+    if (!data || !Array.isArray(data.models)) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Invalid response format from Ollama API'
+      })
+    }
+
+    return {
+      models: data.models as OllamaModel[]
+    }
+
+  } catch (error: any) {
+    console.error('Models API error:', error)
+    
+    // If it's already a createError, re-throw it
+    if (error.statusCode) {
+      throw error
+    }
+    
+    // Handle other errors
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to fetch models from Ollama API'
+      statusMessage: error.message || 'Failed to fetch models from Ollama API'
     })
   }
 }) 

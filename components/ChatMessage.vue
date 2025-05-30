@@ -113,9 +113,9 @@ const proseClasses = computed(() => {
 
 // Post-process HTML to add copy buttons and improve code blocks
 const postProcessHTML = (html: string): string => {
-  // Replace code blocks with enhanced versions
-  return html.replace(
-    /<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g,
+  // Replace code blocks with enhanced versions - improved regex to handle special characters
+  let result = html.replace(
+    /<pre><code class="language-([^"]+)">([\s\S]*?)<\/code><\/pre>/g,
     (match, language, code) => {
       // Decode HTML entities
       const decodedCode = code
@@ -146,6 +146,48 @@ const postProcessHTML = (html: string): string => {
       `
     }
   )
+  
+  // Also handle code blocks without language class
+  result = result.replace(
+    /<pre><code>([\s\S]*?)<\/code><\/pre>/g,
+    (match, code) => {
+      // Skip if already processed
+      if (match.includes('code-block-container')) {
+        return match
+      }
+      
+      // Decode HTML entities
+      const decodedCode = code
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .trim()
+      
+      // Auto-detect language
+      const detectedLanguage = detectLanguage(decodedCode)
+      const highlightedCode = highlightCode(decodedCode, detectedLanguage)
+      const languageName = getLanguageName(detectedLanguage)
+      
+      return `
+        <div class="code-block-container">
+          <div class="code-block-header">
+            <span class="code-block-language">${languageName}</span>
+            <button class="code-block-copy" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+              Kopieren
+            </button>
+          </div>
+          <pre class="code-block-content"><code class="hljs language-${detectedLanguage}">${highlightedCode}</code></pre>
+        </div>
+      `
+    }
+  )
+  
+  return result
 }
 
 // Compute rendered markdown
@@ -301,11 +343,62 @@ if (process.client) {
 
 /* Inline code styling */
 :deep(.inline-code) {
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
   font-size: 0.875em;
   font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-weight: 600;
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* General code styling for any code tag not in code-block-content */
+:deep(code:not(.code-block-content code)) {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875em;
+  font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Override prose styles for inline code */
+:deep(.prose code:not(.code-block-content code)) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: #e2e8f0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.375rem !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* User message inline code - purple theme */
+:deep(.prose-invert code:not(.code-block-content code)) {
+  background: rgba(139, 92, 246, 0.3) !important;
+  color: #e9d5ff !important;
+  border: 1px solid rgba(139, 92, 246, 0.4) !important;
+}
+
+/* AI message inline code - blue theme */
+:deep(.prose-blue code:not(.code-block-content code)) {
+  background: rgba(59, 130, 246, 0.3) !important;
+  color: #bfdbfe !important;
+  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Assistant message inline code - green theme */
+:deep(.prose-green code:not(.code-block-content code)) {
+  background: rgba(34, 197, 94, 0.3) !important;
+  color: #bbf7d0 !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
 }
 
 /* Headings */

@@ -23,9 +23,28 @@ export const useHighlight = () => {
     try {
       let result
       
-      if (language && hljs.getLanguage(language)) {
+      // Normalize language name for highlight.js
+      let normalizedLanguage = language
+      if (language) {
+        const langMap: Record<string, string> = {
+          'c++': 'cpp',
+          'cplusplus': 'cpp',
+          'cxx': 'cpp',
+          'cc': 'cpp',
+          'c#': 'csharp',
+          'js': 'javascript',
+          'ts': 'typescript',
+          'py': 'python',
+          'rb': 'ruby',
+          'sh': 'shell',
+          'yml': 'yaml'
+        }
+        normalizedLanguage = langMap[language.toLowerCase()] || language
+      }
+      
+      if (normalizedLanguage && hljs.getLanguage(normalizedLanguage)) {
         // Use specified language
-        result = hljs.highlight(code, { language })
+        result = hljs.highlight(code, { language: normalizedLanguage })
       } else {
         // Auto-detect language
         result = hljs.highlightAuto(code, [
@@ -76,8 +95,13 @@ export const useHighlight = () => {
       'python': 'Python',
       'java': 'Java',
       'cpp': 'C++',
+      'c++': 'C++',
+      'cplusplus': 'C++',
+      'cxx': 'C++',
+      'cc': 'C++',
       'c': 'C',
       'cs': 'C#',
+      'c#': 'C#',
       'csharp': 'C#',
       'php': 'PHP',
       'rb': 'Ruby',

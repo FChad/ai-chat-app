@@ -1,27 +1,27 @@
 <template>
   <div class="flex" :class="isUser ? 'justify-end' : 'justify-start'">
-    <div class="flex max-w-[85%] sm:max-w-xs lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
+    <div class="flex max-w-[95%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
       <!-- Avatar -->
-      <div class="flex-shrink-0" :class="isUser ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'">
-        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center" 
+      <div class="flex-shrink-0" :class="isUser ? 'ml-1 sm:ml-3' : 'mr-1 sm:mr-3'">
+        <div class="w-5 h-5 sm:w-8 sm:h-8 rounded-full flex items-center justify-center" 
              :class="avatarClasses">
           <Icon 
             :name="avatarIcon" 
-            class="h-3 w-3 sm:h-5 sm:w-5 text-white flex-shrink-0" 
+            class="h-2.5 w-2.5 sm:h-5 sm:w-5 text-white flex-shrink-0" 
           />
         </div>
       </div>
       
       <!-- Message bubble -->
-      <div class="relative">
-        <div class="px-2 py-1 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl text-sm sm:text-base" 
+      <div class="relative min-w-0 flex-1">
+        <div class="px-1.5 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-2xl text-xs sm:text-base" 
              :class="bubbleClasses">
           
           <!-- Typing indicator -->
           <div v-if="isTyping" class="flex items-center space-x-1">
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1 h-1 sm:w-2 sm:h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1 h-1 sm:w-2 sm:h-2 bg-current rounded-full"></div>
+            <div class="typing-dot w-1 h-1 sm:w-2 sm:h-2 bg-current rounded-full"></div>
           </div>
           
           <!-- Message content with markdown support -->
@@ -284,6 +284,10 @@ if (process.client) {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.3);
+  /* Ensure container doesn't break layout on mobile */
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 :deep(.code-block-header) {
@@ -330,6 +334,121 @@ if (process.client) {
   font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 0.875rem;
   line-height: 1.5;
+  /* Mobile optimizations */
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent; /* Firefox */
+}
+
+/* Mobile specific code block container adjustments */
+@media (max-width: 640px) {
+  :deep(.code-block-container) {
+    margin: 0.5rem 0; /* Reduce margin on mobile */
+    border-radius: 0.375rem; /* Slightly smaller border radius */
+    /* Ensure it doesn't overflow on very small screens */
+    max-width: calc(100vw - 4rem); /* Account for message padding and margins */
+  }
+  
+  :deep(.code-block-content) {
+    font-size: 0.75rem; /* Smaller font on mobile */
+    padding: 0.75rem; /* Slightly less padding on mobile */
+    line-height: 1.4; /* Tighter line height on mobile */
+    /* Better mobile scrolling */
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  :deep(.code-block-header) {
+    padding: 0.375rem 0.5rem; /* Reduce header padding on mobile */
+    font-size: 0.6875rem; /* Smaller header font on mobile */
+  }
+  
+  :deep(.code-block-copy) {
+    padding: 0.1875rem 0.375rem; /* Smaller copy button on mobile */
+    font-size: 0.6875rem; /* Smaller copy button text */
+    gap: 0.125rem; /* Smaller gap in copy button */
+  }
+  
+  :deep(.code-block-copy svg) {
+    width: 0.875rem; /* Smaller icon */
+    height: 0.875rem;
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 480px) {
+  :deep(.code-block-container) {
+    margin: 0.375rem 0;
+    max-width: calc(100vw - 3rem);
+  }
+  
+  :deep(.code-block-content) {
+    font-size: 0.6875rem; /* Even smaller font on very small screens */
+    padding: 0.5rem;
+    line-height: 1.3;
+  }
+  
+  :deep(.code-block-header) {
+    padding: 0.25rem 0.375rem;
+    font-size: 0.625rem;
+  }
+}
+
+/* Additional mobile optimizations for very small screens */
+@media (max-width: 375px) {
+  :deep(.code-block-container) {
+    margin: 0.25rem 0;
+    max-width: calc(100vw - 2.5rem);
+  }
+  
+  :deep(.code-block-content) {
+    font-size: 0.625rem;
+    padding: 0.375rem;
+    line-height: 1.2;
+  }
+  
+  :deep(.code-block-header) {
+    padding: 0.1875rem 0.25rem;
+    font-size: 0.5625rem;
+  }
+  
+  :deep(.code-block-copy) {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.5625rem;
+    gap: 0.0625rem;
+  }
+  
+  :deep(.code-block-copy svg) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+/* Intermediate breakpoint for better responsive design */
+@media (min-width: 375px) and (max-width: 640px) {
+  .flex.max-w-\[95\%\] {
+    max-width: 90% !important;
+  }
+}
+
+/* Webkit scrollbar styling for better mobile experience */
+:deep(.code-block-content::-webkit-scrollbar) {
+  height: 6px;
+}
+
+:deep(.code-block-content::-webkit-scrollbar-track) {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+:deep(.code-block-content::-webkit-scrollbar-thumb) {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+:deep(.code-block-content::-webkit-scrollbar-thumb:hover) {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 :deep(.code-block-content code) {
@@ -354,6 +473,14 @@ if (process.client) {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Mobile responsive inline code */
+@media (max-width: 640px) {
+  :deep(.inline-code) {
+    font-size: 0.75em; /* Smaller inline code on mobile */
+    padding: 0.1875rem 0.375rem; /* Less padding on mobile */
+  }
+}
+
 /* General code styling for any code tag not in code-block-content */
 :deep(code:not(.code-block-content code)) {
   padding: 0.25rem 0.5rem;
@@ -369,15 +496,12 @@ if (process.client) {
   white-space: pre-wrap;
 }
 
-/* Override prose styles for inline code */
-:deep(.prose code:not(.code-block-content code)) {
-  background: rgba(0, 0, 0, 0.4) !important;
-  color: #e2e8f0 !important;
-  padding: 0.25rem 0.5rem !important;
-  border-radius: 0.375rem !important;
-  font-weight: 600 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+/* Mobile responsive general code */
+@media (max-width: 640px) {
+  :deep(code:not(.code-block-content code)) {
+    font-size: 0.75em; /* Smaller general code on mobile */
+    padding: 0.1875rem 0.375rem; /* Less padding on mobile */
+  }
 }
 
 /* User message inline code - purple theme */
@@ -653,5 +777,24 @@ if (process.client) {
   -o-tab-size: 2 !important;
   white-space: pre !important;
   word-wrap: normal !important;
+}
+
+/* Override prose styles for inline code */
+:deep(.prose code:not(.code-block-content code)) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: #e2e8f0 !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.375rem !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Mobile responsive prose code */
+@media (max-width: 640px) {
+  :deep(.prose code:not(.code-block-content code)) {
+    font-size: 0.75em !important; /* Smaller prose code on mobile */
+    padding: 0.1875rem 0.375rem !important; /* Less padding on mobile */
+  }
 }
 </style> 

@@ -38,7 +38,7 @@
           ref="textareaRef"
           v-model="message"
           placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-          class="w-full px-3 sm:px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[3rem] sm:min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin text-sm sm:text-base"
+          class="w-full px-3 sm:px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[3rem] sm:min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin text-sm sm:text-base mobile-placeholder"
           :disabled="chatStore.isTyping"
           @keydown="handleKeydown"
           rows="1"
@@ -130,4 +130,38 @@ watch(() => chatStore.availableModels, (models) => {
     selectedModel.value = preferredModel ? preferredModel.name : models[0].name
   }
 }, { immediate: true })
-</script> 
+</script>
+
+<style scoped>
+/* Mobile placeholder text optimization */
+.mobile-placeholder::placeholder {
+  font-size: 0.75rem; /* 12px - smaller on mobile */
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* Responsive placeholder text */
+@media (min-width: 640px) {
+  .mobile-placeholder::placeholder {
+    font-size: 1rem; /* 16px - normal size on desktop */
+    line-height: 1.5;
+    opacity: 0.7;
+  }
+}
+
+/* Extra small screens - even smaller placeholder */
+@media (max-width: 375px) {
+  .mobile-placeholder::placeholder {
+    font-size: 0.6875rem; /* 11px - very small screens */
+    line-height: 1.3;
+  }
+}
+
+/* Ensure placeholder text wraps nicely on mobile */
+@media (max-width: 640px) {
+  .mobile-placeholder {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+</style> 

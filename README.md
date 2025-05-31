@@ -17,7 +17,7 @@ Eine moderne, optimierte Chat-Anwendung mit Ollama-Integration für direkten Cha
 - 📤 **Export-Funktion**: Exportiere deine Unterhaltungen als JSON
 - ⚙️ **Einstellungen**: Umfassende Einstellungen und App-Informationen
 
-## 🚀 Neue Features (v0.1.0-beta)
+## 🚀 Neue Features (v0.1.1-beta)
 
 ### ChatGPT-ähnliche Oberfläche
 - **Sidebar mit Unterhaltungen**: Alle Unterhaltungen auf einen Blick

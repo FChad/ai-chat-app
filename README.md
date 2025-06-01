@@ -204,14 +204,3 @@ npm run lint
 # Type checking
 npm run type-check
 ```
-
-## 📝 Changelog
-
-### v2.0.0 - Optimierte Architektur
-- ✅ Komponenten-basierte Architektur
-- ✅ Pinia State Management
-- ✅ TypeScript Interfaces
-- ✅ Composables für Logik-Trennung
-- ✅ Verbesserte Error Handling
-- ✅ Performance-Optimierungen
-- ✅ Bessere Code-Struktur

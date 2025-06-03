@@ -25,7 +25,7 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 - 💬 **Multiple Chats Fix**: Corrected functionality for multiple simultaneous chats
 - 📅 **Sorting by Creation Date**: Conversations are now sorted by `created_at`
 
-### v0.1.1-beta
+### v0.1.2-beta
 - 📱 **Mobile Enhancements**: Improved mobile user interface and responsiveness
 - 🎨 **UI Optimizations**: Enhanced user-friendliness on mobile devices
 - 🔧 **Mobile-specific Improvements**: Touch optimization and better navigation
@@ -36,7 +36,7 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 - 💬 **Session Management**: First implementation of the session system
 - 🎨 **Base UI**: Basic user interface with Tailwind CSS
 
-## 🚀 New Features (v0.1.1-beta)
+## 🚀 New Features (v0.1.2-beta)
 
 ### Session-based Chat Management ⭐ NEW
 - **Unique Session IDs**: Each chat receives a UUIDv4 for unique identification

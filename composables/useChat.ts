@@ -114,6 +114,7 @@ export const useChat = () => {
         const decoder = new TextDecoder()
         let lastResponseData: any = null
         let chunkCount = 0
+        let buffer = '' // Buffer for incomplete JSON strings
 
         try {
           while (true) {
@@ -121,42 +122,110 @@ export const useChat = () => {
             
             if (done) {
               console.log(`Streaming completed for session ${sessionId}, total chunks processed: ${chunkCount}`)
+              // Process any remaining data in buffer
+              if (buffer.trim()) {
+                try {
+                  const data = JSON.parse(buffer)
+                  if (data.sessionId !== sessionId) {
+                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
+                  } else if (data.response || (data.message && data.message.content)) {
+                    const content = data.response || data.message.content
+                    assistantMessage += content
+                    chatStore.updateLastMessage(assistantMessage, sessionId)
+                  }
+                } catch (e) {
+                  console.warn('Error parsing final buffer JSON:', e, 'Buffer:', buffer)
+                }
+              }
               break
             }
 
             chunkCount++
-            const chunk = decoder.decode(value)
-            const lines = chunk.split('\n')
+            const chunk = decoder.decode(value, { stream: true })
+            buffer += chunk
 
-            for (const line of lines) {
-              if (line.trim()) {
-                try {
-                  const data = JSON.parse(line)
-                  lastResponseData = data
+            // Try to extract complete JSON objects from buffer
+            let startIndex = 0
+            let braceCount = 0
+            let inString = false
+            let escaped = false
 
-                  // Check if this response belongs to current session
-                  if (data.sessionId !== sessionId) {
-                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
-                    continue
-                  }
-
-                  if (data.response || (data.message && data.message.content)) {
-                    // Handle both legacy (response) and modern (message.content) formats
-                    const content = data.response || data.message.content
-                    assistantMessage += content
+            for (let i = 0; i < buffer.length; i++) {
+              const char = buffer[i]
+              
+              if (escaped) {
+                escaped = false
+                continue
+              }
+              
+              if (char === '\\') {
+                escaped = true
+                continue
+              }
+              
+              if (char === '"') {
+                inString = !inString
+                continue
+              }
+              
+              if (!inString) {
+                if (char === '{') {
+                  braceCount++
+                } else if (char === '}') {
+                  braceCount--
+                  
+                  if (braceCount === 0) {
+                    // Found complete JSON object
+                    const jsonString = buffer.substring(startIndex, i + 1)
                     
-                    // Update the assistant message in real-time for the specific session
-                    chatStore.updateLastMessage(assistantMessage, sessionId)
-                  }
+                    try {
+                      const data = JSON.parse(jsonString)
+                      lastResponseData = data
 
-                  if (data.done) {
-                    console.log('Streaming marked as done for session:', sessionId)
-                    break
+                      // Add sessionId to the response data if not present
+                      if (!data.sessionId) {
+                        data.sessionId = sessionId
+                      }
+
+                      // Check if this response belongs to current session
+                      if (data.sessionId !== sessionId) {
+                        console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
+                      } else {
+                        if (data.response || (data.message && data.message.content)) {
+                          // Handle both legacy (response) and modern (message.content) formats
+                          const content = data.response || data.message.content
+                          assistantMessage += content
+                          
+                          // Update the assistant message in real-time for the specific session
+                          chatStore.updateLastMessage(assistantMessage, sessionId)
+                        }
+
+                        if (data.done) {
+                          console.log('Streaming marked as done for session:', sessionId)
+                          buffer = buffer.substring(i + 1) // Keep remaining data
+                          break
+                        }
+                      }
+                    } catch (e) {
+                      console.warn('Error parsing JSON object:', e, 'JSON:', jsonString)
+                    }
+                    
+                    // Move to next potential JSON object
+                    startIndex = i + 1
+                    while (startIndex < buffer.length && buffer[startIndex] !== '{') {
+                      startIndex++
+                    }
+                    i = startIndex - 1 // Will be incremented by for loop
                   }
-                } catch (e) {
-                  console.warn('Error parsing JSON in stream:', e, 'Line:', line)
                 }
               }
+            }
+
+            // Keep incomplete JSON in buffer for next iteration
+            if (startIndex < buffer.length) {
+              buffer = buffer.substring(startIndex)
+            } else {
+              buffer = ''
             }
           }
         } catch (streamError: any) {

@@ -159,6 +159,7 @@ export default defineEventHandler(async (event) => {
           const reader = response.body!.getReader()
           const decoder = new TextDecoder()
           let chunkCount = 0
+          let buffer = '' // Buffer for incomplete JSON strings
 
           const pump = async () => {
             try {
@@ -167,36 +168,98 @@ export default defineEventHandler(async (event) => {
                 
                 if (done) {
                   console.log(`Streaming completed for session ${sessionId}, total chunks: ${chunkCount}`)
+                  // Process any remaining data in buffer
+                  if (buffer.trim()) {
+                    try {
+                      const data = JSON.parse(buffer)
+                      data.sessionId = sessionId
+                      
+                      // Transform modern chat response to maintain compatibility with frontend
+                      if (data.message && data.message.content) {
+                        data.response = data.message.content
+                      }
+                      
+                      const finalLine = JSON.stringify(data) + '\n'
+                      controller.enqueue(new TextEncoder().encode(finalLine))
+                    } catch (e) {
+                      console.warn('Error parsing final buffer JSON:', e)
+                    }
+                  }
                   controller.close()
                   break
                 }
 
                 chunkCount++
-                const chunk = decoder.decode(value)
-                const lines = chunk.split('\n')
+                const chunk = decoder.decode(value, { stream: true })
+                buffer += chunk
 
-                for (const line of lines) {
-                  if (line.trim()) {
-                    try {
-                      const data = JSON.parse(line)
+                // Try to extract complete JSON objects from buffer
+                let startIndex = 0
+                let braceCount = 0
+                let inString = false
+                let escaped = false
+
+                for (let i = 0; i < buffer.length; i++) {
+                  const char = buffer[i]
+                  
+                  if (escaped) {
+                    escaped = false
+                    continue
+                  }
+                  
+                  if (char === '\\') {
+                    escaped = true
+                    continue
+                  }
+                  
+                  if (char === '"') {
+                    inString = !inString
+                    continue
+                  }
+                  
+                  if (!inString) {
+                    if (char === '{') {
+                      braceCount++
+                    } else if (char === '}') {
+                      braceCount--
                       
-                      // Add sessionId to the response data
-                      data.sessionId = sessionId
-                      
-                      // Transform modern chat response to maintain compatibility with frontend
-                      if (data.message && data.message.content) {
-                        // Modern chat API response format
-                        data.response = data.message.content
+                      if (braceCount === 0) {
+                        // Found complete JSON object
+                        const jsonString = buffer.substring(startIndex, i + 1)
+                        
+                        try {
+                          const data = JSON.parse(jsonString)
+                          
+                          // Add sessionId to the response data
+                          data.sessionId = sessionId
+                          
+                          // Transform modern chat response to maintain compatibility with frontend
+                          if (data.message && data.message.content) {
+                            data.response = data.message.content
+                          }
+                          
+                          const modifiedLine = JSON.stringify(data) + '\n'
+                          controller.enqueue(new TextEncoder().encode(modifiedLine))
+                        } catch (e) {
+                          console.warn('Error parsing JSON object:', e, 'JSON:', jsonString)
+                        }
+                        
+                        // Move to next potential JSON object
+                        startIndex = i + 1
+                        while (startIndex < buffer.length && buffer[startIndex] !== '{') {
+                          startIndex++
+                        }
+                        i = startIndex - 1 // Will be incremented by for loop
                       }
-                      
-                      const modifiedLine = JSON.stringify(data) + '\n'
-                      controller.enqueue(new TextEncoder().encode(modifiedLine))
-                    } catch (e) {
-                      console.warn('Error parsing JSON in stream:', e, 'Line:', line)
-                      // If JSON parsing fails, pass through the original line
-                      controller.enqueue(new TextEncoder().encode(line + '\n'))
                     }
                   }
+                }
+
+                // Keep incomplete JSON in buffer for next iteration
+                if (startIndex < buffer.length) {
+                  buffer = buffer.substring(startIndex)
+                } else {
+                  buffer = ''
                 }
               }
             } catch (error) {

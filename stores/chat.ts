@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Message, OllamaModel, Conversation, ActiveChatSession } from '~/types/chat'
+import type { Message, OllamaModel, Conversation, ActiveChatSession, AppSettings } from '~/types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -9,6 +9,11 @@ export const useChatStore = defineStore('chat', () => {
   const availableModels = ref<OllamaModel[]>([])
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
+  
+  // App Settings with defaults
+  const settings = ref<AppSettings>({
+    streamMode: true // Default to streaming enabled
+  })
 
   // Getters
   const currentConversation = computed(() => 
@@ -28,6 +33,9 @@ export const useChatStore = defineStore('chat', () => {
     return activeSessions.value.has(currentConversation.value.sessionId)
   })
 
+  // Settings getters
+  const isStreamModeEnabled = computed(() => settings.value.streamMode)
+
   // Actions
   const generateConversationTitle = (firstMessage: string): string => {
     // Generate a title from the first message (max 50 chars)
@@ -44,7 +52,6 @@ export const useChatStore = defineStore('chat', () => {
       title: firstMessage ? generateConversationTitle(firstMessage) : 'Neue Unterhaltung',
       model,
       messages: [],
-      context: null,
       createdAt: now,
       updatedAt: now,
       sessionId: undefined // Will be set when first message is sent
@@ -155,30 +162,23 @@ export const useChatStore = defineStore('chat', () => {
     isTyping.value = typing
   }
 
-  const setContext = (context: number[] | null, sessionId?: string) => {
-    if (sessionId) {
-      const conversation = conversations.value.find(c => c.sessionId === sessionId)
-      if (conversation) {
-        conversation.context = context
-        conversation.updatedAt = new Date().toISOString()
-        saveToLocalStorage()
-      }
-    } else {
-      // Fallback to current conversation
-      if (currentConversation.value) {
-        currentConversation.value.context = context
-        currentConversation.value.updatedAt = new Date().toISOString()
-        saveToLocalStorage()
-      }
-    }
-  }
-
   const setAvailableModels = (models: OllamaModel[]) => {
     availableModels.value = models
   }
 
   const setIsAtBottom = (atBottom: boolean) => {
     isAtBottom.value = atBottom
+  }
+
+  // Settings Actions
+  const updateStreamMode = (enabled: boolean) => {
+    settings.value.streamMode = enabled
+    saveToLocalStorage()
+  }
+
+  const updateSettings = (newSettings: Partial<AppSettings>) => {
+    settings.value = { ...settings.value, ...newSettings }
+    saveToLocalStorage()
   }
 
   // Session Management
@@ -237,6 +237,8 @@ export const useChatStore = defineStore('chat', () => {
       }))
       
       localStorage.setItem('chat-conversations', JSON.stringify(conversationsToSave))
+      localStorage.setItem('chat-settings', JSON.stringify(settings.value))
+      
       if (currentConversationId.value) {
         localStorage.setItem('chat-current-conversation', currentConversationId.value)
       } else {
@@ -253,6 +255,12 @@ export const useChatStore = defineStore('chat', () => {
           conversations.value = JSON.parse(savedConversations)
         }
         
+        const savedSettings = localStorage.getItem('chat-settings')
+        if (savedSettings) {
+          const parsedSettings = JSON.parse(savedSettings)
+          settings.value = { ...settings.value, ...parsedSettings }
+        }
+        
         const savedCurrentId = localStorage.getItem('chat-current-conversation')
         if (savedCurrentId && conversations.value.find(c => c.id === savedCurrentId)) {
           currentConversationId.value = savedCurrentId
@@ -267,12 +275,13 @@ export const useChatStore = defineStore('chat', () => {
 
   return {
     // State
-    conversations: readonly(conversations),
-    currentConversationId: readonly(currentConversationId),
-    isTyping: readonly(isTyping),
-    availableModels: readonly(availableModels),
-    isAtBottom: readonly(isAtBottom),
-    activeSessions: readonly(activeSessions),
+    conversations,
+    currentConversationId,
+    isTyping,
+    availableModels,
+    isAtBottom,
+    activeSessions,
+    settings,
     
     // Getters
     currentConversation,
@@ -281,6 +290,7 @@ export const useChatStore = defineStore('chat', () => {
     currentMessages,
     currentModel,
     isConversationTyping,
+    isStreamModeEnabled,
     
     // Actions
     createNewConversation,
@@ -290,10 +300,13 @@ export const useChatStore = defineStore('chat', () => {
     deleteConversation,
     clearAllConversations,
     setTyping,
-    setContext,
     setAvailableModels,
     setIsAtBottom,
     loadFromLocalStorage,
+    
+    // Settings Actions
+    updateStreamMode,
+    updateSettings,
     
     // Session Management
     startChatSession,

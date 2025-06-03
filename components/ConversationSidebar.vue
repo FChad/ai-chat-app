@@ -1,5 +1,5 @@
 <template>
-  <div class="mobile-sidebar sm:w-72 lg:w-64 bg-black/30 backdrop-blur-lg border-r border-white/10 flex flex-col h-full fixed lg:relative left-0 top-0 mobile-transition">
+  <div class="mobile-sidebar sm:w-80 lg:w-80 bg-black/30 backdrop-blur-lg border-r border-white/10 flex flex-col h-full fixed lg:relative left-0 top-0 mobile-transition" :class="{ 'open': isMobileOpen }">
     <!-- Mobile Close Button -->
     <div class="lg:hidden flex justify-end p-2 border-b border-white/10">
       <button
@@ -39,9 +39,12 @@
       >
         <div class="flex items-start justify-between">
           <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-medium text-white truncate">
-              {{ conversation.title }}
-            </h3>
+            <div class="flex items-center space-x-2">
+              <h3 class="text-sm font-medium text-white truncate flex-1">
+                {{ conversation.title }}
+              </h3>
+            </div>
+            
             <div class="flex items-center space-x-2 mt-1">
               <Icon name="heroicons:cpu-chip" class="h-3 w-3 text-blue-400 flex-shrink-0" />
               <span class="text-xs text-gray-400 truncate">{{ conversation.model }}</span>
@@ -51,9 +54,25 @@
                 <Icon name="heroicons:chat-bubble-left" class="h-3 w-3 text-gray-500 flex-shrink-0" />
                 <span class="text-xs text-gray-500">{{ conversation.messages.length }}</span>
               </div>
-              <p class="text-xs text-gray-500">
-                {{ formatRelativeTime(conversation.updatedAt) }}
-              </p>
+              
+              <!-- Timestamp or Typing Indicator -->
+              <div class="flex items-center space-x-1">
+                <template v-if="isConversationTyping(conversation)">
+                  <!-- AI Typing Indicator replaces timestamp -->
+                  <div class="flex space-x-0.5">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                    <div class="typing-dot" style="animation-delay: 0.4s"></div>
+                  </div>
+                  <span class="text-xs text-purple-300 font-medium typing-indicator">antwortet</span>
+                </template>
+                <template v-else>
+                  <!-- Normal timestamp -->
+                  <p class="text-xs text-gray-500">
+                    {{ formatRelativeTime(conversation.updatedAt) }}
+                  </p>
+                </template>
+              </div>
             </div>
           </div>
           
@@ -62,6 +81,8 @@
             @click.stop="deleteConversation(conversation.id)"
             class="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-600/20 rounded transition-all ml-2 flex-shrink-0 touch-manipulation"
             :title="`Unterhaltung '${conversation.title}' löschen`"
+            :disabled="isConversationTyping(conversation)"
+            :class="{ 'opacity-30 cursor-not-allowed': isConversationTyping(conversation) }"
           >
             <Icon name="heroicons:trash" class="h-4 w-4 text-red-400" />
           </button>
@@ -131,4 +152,89 @@ const formatRelativeTime = (dateString: string): string => {
     return `vor ${days} Tag${days > 1 ? 'en' : ''}`
   }
 }
-</script> 
+
+const isConversationTyping = (conversation: any): boolean => {
+  // Check if this conversation has an active session (AI is responding)
+  return conversation.sessionId && chatStore.isSessionActive(conversation.sessionId)
+}
+</script>
+
+<style scoped>
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  background-color: rgb(196 181 253); /* purple-400 */
+  border-radius: 50%;
+  animation: typing 1.5s infinite ease-in-out;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  30% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.typing-indicator {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Sidebar Transitions */
+@media (max-width: 1024px) {
+  .mobile-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
+  }
+
+  .mobile-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+.mobile-transition {
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar Styling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+</style> 

@@ -5,13 +5,13 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody<ChatRequest>(event)
-    const { message, model = 'gemma3:4b', context, sessionId } = body
+    const { model = 'gemma3:4b', messages, stream = true, sessionId } = body
 
     // Validate input
-    if (!message || typeof message !== 'string' || !message.trim()) {
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Valid message is required'
+        statusMessage: 'Valid messages array is required'
       })
     }
 
@@ -27,6 +27,22 @@ export default defineEventHandler(async (event) => {
         statusCode: 400,
         statusMessage: 'Valid sessionId is required'
       })
+    }
+
+    // Validate messages structure
+    for (const msg of messages) {
+      if (!msg.role || !msg.content || typeof msg.content !== 'string') {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Each message must have role and content'
+        })
+      }
+      if (!['user', 'assistant', 'system'].includes(msg.role)) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Message role must be user, assistant, or system'
+        })
+      }
     }
 
     // Get environment variables
@@ -56,27 +72,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Construct the full URL
-    const apiUrl = `${ollamaApiUrl}/generate`
+    // Use the modern Ollama Chat API endpoint
+    const apiUrl = `${ollamaApiUrl}/chat`
 
-    // Set headers for Server-Sent Events with session ID
-    setHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
-    setHeader(event, 'Cache-Control', 'no-cache')
-    setHeader(event, 'Connection', 'keep-alive')
-    setHeader(event, 'Access-Control-Allow-Origin', '*')
-    setHeader(event, 'Access-Control-Allow-Methods', 'POST')
-    setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
-    setHeader(event, 'X-Session-ID', sessionId) // Add session ID to response headers
-
-    const requestBody: any = {
+    // Prepare request body for modern Chat API
+    const requestBody = {
       model: model.trim(),
-      prompt: message.trim(),
-      stream: true
-    }
-
-    // Add context if provided and valid
-    if (context && Array.isArray(context) && context.length > 0) {
-      requestBody.context = context
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content.trim()
+      })),
+      stream: stream
     }
 
     const response = await fetch(apiUrl, {
@@ -103,52 +109,91 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Create a transform stream to add sessionId to each chunk
-    const transformedStream = new ReadableStream({
-      start(controller) {
-        const reader = response.body!.getReader()
-        const decoder = new TextDecoder()
+    if (stream) {
+      // Handle streaming response
+      // Set headers for Server-Sent Events with session ID
+      setHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
+      setHeader(event, 'Cache-Control', 'no-cache')
+      setHeader(event, 'Connection', 'keep-alive')
+      setHeader(event, 'Access-Control-Allow-Origin', '*')
+      setHeader(event, 'Access-Control-Allow-Methods', 'POST')
+      setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
+      setHeader(event, 'X-Session-ID', sessionId)
 
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-              
-              if (done) {
-                controller.close()
-                break
-              }
+      // Create a transform stream to add sessionId to each chunk and handle modern chat response format
+      const transformedStream = new ReadableStream({
+        start(controller) {
+          const reader = response.body!.getReader()
+          const decoder = new TextDecoder()
 
-              const chunk = decoder.decode(value)
-              const lines = chunk.split('\n')
+          const pump = async () => {
+            try {
+              while (true) {
+                const { done, value } = await reader.read()
+                
+                if (done) {
+                  controller.close()
+                  break
+                }
 
-              for (const line of lines) {
-                if (line.trim()) {
-                  try {
-                    const data = JSON.parse(line)
-                    // Add sessionId to the response data
-                    data.sessionId = sessionId
-                    const modifiedLine = JSON.stringify(data) + '\n'
-                    controller.enqueue(new TextEncoder().encode(modifiedLine))
-                  } catch (e) {
-                    // If JSON parsing fails, pass through the original line
-                    // but try to add sessionId if it looks like a valid response
-                    controller.enqueue(new TextEncoder().encode(line + '\n'))
+                const chunk = decoder.decode(value)
+                const lines = chunk.split('\n')
+
+                for (const line of lines) {
+                  if (line.trim()) {
+                    try {
+                      const data = JSON.parse(line)
+                      
+                      // Add sessionId to the response data
+                      data.sessionId = sessionId
+                      
+                      // Transform modern chat response to maintain compatibility with frontend
+                      if (data.message && data.message.content) {
+                        // Modern chat API response format
+                        data.response = data.message.content
+                      }
+                      
+                      const modifiedLine = JSON.stringify(data) + '\n'
+                      controller.enqueue(new TextEncoder().encode(modifiedLine))
+                    } catch (e) {
+                      // If JSON parsing fails, pass through the original line
+                      controller.enqueue(new TextEncoder().encode(line + '\n'))
+                    }
                   }
                 }
               }
+            } catch (error) {
+              controller.error(error)
             }
-          } catch (error) {
-            controller.error(error)
           }
+
+          pump()
         }
+      })
 
-        pump()
+      // Return the transformed stream
+      return sendStream(event, transformedStream)
+    } else {
+      // Handle non-streaming response
+      setHeader(event, 'Content-Type', 'application/json')
+      setHeader(event, 'Access-Control-Allow-Origin', '*')
+      setHeader(event, 'Access-Control-Allow-Methods', 'POST')
+      setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
+      setHeader(event, 'X-Session-ID', sessionId)
+
+      const data = await response.json()
+      
+      // Add sessionId to the response data
+      data.sessionId = sessionId
+      
+      // Transform modern chat response to maintain compatibility with frontend
+      if (data.message && data.message.content) {
+        // Modern chat API response format
+        data.response = data.message.content
       }
-    })
 
-    // Return the transformed stream
-    return sendStream(event, transformedStream)
+      return data
+    }
 
   } catch (error: any) {
     console.error('Chat API error:', error)

@@ -27,6 +27,44 @@
 
       <!-- Content -->
       <div class="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[70vh] overflow-y-auto scrollbar-thin">
+        <!-- App Settings Section -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-300 mb-3 flex items-center space-x-2">
+            <Icon name="heroicons:adjustments-horizontal" class="h-4 w-4" />
+            <span>App-Einstellungen</span>
+          </h3>
+          
+          <div class="space-y-3">
+            <!-- Stream Mode Toggle -->
+            <div class="p-3 bg-black/30 rounded-lg border border-white/10">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-2 mb-1">
+                    <Icon name="heroicons:play" class="h-4 w-4 text-blue-400" />
+                    <span class="text-sm font-medium text-white">Streaming-Modus</span>
+                  </div>
+                  <p class="text-xs text-gray-400 leading-relaxed">
+                    Antworten werden in Echtzeit gestreamt. Deaktivieren Sie diese Option, 
+                    um komplette Antworten auf einmal zu erhalten.
+                  </p>
+                </div>
+                <div class="ml-4">
+                  <button
+                    @click="toggleStreamMode"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black touch-manipulation"
+                    :class="chatStore.isStreamModeEnabled ? 'bg-purple-600' : 'bg-gray-600'"
+                  >
+                    <span
+                      class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                      :class="chatStore.isStreamModeEnabled ? 'translate-x-6' : 'translate-x-1'"
+                    ></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Conversations Section -->
         <div>
           <h3 class="text-sm font-medium text-gray-300 mb-3 flex items-center space-x-2">
@@ -68,33 +106,28 @@
           </div>
         </div>
 
-        <!-- App Info Section -->
+        <!-- App Information -->
         <div>
           <h3 class="text-sm font-medium text-gray-300 mb-3 flex items-center space-x-2">
             <Icon name="heroicons:information-circle" class="h-4 w-4" />
-            <span>App-Informationen</span>
+            <span>App-Information</span>
           </h3>
           
-          <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">App:</span>
-              <span class="text-white">{{ appInfo.name }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Version:</span>
-              <span class="text-white">{{ appInfo.version }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Framework:</span>
-              <span class="text-white">{{ appInfo.framework }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Verfügbare Modelle:</span>
-              <span class="text-white">{{ chatStore.availableModels.length }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-400">Speicher:</span>
-              <span class="text-white">{{ appInfo.storage }}</span>
+          <div class="space-y-3">
+            <!-- App Info -->
+            <div class="p-3 bg-black/30 rounded-lg border border-white/10 space-y-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-400">App Name:</span>
+                <span class="text-white font-medium">{{ appInfo.name }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-400">Version:</span>
+                <span class="text-white font-medium">{{ appInfo.version }}</span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-400">Build:</span>
+                <span class="text-white font-medium">{{ appInfo.build }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -181,13 +214,18 @@ const clearAllConversations = () => {
   closeDialog()
 }
 
+const toggleStreamMode = () => {
+  chatStore.updateStreamMode(!chatStore.isStreamModeEnabled)
+}
+
 const exportConversations = () => {
   try {
     const data = {
       exportDate: new Date().toISOString(),
       version: appInfo.version,
       app: appInfo.name,
-      conversations: chatStore.conversations
+      conversations: chatStore.conversations,
+      settings: chatStore.settings
     }
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })

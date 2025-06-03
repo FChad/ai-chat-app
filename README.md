@@ -21,11 +21,21 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 ## 📝 Version History
 
 ### v0.1.2-beta (Current)
-- 🐛 **Bugfix Release**: Resolution of critical errors
+- 🐛 **Bugfix Release**: Resolution of critical Vue reactivity warnings and store issues
 - 💬 **Multiple Chats Fix**: Corrected functionality for multiple simultaneous chats
 - 📅 **Sorting by Creation Date**: Conversations are now sorted by `created_at`
+- ⚙️ **Streaming Mode Toggle**: Added Settings dialog with streaming on/off control
+- 🎯 **Smart Typing Indicators**: Real-time "antwortet" status in sidebar conversation cards
+- 🗑️ **Legacy Code Removal**: Completely removed deprecated context-based system
+- 🎨 **Enhanced Sidebar**: Wider sidebar (320px) with improved conversation card layout
+- 🔄 **Dynamic Status Display**: Timestamps replaced with typing indicators during AI responses
+- 🚫 **Smart Controls**: Delete buttons disabled during active AI responses
+- 📱 **Responsive Improvements**: Better mobile sidebar transitions and touch optimization
+- 🎭 **Beautiful Animations**: Smooth typing dots with staggered timing and fade-in effects
+- ⚡ **Performance Optimization**: Removed readonly() wrappers for better reactivity
+- 🎛️ **Clean Settings UI**: Simplified toggle design without redundant status text
 
-### v0.1.2-beta
+### v0.1.1-beta
 - 📱 **Mobile Enhancements**: Improved mobile user interface and responsiveness
 - 🎨 **UI Optimizations**: Enhanced user-friendliness on mobile devices
 - 🔧 **Mobile-specific Improvements**: Touch optimization and better navigation
@@ -35,58 +45,6 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 - 🤖 **Basic AI Chat Functionality**: Chat with Ollama models
 - 💬 **Session Management**: First implementation of the session system
 - 🎨 **Base UI**: Basic user interface with Tailwind CSS
-
-## 🚀 New Features (v0.1.2-beta)
-
-### Session-based Chat Management ⭐ NEW
-- **Unique Session IDs**: Each chat receives a UUIDv4 for unique identification
-- **Concurrent Chat Support**: Multiple chats can run simultaneously without overlap
-- **Response Assignment**: Streaming responses are correctly assigned to the respective chat
-- **Session Tracking**: Active sessions are monitored and can be aborted
-- **Abort Functionality**: Chat requests can be aborted during streaming
-
-### ChatGPT-like Interface
-- **Sidebar with Conversations**: All conversations at a glance
-- **Automatic Titles**: Titles are generated from the first message
-- **Model Locking**: Model cannot be changed during a conversation
-- **Delete Conversation**: Delete individual conversations with confirmation
-- **New Conversation**: Easily start new conversations
-- **Session Status Display**: Visual display of active chat sessions
-- **Cancel Button**: Chat requests can be canceled at any time
-
-### Extended Functions
-- **Settings Dialog**: Complete dialog with app information
-- **Statistics**: Number of conversations and messages
-- **Export/Import**: Export conversations as JSON
-- **Local Persistence**: All data is stored in LocalStorage
-
-## 🚀 New Optimizations
-
-### Session Management
-- **UUIDv4 Generation**: Unique IDs for each chat request
-- **AbortController**: Graceful cancellation of running requests
-- **Session Tracking**: Central management of all active chat sessions
-- **Response Routing**: Correct assignment of streaming responses
-- **Concurrent Safety**: Prevents response mixing with multiple simultaneous chats
-
-### Code Structure
-- **Component-based**: Split UI into reusable components
-- **Composables**: Logic extracted into reusable composables
-- **State Management**: Pinia Store for central state management
-- **TypeScript**: Complete typing for better developer experience
-- **Session Management**: New interfaces and types for session handling
-
-### Performance
-- **Lazy Loading**: Optimized component loading
-- **Reactivity**: Improved Vue 3 reactivity
-- **Memory Management**: Better memory management
-- **Request Optimization**: Optimized request handling with session IDs
-
-### Maintainability
-- **Modular Structure**: Clear separation of responsibilities
-- **Error Handling**: Robust error handling
-- **Code Quality**: Clean, readable code
-- **Session Lifecycle**: Clear session lifecycle management
 
 ## 📁 Project Structure
 
@@ -168,45 +126,28 @@ The application will then be available at `http://localhost:3000`.
 
 ## 🔧 Technical Details
 
+### Modern Chat API Implementation
+- **Current API**: Uses modern `/api/chat` endpoint with messages array
+- **Conversation State**: Context is maintained through the complete message history
+- **No Legacy Code**: All deprecated context-based code has been removed
+- **Optimal Performance**: Direct messages array approach without context overhead
+
 ### Session Management Architecture
 - **UUID Generation**: Crypto-API based UUIDv4 generation with fallback
 - **Session Tracking**: Map-based management of active sessions in Pinia Store
-- **Request Association**: Each API request contains a unique session ID
-- **Response Routing**: Server adds session IDs to streaming responses
-- **Abort Handling**: AbortController for graceful request cancellation
-- **Concurrent Safety**: Prevents response mixing with parallel chats
+- **Request Association**: Each API request contains a unique session ID for tracking
+- **Abort Control**: Full request cancellation support with AbortController
 
-### Frontend Architecture
-- **Framework**: Vue 3 + Nuxt 3
-- **State Management**: Pinia with session tracking
-- **Styling**: Tailwind CSS + Typography Plugin
-- **Icons**: Heroicons via @nuxt/icon
-- **TypeScript**: Complete typing incl. session types
-
-### Backend API
-- **Runtime**: Nuxt Server API
-- **Streaming**: Server-Sent Events with session ID injection
-- **Authentication**: Basic Auth for Ollama
-- **Error Handling**: Robust error handling
-- **Session Headers**: X-Session-ID header for response tracking
-
-### API Endpoints
-- `POST /api/chat` - Sends messages to Ollama and streams the response (with session ID)
-- `GET /api/models` - Loads available Ollama models
-
-### Session Management Flow
-1. **Request Initiation**: UUIDv4 is generated and session started
-2. **API Call**: Request with session ID is sent to backend
-3. **Response Processing**: Server adds session ID to all response chunks
-4. **Response Routing**: Frontend routes responses based on session ID
-5. **Session Cleanup**: Session is ended after completion or abortion
-
-### Security
-- API credentials are only used server-side
-- Basic Authentication for Ollama API
-- Environment variables are not publicly accessible
-- XSS protection through HTML escaping
-- Session IDs are not persistent and only for request tracking
+### Key Features
+- **Real-time Streaming**: Server-Sent Events with session correlation
+- **Modern TypeScript**: Fully typed with comprehensive interfaces
+- **Responsive Design**: Mobile-first approach with touch-optimized interactions
+- **State Persistence**: LocalStorage integration for conversation history and settings
+- **Error Handling**: Comprehensive error boundaries and user feedback
+- **Smart UI Indicators**: Live typing status with animated dots in conversation sidebar
+- **Advanced Settings**: German-localized settings with streaming mode control
+- **Session-Aware UI**: Context-sensitive controls that adapt to conversation state
+- **Clean Architecture**: Completely modernized codebase without legacy context system
 
 ## 🚀 Deployment
 

@@ -23,18 +23,29 @@ export interface OllamaModel {
   details: ModelDetails
 }
 
+// Modern Ollama Chat API Request format
 export interface ChatRequest {
-  message: string
   model: string
-  context?: number[]
+  messages: Array<{
+    role: 'user' | 'assistant' | 'system'
+    content: string
+  }>
+  stream?: boolean
   sessionId: string
 }
 
 export interface ChatResponse {
-  response: string
-  context?: number[]
+  message?: {
+    role: string
+    content: string
+  }
+  response?: string // Legacy field for backward compatibility
   done?: boolean
   sessionId?: string
+}
+
+export interface AppSettings {
+  streamMode: boolean
 }
 
 export interface Conversation {
@@ -42,7 +53,6 @@ export interface Conversation {
   title: string
   model: string
   messages: Message[]
-  context: number[] | null
   createdAt: string
   updatedAt: string
   sessionId?: string
@@ -55,6 +65,7 @@ export interface ChatState {
   availableModels: OllamaModel[]
   isAtBottom: boolean
   activeSessions: Map<string, string>
+  settings: AppSettings
 }
 
 export interface ActiveChatSession {

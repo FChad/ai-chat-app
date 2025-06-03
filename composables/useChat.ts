@@ -38,15 +38,18 @@ export const useChat = () => {
     chatStore.setTyping(true)
 
     try {
-      const requestBody: ChatRequest = {
-        message: userMessage,
-        model: chatStore.currentConversation.model,
-        sessionId: sessionId
-      }
+      // Prepare messages array for modern Chat API
+      // Convert stored messages to the format expected by Ollama
+      const messages = chatStore.currentConversation.messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
 
-      // Add context if available
-      if (chatStore.currentConversation.context) {
-        requestBody.context = chatStore.currentConversation.context
+      const requestBody: ChatRequest = {
+        model: chatStore.currentConversation.model,
+        messages: messages,
+        stream: chatStore.isStreamModeEnabled, // Use the streaming setting from store
+        sessionId: sessionId
       }
 
       const response = await fetch('/api/chat', {
@@ -68,14 +71,6 @@ export const useChat = () => {
         console.warn(`Session ID mismatch: expected ${sessionId}, got ${responseSessionId}`)
       }
 
-      // Handle streaming response
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      let assistantMessage = ''
-      
       // Add empty assistant message to the conversation associated with this session
       const targetConversation = chatStore.conversations.find(c => c.id === conversationId)
       if (targetConversation) {
@@ -88,157 +83,139 @@ export const useChat = () => {
 
       chatStore.setTyping(false)
 
-      const decoder = new TextDecoder()
-      let lastResponseData: any = null
-      let pendingChunks: any[] = []
-      let processedChunks = new Set<string>()
-      let lastProcessedIndex = 0
-      
-      while (true) {
-        // Check if session is still active (not cancelled)
-        if (!chatStore.isSessionActive(sessionId)) {
-          break
+      let assistantMessage = ''
+
+      if (chatStore.isStreamModeEnabled) {
+        // Handle streaming response
+        const reader = response.body?.getReader()
+        if (!reader) {
+          throw new Error('No response body for streaming')
         }
 
-        const { done, value } = await reader.read()
-        
-        if (done) {
-          // Process any remaining chunks
-          if (pendingChunks.length > 0) {
-            pendingChunks.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        const decoder = new TextDecoder()
+        let lastResponseData: any = null
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
             
-            for (let i = lastProcessedIndex; i < pendingChunks.length; i++) {
-              const sortedChunk = pendingChunks[i]
-              lastResponseData = sortedChunk
-              
-              if (sortedChunk.response) {
-                assistantMessage += sortedChunk.response
-                chatStore.updateLastMessage(assistantMessage, sessionId)
-              }
-            }
-          }
-          break
-        }
-        
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
-        
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const data = JSON.parse(line)
-              
-              // Verify this chunk belongs to our session
-              if (data.sessionId && data.sessionId !== sessionId) {
-                console.warn(`Received chunk for different session: ${data.sessionId}, expected: ${sessionId}`)
-                continue
-              }
+            if (done) break
 
-              if (data.created_at) {
-                // Collect chunks with timestamps
-                pendingChunks.push(data)
-                
-                // Sort chunks by created_at timestamp
-                pendingChunks.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-                
-                // Process only new chunks in order
-                for (let i = lastProcessedIndex; i < pendingChunks.length; i++) {
-                  const sortedChunk = pendingChunks[i]
-                  const chunkId = `${sortedChunk.created_at}_${sortedChunk.response || ''}_${sessionId}`
-                  
-                  if (!processedChunks.has(chunkId)) {
-                    processedChunks.add(chunkId)
-                    lastResponseData = sortedChunk
-                    
-                    if (sortedChunk.response) {
-                      assistantMessage += sortedChunk.response
-                      chatStore.updateLastMessage(assistantMessage, sessionId)
-                    }
-                    
-                    lastProcessedIndex = i + 1
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n')
+
+            for (const line of lines) {
+              if (line.trim()) {
+                try {
+                  const data = JSON.parse(line)
+                  lastResponseData = data
+
+                  // Check if this response belongs to current session
+                  if (data.sessionId !== sessionId) {
+                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
+                    continue
                   }
-                }
-              } else {
-                // Fallback for chunks without timestamp (process immediately)
-                lastResponseData = data
-                if (data.response) {
-                  assistantMessage += data.response
-                  chatStore.updateLastMessage(assistantMessage, sessionId)
+
+                  if (data.response || (data.message && data.message.content)) {
+                    // Handle both legacy (response) and modern (message.content) formats
+                    const content = data.response || data.message.content
+                    assistantMessage += content
+                    
+                    // Update the assistant message in real-time for the specific session
+                    chatStore.updateLastMessage(assistantMessage, sessionId)
+                  }
+
+                  if (data.done) {
+                    break
+                  }
+                } catch (e) {
+                  console.error('Error parsing JSON:', e)
                 }
               }
-            } catch (e) {
-              // Ignore parsing errors for incomplete JSON
             }
+          }
+        } catch (streamError: any) {
+          if (streamError.name === 'AbortError') {
+            console.log('Streaming request was aborted')
+          } else {
+            console.error('Error reading stream:', streamError)
+            throw streamError
+          }
+        }
+      } else {
+        // Handle non-streaming response
+        try {
+          const data = await response.json()
+          
+          // Check if this response belongs to current session
+          if (data.sessionId && data.sessionId !== sessionId) {
+            console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
+          }
+
+          if (data.message && data.message.content) {
+            // Modern chat API non-streaming response
+            assistantMessage = data.message.content
+            chatStore.updateLastMessage(assistantMessage, sessionId)
+          } else if (data.response) {
+            // Legacy format
+            assistantMessage = data.response
+            chatStore.updateLastMessage(assistantMessage, sessionId)
+          }
+        } catch (jsonError: any) {
+          if (jsonError.name === 'AbortError') {
+            console.log('Non-streaming request was aborted')
+          } else {
+            console.error('Error parsing JSON response:', jsonError)
+            throw jsonError
           }
         }
       }
-
-      // Update context from the last response
-      if (lastResponseData && lastResponseData.context) {
-        chatStore.setContext(lastResponseData.context, sessionId)
-      }
-
-      // End the session
-      chatStore.endChatSession(sessionId)
 
     } catch (error: any) {
       console.error('Error sending message:', error)
       
-      // End the session on error
-      chatStore.endChatSession(sessionId)
-      chatStore.setTyping(false)
-      
-      // Only add error message if the request wasn't aborted
-      if (error.name !== 'AbortError') {
-        // Add error message to the specific conversation
-        const targetConversation = chatStore.conversations.find(c => c.id === conversationId)
-        if (targetConversation) {
-          chatStore.addMessage({
-            role: 'assistant',
-            content: 'Entschuldigung, es gab einen Fehler bei der Kommunikation mit der KI.',
-            timestamp: formatTime(new Date())
-          })
+      // Remove the last user message if there was an error
+      if (chatStore.currentConversation) {
+        const messages = chatStore.currentConversation.messages
+        if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+          messages.pop()
         }
       }
+
+      if (error.name !== 'AbortError') {
+        // Show error to user
+        chatStore.addMessage({
+          role: 'assistant',
+          content: 'Entschuldigung, es gab einen Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.',
+          timestamp: formatTime(new Date())
+        })
+      }
+    } finally {
+      // Always end the session and stop typing
+      chatStore.endChatSession(sessionId)
+      chatStore.setTyping(false)
     }
   }
 
-  const cancelMessage = (conversationId?: string) => {
-    if (conversationId) {
-      const conversation = chatStore.conversations.find(c => c.id === conversationId)
-      if (conversation && conversation.sessionId) {
-        chatStore.cancelChatSession(conversation.sessionId)
-      }
-    } else if (chatStore.currentConversation?.sessionId) {
-      chatStore.cancelChatSession(chatStore.currentConversation.sessionId)
+  const cancelMessage = (conversationId: string) => {
+    // Find the session for this conversation
+    const conversation = chatStore.conversations.find(c => c.id === conversationId)
+    if (conversation?.sessionId) {
+      chatStore.cancelChatSession(conversation.sessionId)
     }
   }
 
   const loadModels = async () => {
     try {
       const response = await fetch('/api/models')
-      if (response.ok) {
-        const data = await response.json()
-        chatStore.setAvailableModels(data.models || [])
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+      
+      const data = await response.json()
+      chatStore.setAvailableModels(data.models || [])
     } catch (error) {
-      console.error('Failed to load models:', error)
-      // Fallback to default model
-      chatStore.setAvailableModels([{
-        name: 'gemma3:4b',
-        model: 'gemma3:4b',
-        modified_at: '',
-        size: 0,
-        digest: '',
-        details: {
-          parent_model: '',
-          format: 'gguf',
-          family: 'gemma3',
-          families: ['gemma3'],
-          parameter_size: '4.3B',
-          quantization_level: 'Q4_K_M'
-        }
-      }])
+      console.error('Error loading models:', error)
     }
   }
 

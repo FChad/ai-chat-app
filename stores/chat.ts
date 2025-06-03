@@ -12,7 +12,7 @@ export const useChatStore = defineStore('chat', () => {
   
   // App Settings with defaults
   const settings = ref<AppSettings>({
-    streamMode: true // Default to streaming enabled
+    streamMode: false // Default to streaming disabled for better production compatibility
   })
 
   // Getters

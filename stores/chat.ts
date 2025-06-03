@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Message, OllamaModel, Conversation } from '~/types/chat'
+import type { Message, OllamaModel, Conversation, ActiveChatSession } from '~/types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -8,6 +8,7 @@ export const useChatStore = defineStore('chat', () => {
   const isTyping = ref(false)
   const availableModels = ref<OllamaModel[]>([])
   const isAtBottom = ref(true)
+  const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
 
   // Getters
   const currentConversation = computed(() => 
@@ -21,6 +22,11 @@ export const useChatStore = defineStore('chat', () => {
   const currentMessages = computed(() => currentConversation.value?.messages || [])
   
   const currentModel = computed(() => currentConversation.value?.model || '')
+
+  const isConversationTyping = computed(() => {
+    if (!currentConversation.value?.sessionId) return false
+    return activeSessions.value.has(currentConversation.value.sessionId)
+  })
 
   // Actions
   const generateConversationTitle = (firstMessage: string): string => {
@@ -40,7 +46,8 @@ export const useChatStore = defineStore('chat', () => {
       messages: [],
       context: null,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      sessionId: undefined // Will be set when first message is sent
     }
     
     conversations.value.unshift(conversation)
@@ -81,16 +88,33 @@ export const useChatStore = defineStore('chat', () => {
     saveToLocalStorage()
   }
 
-  const updateLastMessage = (content: string) => {
-    if (!currentConversation.value) return
-    
-    const messages = currentConversation.value.messages
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage.role === 'assistant') {
-        lastMessage.content = content
-        currentConversation.value.updatedAt = new Date().toISOString()
-        saveToLocalStorage()
+  const updateLastMessage = (content: string, sessionId?: string) => {
+    // If sessionId is provided, update message only for the matching conversation
+    if (sessionId) {
+      const conversation = conversations.value.find(c => c.sessionId === sessionId)
+      if (!conversation) return
+      
+      const messages = conversation.messages
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = content
+          conversation.updatedAt = new Date().toISOString()
+          saveToLocalStorage()
+        }
+      }
+    } else {
+      // Fallback to current conversation (backward compatibility)
+      if (!currentConversation.value) return
+      
+      const messages = currentConversation.value.messages
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1]
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = content
+          currentConversation.value.updatedAt = new Date().toISOString()
+          saveToLocalStorage()
+        }
       }
     }
   }
@@ -98,6 +122,12 @@ export const useChatStore = defineStore('chat', () => {
   const deleteConversation = (id: string) => {
     const index = conversations.value.findIndex(c => c.id === id)
     if (index !== -1) {
+      // Cancel any active session for this conversation
+      const conversation = conversations.value[index]
+      if (conversation.sessionId) {
+        cancelChatSession(conversation.sessionId)
+      }
+      
       conversations.value.splice(index, 1)
       
       // If we deleted the current conversation, select another one or clear
@@ -110,6 +140,12 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   const clearAllConversations = () => {
+    // Cancel all active sessions
+    activeSessions.value.forEach((session) => {
+      session.controller.abort()
+    })
+    activeSessions.value.clear()
+    
     conversations.value = []
     currentConversationId.value = null
     saveToLocalStorage()
@@ -119,11 +155,21 @@ export const useChatStore = defineStore('chat', () => {
     isTyping.value = typing
   }
 
-  const setContext = (context: number[] | null) => {
-    if (currentConversation.value) {
-      currentConversation.value.context = context
-      currentConversation.value.updatedAt = new Date().toISOString()
-      saveToLocalStorage()
+  const setContext = (context: number[] | null, sessionId?: string) => {
+    if (sessionId) {
+      const conversation = conversations.value.find(c => c.sessionId === sessionId)
+      if (conversation) {
+        conversation.context = context
+        conversation.updatedAt = new Date().toISOString()
+        saveToLocalStorage()
+      }
+    } else {
+      // Fallback to current conversation
+      if (currentConversation.value) {
+        currentConversation.value.context = context
+        currentConversation.value.updatedAt = new Date().toISOString()
+        saveToLocalStorage()
+      }
     }
   }
 
@@ -135,10 +181,62 @@ export const useChatStore = defineStore('chat', () => {
     isAtBottom.value = atBottom
   }
 
+  // Session Management
+  const startChatSession = (sessionId: string, conversationId: string, controller: AbortController): void => {
+    const session: ActiveChatSession = {
+      sessionId,
+      conversationId,
+      controller,
+      startTime: Date.now()
+    }
+    
+    activeSessions.value.set(sessionId, session)
+    
+    // Update conversation with session ID
+    const conversation = conversations.value.find(c => c.id === conversationId)
+    if (conversation) {
+      conversation.sessionId = sessionId
+      saveToLocalStorage()
+    }
+  }
+
+  const endChatSession = (sessionId: string): void => {
+    activeSessions.value.delete(sessionId)
+    
+    // Remove sessionId from conversation
+    const conversation = conversations.value.find(c => c.sessionId === sessionId)
+    if (conversation) {
+      conversation.sessionId = undefined
+      saveToLocalStorage()
+    }
+  }
+
+  const cancelChatSession = (sessionId: string): void => {
+    const session = activeSessions.value.get(sessionId)
+    if (session) {
+      session.controller.abort()
+      endChatSession(sessionId)
+    }
+  }
+
+  const getActiveSession = (sessionId: string): ActiveChatSession | undefined => {
+    return activeSessions.value.get(sessionId)
+  }
+
+  const isSessionActive = (sessionId: string): boolean => {
+    return activeSessions.value.has(sessionId)
+  }
+
   // Local Storage
   const saveToLocalStorage = () => {
     if (process.client) {
-      localStorage.setItem('chat-conversations', JSON.stringify(conversations.value))
+      // Don't save sessionId to localStorage as it's session-specific
+      const conversationsToSave = conversations.value.map(conv => ({
+        ...conv,
+        sessionId: undefined
+      }))
+      
+      localStorage.setItem('chat-conversations', JSON.stringify(conversationsToSave))
       if (currentConversationId.value) {
         localStorage.setItem('chat-current-conversation', currentConversationId.value)
       } else {
@@ -174,6 +272,7 @@ export const useChatStore = defineStore('chat', () => {
     isTyping: readonly(isTyping),
     availableModels: readonly(availableModels),
     isAtBottom: readonly(isAtBottom),
+    activeSessions: readonly(activeSessions),
     
     // Getters
     currentConversation,
@@ -181,6 +280,7 @@ export const useChatStore = defineStore('chat', () => {
     canSendMessage,
     currentMessages,
     currentModel,
+    isConversationTyping,
     
     // Actions
     createNewConversation,
@@ -193,7 +293,14 @@ export const useChatStore = defineStore('chat', () => {
     setContext,
     setAvailableModels,
     setIsAtBottom,
-    loadFromLocalStorage
+    loadFromLocalStorage,
+    
+    // Session Management
+    startChatSession,
+    endChatSession,
+    cancelChatSession,
+    getActiveSession,
+    isSessionActive
   }
 })
 

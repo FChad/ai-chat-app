@@ -27,12 +27,14 @@ export interface ChatRequest {
   message: string
   model: string
   context?: number[]
+  sessionId: string
 }
 
 export interface ChatResponse {
   response: string
   context?: number[]
   done?: boolean
+  sessionId?: string
 }
 
 export interface Conversation {
@@ -43,6 +45,7 @@ export interface Conversation {
   context: number[] | null
   createdAt: string
   updatedAt: string
+  sessionId?: string
 }
 
 export interface ChatState {
@@ -51,4 +54,12 @@ export interface ChatState {
   isTyping: boolean
   availableModels: OllamaModel[]
   isAtBottom: boolean
+  activeSessions: Map<string, string>
+}
+
+export interface ActiveChatSession {
+  sessionId: string
+  conversationId: string
+  controller: AbortController
+  startTime: number
 } 

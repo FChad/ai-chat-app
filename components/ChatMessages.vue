@@ -23,9 +23,9 @@
       :timestamp="message.timestamp"
     />
     
-    <!-- Typing indicator -->
+    <!-- Typing indicator based on session activity -->
     <ChatMessage
-      v-if="chatStore.isTyping"
+      v-if="chatStore.isConversationTyping"
       message=""
       :is-user="false"
       :is-typing="true"
@@ -51,8 +51,8 @@ watch(() => chatStore.currentMessages, () => {
   autoScrollIfAtBottom(messagesContainer.value)
 }, { deep: true })
 
-// Auto-scroll when typing state changes
-watch(() => chatStore.isTyping, () => {
+// Auto-scroll when typing state changes (session-based)
+watch(() => chatStore.isConversationTyping, () => {
   autoScrollIfAtBottom(messagesContainer.value)
 })
 

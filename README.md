@@ -1,90 +1,129 @@
 # AskChadAI
 
-Eine moderne, optimierte Chat-Anwendung mit Ollama-Integration für direkten Chat mit KI-Modellen.
+A modern, optimized chat application with Ollama integration for direct chat with AI models.
 
 ## ✨ Features
 
-- 🤖 **KI-Chat**: Chatte direkt mit verschiedenen KI-Modellen
-- 💬 **Unterhaltungs-Management**: Mehrere Unterhaltungen wie bei ChatGPT
-- 🔄 **Modell-Auswahl**: Wähle zwischen verfügbaren Ollama-Modellen
-- 🧠 **Kontext-Erhaltung**: Unterhaltungen behalten ihren Kontext bei
-- 💾 **Lokale Speicherung**: Unterhaltungen werden im Browser gespeichert
-- 🎨 **Modernes UI**: Schöne, responsive Benutzeroberfläche mit Tailwind CSS
-- 🔒 **Sichere API**: Environment-basierte Konfiguration für API-Credentials
-- 📱 **Responsive**: Funktioniert perfekt auf Desktop und Mobile
-- ⚡ **Streaming**: Echtzeitantworten mit Server-Sent Events
-- 🏗️ **Optimierte Architektur**: Saubere Code-Struktur mit Composables und Pinia
-- 📤 **Export-Funktion**: Exportiere deine Unterhaltungen als JSON
-- ⚙️ **Einstellungen**: Umfassende Einstellungen und App-Informationen
+- 🤖 **AI Chat**: Chat directly with various AI models
+- 💬 **Conversation Management**: Multiple conversations like ChatGPT
+- 🔄 **Model Selection**: Choose between available Ollama models
+- 🧠 **Context Preservation**: Conversations maintain their context
+- 💾 **Local Storage**: Conversations are stored in the browser
+- 🎨 **Modern UI**: Beautiful, responsive user interface with Tailwind CSS
+- 🔒 **Secure API**: Environment-based configuration for API credentials
+- 📱 **Responsive**: Works perfectly on desktop and mobile
+- ⚡ **Streaming**: Real-time responses with Server-Sent Events
+- 🏗️ **Optimized Architecture**: Clean code structure with Composables and Pinia
+- 📤 **Export Function**: Export your conversations as JSON
+- ⚙️ **Settings**: Comprehensive settings and app information
+- 🆔 **Session Management**: UUIDv4-based session IDs for unique chat assignment
 
-## 🚀 Neue Features (v0.1.1-beta)
+## 📝 Version History
 
-### ChatGPT-ähnliche Oberfläche
-- **Sidebar mit Unterhaltungen**: Alle Unterhaltungen auf einen Blick
-- **Automatische Titel**: Titel werden aus der ersten Nachricht generiert
-- **Modell-Sperrung**: Modell kann während einer Unterhaltung nicht gewechselt werden
-- **Unterhaltung löschen**: Einzelne Unterhaltungen mit Bestätigung löschen
-- **Neue Unterhaltung**: Einfach neue Unterhaltungen starten
+### v0.1.2-beta (Current)
+- 🐛 **Bugfix Release**: Resolution of critical errors
+- 💬 **Multiple Chats Fix**: Corrected functionality for multiple simultaneous chats
+- 📅 **Sorting by Creation Date**: Conversations are now sorted by `created_at`
 
-### Erweiterte Funktionen
-- **Einstellungen-Dialog**: Vollständiger Dialog mit App-Informationen
-- **Statistiken**: Anzahl Unterhaltungen und Nachrichten
-- **Export/Import**: Unterhaltungen als JSON exportieren
-- **Lokale Persistierung**: Alle Daten werden im LocalStorage gespeichert
+### v0.1.1-beta
+- 📱 **Mobile Enhancements**: Improved mobile user interface and responsiveness
+- 🎨 **UI Optimizations**: Enhanced user-friendliness on mobile devices
+- 🔧 **Mobile-specific Improvements**: Touch optimization and better navigation
 
-## 🚀 Neue Optimierungen
+### v0.1.0-beta
+- 🚀 **Initial Release**: First beta version of the application
+- 🤖 **Basic AI Chat Functionality**: Chat with Ollama models
+- 💬 **Session Management**: First implementation of the session system
+- 🎨 **Base UI**: Basic user interface with Tailwind CSS
 
-### Code-Struktur
-- **Komponenten-basiert**: Aufgeteilte UI in wiederverwendbare Komponenten
-- **Composables**: Logik in wiederverwendbare Composables ausgelagert
-- **State Management**: Pinia Store für zentrales State Management
-- **TypeScript**: Vollständige Typisierung für bessere Entwicklererfahrung
+## 🚀 New Features (v0.1.1-beta)
+
+### Session-based Chat Management ⭐ NEW
+- **Unique Session IDs**: Each chat receives a UUIDv4 for unique identification
+- **Concurrent Chat Support**: Multiple chats can run simultaneously without overlap
+- **Response Assignment**: Streaming responses are correctly assigned to the respective chat
+- **Session Tracking**: Active sessions are monitored and can be aborted
+- **Abort Functionality**: Chat requests can be aborted during streaming
+
+### ChatGPT-like Interface
+- **Sidebar with Conversations**: All conversations at a glance
+- **Automatic Titles**: Titles are generated from the first message
+- **Model Locking**: Model cannot be changed during a conversation
+- **Delete Conversation**: Delete individual conversations with confirmation
+- **New Conversation**: Easily start new conversations
+- **Session Status Display**: Visual display of active chat sessions
+- **Cancel Button**: Chat requests can be canceled at any time
+
+### Extended Functions
+- **Settings Dialog**: Complete dialog with app information
+- **Statistics**: Number of conversations and messages
+- **Export/Import**: Export conversations as JSON
+- **Local Persistence**: All data is stored in LocalStorage
+
+## 🚀 New Optimizations
+
+### Session Management
+- **UUIDv4 Generation**: Unique IDs for each chat request
+- **AbortController**: Graceful cancellation of running requests
+- **Session Tracking**: Central management of all active chat sessions
+- **Response Routing**: Correct assignment of streaming responses
+- **Concurrent Safety**: Prevents response mixing with multiple simultaneous chats
+
+### Code Structure
+- **Component-based**: Split UI into reusable components
+- **Composables**: Logic extracted into reusable composables
+- **State Management**: Pinia Store for central state management
+- **TypeScript**: Complete typing for better developer experience
+- **Session Management**: New interfaces and types for session handling
 
 ### Performance
-- **Lazy Loading**: Optimierte Komponentenladung
-- **Reaktivität**: Verbesserte Vue 3 Reaktivität
-- **Memory Management**: Bessere Speicherverwaltung
+- **Lazy Loading**: Optimized component loading
+- **Reactivity**: Improved Vue 3 reactivity
+- **Memory Management**: Better memory management
+- **Request Optimization**: Optimized request handling with session IDs
 
-### Wartbarkeit
-- **Modularer Aufbau**: Klare Trennung von Verantwortlichkeiten
-- **Error Handling**: Robuste Fehlerbehandlung
-- **Code Quality**: Sauberer, lesbarer Code
+### Maintainability
+- **Modular Structure**: Clear separation of responsibilities
+- **Error Handling**: Robust error handling
+- **Code Quality**: Clean, readable code
+- **Session Lifecycle**: Clear session lifecycle management
 
-## 📁 Projekt-Struktur
+## 📁 Project Structure
 
 ```
 ├── components/
-│   ├── ChatHeader.vue      # Modell-Auswahl und Steuerung
-│   ├── ChatMessages.vue    # Nachrichten-Anzeige
-│   ├── ChatInput.vue       # Eingabe-Bereich
-│   └── ChatMessage.vue     # Einzelne Nachricht
+│   ├── ChatHeader.vue      # Model selection and control
+│   ├── ChatMessages.vue    # Message display
+│   ├── ChatInput.vue       # Input area with session control
+│   └── ChatMessage.vue     # Individual message
 ├── composables/
-│   ├── useChat.ts          # Chat-Logik
-│   └── useScrolling.ts     # Scroll-Management
+│   ├── useChat.ts          # Chat logic with session management
+│   └── useScrolling.ts     # Scroll management
 ├── stores/
-│   └── chat.ts             # Pinia Store für Chat-State
+│   └── chat.ts             # Pinia Store for chat state and sessions
 ├── types/
-│   └── chat.ts             # TypeScript Interfaces
+│   └── chat.ts             # TypeScript interfaces incl. session types
 ├── utils/
-│   └── formatters.ts       # Utility-Funktionen
+│   ├── formatters.ts       # Utility functions
+│   └── uuid.ts             # UUIDv4 generation
 ├── server/api/
-│   ├── chat.post.ts        # Chat API Endpoint
-│   └── models.get.ts       # Modelle API Endpoint
+│   ├── chat.post.ts        # Chat API endpoint with session support
+│   └── models.get.ts       # Models API endpoint
 └── pages/
-    └── index.vue           # Hauptseite
+    └── index.vue           # Main page
 ```
 
 ## 🛠️ Setup
 
-### 1. Dependencies installieren
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Environment-Variablen konfigurieren
+### 2. Configure Environment Variables
 
-Erstelle eine `.env` Datei im Projektroot:
+Create a `.env` file in the project root:
 
 ```env
 OLLAMA_API_URL=https://server.chad.lu/api
@@ -92,57 +131,82 @@ OLLAMA_API_USER=apiuser
 OLLAMA_API_KEY=your_api_key_here
 ```
 
-**Wichtig**: Ersetze `your_api_key_here` mit deinem echten API-Key.
+**Important**: Replace `your_api_key_here` with your actual API key.
 
-### 3. Entwicklungsserver starten
+### 3. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-Die Anwendung ist dann unter `http://localhost:3000` verfügbar.
+The application will then be available at `http://localhost:3000`.
 
-## 💻 Verwendung
+## 💻 Usage
 
-### Chat
-- Gehe zu `/` (Hauptseite)
-- Wähle ein KI-Modell aus der Dropdown-Liste
-- Schreibe eine Nachricht und drücke Enter oder klicke "Senden"
-- Die KI antwortet in Echtzeit mit Streaming
-- Der Kontext wird automatisch zwischen den Nachrichten beibehalten
-- Nutze "Unterhaltung löschen" um eine neue Unterhaltung zu starten
+### Chat with Session Management
+- Go to `/` (main page)
+- Select an AI model from the dropdown list
+- Write a message and press Enter or click "Send"
+- The AI responds in real-time with streaming
+- Context is automatically maintained between messages
+- **Multiple chats simultaneously**: Open multiple tabs or start parallel chats - they don't overlap
+- **Cancel chat**: Use the "Cancel" button to stop running requests
+- **Session status**: See the active status of your chat session in the UI
 
-### Markdown-Support
-- **Fett**: `**Text**` oder `__Text__`
-- **Listen**: `- Item` oder `1. Item`
-- **Code**: `` `code` `` oder ``` ```code``` ```
+### Session Features
+- **Unique IDs**: Each chat automatically receives a unique session ID
+- **Parallel Chats**: Multiple chats can run simultaneously without interference
+- **Request Abortion**: Running chat requests can be aborted at any time
+- **Visual Feedback**: Active sessions are displayed in the UI
+
+### Markdown Support
+- **Bold**: `**Text**` or `__Text__`
+- **Lists**: `- Item` or `1. Item`
+- **Code**: `` `code` `` or ``` ```code``` ```
 - **Links**: `[Text](URL)`
-- **Überschriften**: `# H1`, `## H2`, etc.
+- **Headings**: `# H1`, `## H2`, etc.
 
-## 🔧 Technische Details
+## 🔧 Technical Details
 
-### Frontend-Architektur
+### Session Management Architecture
+- **UUID Generation**: Crypto-API based UUIDv4 generation with fallback
+- **Session Tracking**: Map-based management of active sessions in Pinia Store
+- **Request Association**: Each API request contains a unique session ID
+- **Response Routing**: Server adds session IDs to streaming responses
+- **Abort Handling**: AbortController for graceful request cancellation
+- **Concurrent Safety**: Prevents response mixing with parallel chats
+
+### Frontend Architecture
 - **Framework**: Vue 3 + Nuxt 3
-- **State Management**: Pinia
+- **State Management**: Pinia with session tracking
 - **Styling**: Tailwind CSS + Typography Plugin
-- **Icons**: Heroicons über @nuxt/icon
-- **TypeScript**: Vollständige Typisierung
+- **Icons**: Heroicons via @nuxt/icon
+- **TypeScript**: Complete typing incl. session types
 
-### Backend-API
+### Backend API
 - **Runtime**: Nuxt Server API
-- **Streaming**: Server-Sent Events
-- **Authentication**: Basic Auth für Ollama
-- **Error Handling**: Robuste Fehlerbehandlung
+- **Streaming**: Server-Sent Events with session ID injection
+- **Authentication**: Basic Auth for Ollama
+- **Error Handling**: Robust error handling
+- **Session Headers**: X-Session-ID header for response tracking
 
-### API-Endpunkte
-- `POST /api/chat` - Sendet Nachrichten an Ollama und streamt die Antwort
-- `GET /api/models` - Lädt verfügbare Ollama-Modelle
+### API Endpoints
+- `POST /api/chat` - Sends messages to Ollama and streams the response (with session ID)
+- `GET /api/models` - Loads available Ollama models
 
-### Sicherheit
-- API-Credentials werden nur serverseitig verwendet
-- Basic Authentication für Ollama API
-- Environment-Variablen sind nicht öffentlich zugänglich
-- XSS-Schutz durch HTML-Escaping
+### Session Management Flow
+1. **Request Initiation**: UUIDv4 is generated and session started
+2. **API Call**: Request with session ID is sent to backend
+3. **Response Processing**: Server adds session ID to all response chunks
+4. **Response Routing**: Frontend routes responses based on session ID
+5. **Session Cleanup**: Session is ended after completion or abortion
+
+### Security
+- API credentials are only used server-side
+- Basic Authentication for Ollama API
+- Environment variables are not publicly accessible
+- XSS protection through HTML escaping
+- Session IDs are not persistent and only for request tracking
 
 ## 🚀 Deployment
 
@@ -158,43 +222,60 @@ npm run build
 npm run preview
 ```
 
-### Environment-Variablen für Production
+### Environment Variables for Production
 
-Stelle sicher, dass die folgenden Environment-Variablen in deiner Production-Umgebung gesetzt sind:
+Make sure the following environment variables are set in your production environment:
 
 - `OLLAMA_API_URL`
 - `OLLAMA_API_USER` 
 - `OLLAMA_API_KEY`
 
-## 🎨 Anpassungen
+## 🎨 Customizations
 
-### Andere Ollama-Modelle verwenden
+### Using Other Ollama Models
 
-Die verfügbaren Modelle werden automatisch von der Ollama API geladen. Du kannst das Standard-Modell in `stores/chat.ts` ändern.
+Available models are automatically loaded from the Ollama API. You can change the default model in `stores/chat.ts`.
 
-### UI-Styling anpassen
+### Customizing UI Styling
 
-Die Styles befinden sich in:
-- `assets/css/main.css` - Globale Styles
-- Komponenten verwenden Tailwind CSS Klassen
-- `components/ChatMessage.vue` - Markdown-Styling
+Styles are located in:
+- `assets/css/main.css` - Global styles
+- Components use Tailwind CSS classes
+- `components/ChatMessage.vue` - Markdown styling
 
-### Neue Features hinzufügen
+### Extending Session Management
 
-Dank der modularen Architektur können einfach neue Features hinzugefügt werden:
+The session system can be extended:
+- **Session Persistence**: Store sessions in LocalStorage
+- **Session Analytics**: Tracking of session metrics
+- **Session Limits**: Maximum number of parallel sessions
+- **Session Recovery**: Recovery of interrupted sessions
 
-- **Conversation History**: Erweitere den Pinia Store
-- **Chat-Export**: Neue Composable für Export-Funktionalität
-- **Benutzer-Authentifizierung**: Neue Auth-Composable
-- **Datei-Upload**: Erweitere ChatInput Komponente
+### Adding New Features
 
-## 🤝 Entwicklung
+Thanks to the modular architecture, new features can be easily added:
 
-### Code-Stil
-- Verwende TypeScript für alle neuen Dateien
-- Folge der Vue 3 Composition API
-- Nutze Pinia für State Management
-- Erstelle Composables für wiederverwendbare Logik
+- **Conversation History**: Extend the Pinia Store
+- **Chat Export**: New composable for export functionality
+- **User Authentication**: New auth composable
+- **File Upload**: Extend ChatInput component
+- **Session Analytics**: Session tracking and metrics
+
+## 🤝 Development
+
+### Code Style
+- Use TypeScript for all new files
+- Follow the Vue 3 Composition API
+- Use Pinia for state management
+- Create composables for reusable logic
+- Implement session management for new features
+
+### Session Development Guidelines
+- Every new chat request should receive a session ID
+- Use AbortController for cancellable requests
+- Use session IDs for response routing
+- Implement proper session cleanup
+- Test concurrent chat scenarios
 
 ### Testing
 ```bash

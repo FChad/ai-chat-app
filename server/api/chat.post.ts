@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody<ChatRequest>(event)
-    const { message, model = 'gemma3:4b', context } = body
+    const { message, model = 'gemma3:4b', context, sessionId } = body
 
     // Validate input
     if (!message || typeof message !== 'string' || !message.trim()) {
@@ -19,6 +19,13 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         statusMessage: 'Valid model is required'
+      })
+    }
+
+    if (!sessionId || typeof sessionId !== 'string') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Valid sessionId is required'
       })
     }
 
@@ -52,13 +59,14 @@ export default defineEventHandler(async (event) => {
     // Construct the full URL
     const apiUrl = `${ollamaApiUrl}/generate`
 
-    // Set headers for Server-Sent Events
+    // Set headers for Server-Sent Events with session ID
     setHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
     setHeader(event, 'Cache-Control', 'no-cache')
     setHeader(event, 'Connection', 'keep-alive')
     setHeader(event, 'Access-Control-Allow-Origin', '*')
     setHeader(event, 'Access-Control-Allow-Methods', 'POST')
     setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type')
+    setHeader(event, 'X-Session-ID', sessionId) // Add session ID to response headers
 
     const requestBody: any = {
       model: model.trim(),
@@ -95,8 +103,52 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Return the stream directly
-    return sendStream(event, response.body)
+    // Create a transform stream to add sessionId to each chunk
+    const transformedStream = new ReadableStream({
+      start(controller) {
+        const reader = response.body!.getReader()
+        const decoder = new TextDecoder()
+
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              
+              if (done) {
+                controller.close()
+                break
+              }
+
+              const chunk = decoder.decode(value)
+              const lines = chunk.split('\n')
+
+              for (const line of lines) {
+                if (line.trim()) {
+                  try {
+                    const data = JSON.parse(line)
+                    // Add sessionId to the response data
+                    data.sessionId = sessionId
+                    const modifiedLine = JSON.stringify(data) + '\n'
+                    controller.enqueue(new TextEncoder().encode(modifiedLine))
+                  } catch (e) {
+                    // If JSON parsing fails, pass through the original line
+                    // but try to add sessionId if it looks like a valid response
+                    controller.enqueue(new TextEncoder().encode(line + '\n'))
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            controller.error(error)
+          }
+        }
+
+        pump()
+      }
+    })
+
+    // Return the transformed stream
+    return sendStream(event, transformedStream)
 
   } catch (error: any) {
     console.error('Chat API error:', error)

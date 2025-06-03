@@ -7,7 +7,7 @@
       </label>
       <select
         v-model="selectedModel"
-        :disabled="chatStore.isTyping"
+        :disabled="chatStore.isTyping || isCurrentConversationTyping"
         class="w-full px-3 sm:px-4 py-2.5 sm:py-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer hover:bg-black/30 transition-colors text-sm sm:text-base"
         style="color-scheme: dark;"
       >
@@ -25,9 +25,24 @@
           <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-blue-400" />
           <span class="text-xs sm:text-sm text-gray-300">Aktuelles Modell:</span>
           <span class="text-xs sm:text-sm font-medium text-white">{{ chatStore.currentModel }}</span>
+          <!-- Session status indicator -->
+          <div v-if="isCurrentConversationTyping" class="flex items-center space-x-1 ml-2">
+            <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-xs text-green-400">Aktive Session</span>
+          </div>
         </div>
-        <div class="text-xs text-gray-400 hidden sm:block">
-          Modell kann nicht während der Unterhaltung gewechselt werden
+        <div class="flex items-center space-x-2">
+          <!-- Cancel button when conversation is typing -->
+          <button
+            v-if="isCurrentConversationTyping"
+            @click="handleCancel"
+            class="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded border border-red-400/30 hover:border-red-300/50"
+          >
+            Abbrechen
+          </button>
+          <div class="text-xs text-gray-400 hidden sm:block">
+            Modell kann nicht während der Unterhaltung gewechselt werden
+          </div>
         </div>
       </div>
     </div>
@@ -39,7 +54,7 @@
           v-model="message"
           placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
           class="w-full px-3 sm:px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[3rem] sm:min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin text-sm sm:text-base mobile-placeholder"
-          :disabled="chatStore.isTyping"
+          :disabled="chatStore.isTyping || isCurrentConversationTyping"
           @keydown="handleKeydown"
           rows="1"
         />
@@ -50,7 +65,7 @@
         class="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm sm:text-base font-medium touch-manipulation"
       >
         <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-        <span>Senden</span>
+        <span>{{ isCurrentConversationTyping ? 'Sende...' : 'Senden' }}</span>
       </button>
     </form>
   </div>
@@ -58,14 +73,16 @@
 
 <script setup lang="ts">
 const chatStore = useChatStore()
-const { sendMessage } = useChat()
+const { sendMessage, cancelMessage } = useChat()
 
 const message = ref('')
 const selectedModel = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 
+const isCurrentConversationTyping = computed(() => chatStore.isConversationTyping)
+
 const canSend = computed(() => {
-  if (chatStore.isTyping || !message.value.trim()) return false
+  if (chatStore.isTyping || isCurrentConversationTyping.value || !message.value.trim()) return false
   
   // If no conversation exists, we need a model selected
   if (!chatStore.currentConversation) {
@@ -91,6 +108,12 @@ const handleSubmit = async () => {
     await sendMessage(messageToSend, selectedModel.value)
   } else {
     await sendMessage(messageToSend)
+  }
+}
+
+const handleCancel = () => {
+  if (chatStore.currentConversation) {
+    cancelMessage(chatStore.currentConversation.id)
   }
 }
 

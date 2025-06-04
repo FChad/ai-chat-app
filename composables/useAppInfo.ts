@@ -2,7 +2,7 @@ export const useAppInfo = () => {
   // In a real app, you could read this from package.json or environment variables
   const getVersion = () => {
     // For now, we'll use a static version, but this could be injected at build time
-    return '0.1.2-beta'
+    return '0.1.0-beta'
   }
 
   const getAppName = () => {

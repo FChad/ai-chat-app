@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     setHeader(event, 'Access-Control-Allow-Origin', '*')
     setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
     setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    setHeader(event, 'Access-Control-Max-Age', '86400')
+    setHeader(event, 'Access-Control-Max-Age', 86400)
     return {}
   }
 
@@ -15,17 +15,6 @@ export default defineEventHandler(async (event) => {
   try {
     const body = await readBody<ChatRequest>(event)
     const { model = 'gemma3:4b', messages, stream = true, sessionId } = body
-
-    // Enhanced logging for production debugging
-    console.log('Chat API called:', {
-      model,
-      messageCount: messages?.length,
-      stream,
-      sessionId,
-      hasApiUrl: !!runtimeConfig.ollamaApiUrl,
-      hasApiUser: !!runtimeConfig.ollamaApiUser,
-      hasApiKey: !!runtimeConfig.ollamaApiKey
-    })
 
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -97,7 +86,6 @@ export default defineEventHandler(async (event) => {
 
     // Use the modern Ollama Chat API endpoint
     const apiUrl = `${ollamaApiUrl}/chat`
-    console.log('Calling Ollama API:', apiUrl)
 
     // Prepare request body for modern Chat API
     const requestBody = {
@@ -117,8 +105,6 @@ export default defineEventHandler(async (event) => {
       },
       body: JSON.stringify(requestBody)
     })
-
-    console.log('Ollama API response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
@@ -151,8 +137,6 @@ export default defineEventHandler(async (event) => {
       setHeader(event, 'Access-Control-Expose-Headers', 'X-Session-ID')
       setHeader(event, 'X-Session-ID', sessionId)
 
-      console.log('Starting streaming response for session:', sessionId)
-
       // Create a transform stream to add sessionId to each chunk and handle modern chat response format
       const transformedStream = new ReadableStream({
         start(controller) {
@@ -167,7 +151,6 @@ export default defineEventHandler(async (event) => {
                 const { done, value } = await reader.read()
                 
                 if (done) {
-                  console.log(`Streaming completed for session ${sessionId}, total chunks: ${chunkCount}`)
                   // Process any remaining data in buffer
                   if (buffer.trim()) {
                     try {
@@ -241,7 +224,7 @@ export default defineEventHandler(async (event) => {
                           const modifiedLine = JSON.stringify(data) + '\n'
                           controller.enqueue(new TextEncoder().encode(modifiedLine))
                         } catch (e) {
-                          console.warn('Error parsing JSON object:', e, 'JSON:', jsonString)
+                          console.warn('Error parsing JSON object:', e)
                         }
                         
                         // Move to next potential JSON object
@@ -283,8 +266,6 @@ export default defineEventHandler(async (event) => {
       setHeader(event, 'Access-Control-Expose-Headers', 'X-Session-ID')
       setHeader(event, 'X-Session-ID', sessionId)
 
-      console.log('Processing non-streaming response for session:', sessionId)
-
       const data = await response.json()
       
       // Add sessionId to the response data
@@ -296,7 +277,6 @@ export default defineEventHandler(async (event) => {
         data.response = data.message.content
       }
 
-      console.log('Non-streaming response completed for session:', sessionId)
       return data
     }
 

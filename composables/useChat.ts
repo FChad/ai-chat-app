@@ -23,8 +23,6 @@ export const useChat = () => {
     const sessionId = generateUUID()
     const conversationId = chatStore.currentConversation.id
     
-    console.log('Starting chat session:', { sessionId, conversationId, model: chatStore.currentConversation.model })
-    
     // Create AbortController for this session
     const controller = new AbortController()
 
@@ -54,13 +52,6 @@ export const useChat = () => {
         sessionId: sessionId
       }
 
-      console.log('Sending chat request:', {
-        sessionId,
-        model: requestBody.model,
-        messageCount: requestBody.messages.length,
-        stream: requestBody.stream
-      })
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -68,13 +59,6 @@ export const useChat = () => {
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal // Add abort signal
-      })
-
-      console.log('Chat response received:', {
-        sessionId,
-        status: response.status,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
       })
 
       if (!response.ok) {
@@ -92,7 +76,7 @@ export const useChat = () => {
       // Add empty assistant message to the conversation associated with this session
       const targetConversation = chatStore.conversations.find(c => c.id === conversationId)
       if (targetConversation) {
-        chatStore.addMessage({
+        chatStore.addMessageToConversation(conversationId, {
           role: 'assistant',
           content: '',
           timestamp: formatTime(new Date())
@@ -104,7 +88,6 @@ export const useChat = () => {
       let assistantMessage = ''
 
       if (chatStore.isStreamModeEnabled) {
-        console.log('Processing streaming response for session:', sessionId)
         // Handle streaming response
         const reader = response.body?.getReader()
         if (!reader) {
@@ -121,7 +104,6 @@ export const useChat = () => {
             const { done, value } = await reader.read()
             
             if (done) {
-              console.log(`Streaming completed for session ${sessionId}, total chunks processed: ${chunkCount}`)
               // Process any remaining data in buffer
               if (buffer.trim()) {
                 try {
@@ -134,7 +116,7 @@ export const useChat = () => {
                     chatStore.updateLastMessage(assistantMessage, sessionId)
                   }
                 } catch (e) {
-                  console.warn('Error parsing final buffer JSON:', e, 'Buffer:', buffer)
+                  console.warn('Error parsing final buffer JSON:', e)
                 }
               }
               break
@@ -201,13 +183,12 @@ export const useChat = () => {
                         }
 
                         if (data.done) {
-                          console.log('Streaming marked as done for session:', sessionId)
                           buffer = buffer.substring(i + 1) // Keep remaining data
                           break
                         }
                       }
                     } catch (e) {
-                      console.warn('Error parsing JSON object:', e, 'JSON:', jsonString)
+                      console.warn('Error parsing JSON object:', e)
                     }
                     
                     // Move to next potential JSON object
@@ -229,15 +210,12 @@ export const useChat = () => {
             }
           }
         } catch (streamError: any) {
-          if (streamError.name === 'AbortError') {
-            console.log('Streaming request was aborted for session:', sessionId)
-          } else {
+          if (streamError.name !== 'AbortError') {
             console.error('Error reading stream for session:', sessionId, streamError)
             throw streamError
           }
         }
       } else {
-        console.log('Processing non-streaming response for session:', sessionId)
         // Handle non-streaming response
         try {
           const data = await response.json()
@@ -256,12 +234,8 @@ export const useChat = () => {
             assistantMessage = data.response
             chatStore.updateLastMessage(assistantMessage, sessionId)
           }
-
-          console.log('Non-streaming response processed for session:', sessionId)
         } catch (jsonError: any) {
-          if (jsonError.name === 'AbortError') {
-            console.log('Non-streaming request was aborted for session:', sessionId)
-          } else {
+          if (jsonError.name !== 'AbortError') {
             console.error('Error parsing JSON response for session:', sessionId, jsonError)
             throw jsonError
           }
@@ -289,7 +263,6 @@ export const useChat = () => {
       }
     } finally {
       // Always end the session and stop typing
-      console.log('Ending chat session:', sessionId)
       chatStore.endChatSession(sessionId)
       chatStore.setTyping(false)
     }

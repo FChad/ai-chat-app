@@ -17,7 +17,7 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 - 📤 **Export Function**: Export your conversations as JSON
 - ⚙️ **Settings**: Comprehensive settings and app information
 - 🆔 **Session Management**: UUIDv4-based session IDs for unique chat assignment
-
+0.1.0-beta
 ## 📁 Project Structure
 
 ```

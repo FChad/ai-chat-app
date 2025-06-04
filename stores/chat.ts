@@ -95,23 +95,32 @@ export const useChatStore = defineStore('chat', () => {
     saveToLocalStorage()
   }
 
+  const addMessageToConversation = (conversationId: string, message: Omit<Message, 'id'>) => {
+    const conversation = conversations.value.find(c => c.id === conversationId)
+    if (!conversation) {
+      return
+    }
+
+    const messageWithId = {
+      ...message,
+      id: Date.now().toString()
+    }
+    
+    conversation.messages.push(messageWithId)
+    conversation.updatedAt = new Date().toISOString()
+    
+    // Update title if this is the first user message
+    if (message.role === 'user' && conversation.messages.length === 1) {
+      conversation.title = generateConversationTitle(message.content)
+    }
+    
+    saveToLocalStorage()
+  }
+
   const updateLastMessage = (content: string, sessionId?: string) => {
-    // If sessionId is provided, update message only for the matching conversation
-    if (sessionId) {
-      const conversation = conversations.value.find(c => c.sessionId === sessionId)
-      if (!conversation) return
-      
-      const messages = conversation.messages
-      if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1]
-        if (lastMessage.role === 'assistant') {
-          lastMessage.content = content
-          conversation.updatedAt = new Date().toISOString()
-          saveToLocalStorage()
-        }
-      }
-    } else {
-      // Fallback to current conversation (backward compatibility)
+    // Always require sessionId for proper message routing
+    if (!sessionId) {
+      // Only update current conversation if no sessionId provided (legacy support)
       if (!currentConversation.value) return
       
       const messages = currentConversation.value.messages
@@ -122,6 +131,23 @@ export const useChatStore = defineStore('chat', () => {
           currentConversation.value.updatedAt = new Date().toISOString()
           saveToLocalStorage()
         }
+      }
+      return
+    }
+
+    // Find conversation by sessionId
+    const conversation = conversations.value.find(c => c.sessionId === sessionId)
+    if (!conversation) {
+      return
+    }
+    
+    const messages = conversation.messages
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage.role === 'assistant') {
+        lastMessage.content = content
+        conversation.updatedAt = new Date().toISOString()
+        saveToLocalStorage()
       }
     }
   }
@@ -296,6 +322,7 @@ export const useChatStore = defineStore('chat', () => {
     createNewConversation,
     selectConversation,
     addMessage,
+    addMessageToConversation,
     updateLastMessage,
     deleteConversation,
     clearAllConversations,

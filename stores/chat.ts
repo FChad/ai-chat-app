@@ -9,6 +9,7 @@ export const useChatStore = defineStore('chat', () => {
   const availableModels = ref<OllamaModel[]>([])
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
+  const isLoading = ref(true) // Add loading state
   
   // App Settings with defaults
   const settings = ref<AppSettings>({
@@ -275,6 +276,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const loadFromLocalStorage = () => {
     if (process.client) {
+      isLoading.value = true
       try {
         const savedConversations = localStorage.getItem('chat-conversations')
         if (savedConversations) {
@@ -295,8 +297,20 @@ export const useChatStore = defineStore('chat', () => {
         }
       } catch (error) {
         console.error('Error loading conversations from localStorage:', error)
+      } finally {
+        // Small delay to ensure UI has time to show loading state
+        setTimeout(() => {
+          isLoading.value = false
+        }, 100)
       }
+    } else {
+      // On server-side, immediately set loading to false
+      isLoading.value = false
     }
+  }
+
+  const setLoadingComplete = () => {
+    isLoading.value = false
   }
 
   return {
@@ -308,6 +322,7 @@ export const useChatStore = defineStore('chat', () => {
     isAtBottom,
     activeSessions,
     settings,
+    isLoading,
     
     // Getters
     currentConversation,
@@ -330,6 +345,7 @@ export const useChatStore = defineStore('chat', () => {
     setAvailableModels,
     setIsAtBottom,
     loadFromLocalStorage,
+    setLoadingComplete,
     
     // Settings Actions
     updateStreamMode,

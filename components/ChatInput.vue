@@ -1,71 +1,66 @@
 <template>
-  <div class="p-3 sm:p-6 border-t border-white/10">
-    <!-- Model Selection (only shown when no conversation exists) -->
-    <div v-if="!chatStore.currentConversation" class="mb-3 sm:mb-4">
-      <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-        Wähle ein KI-Modell für die neue Unterhaltung
-      </label>
-      <select
-        v-model="selectedModel"
-        :disabled="chatStore.isTyping || isCurrentConversationTyping"
-        class="w-full px-3 sm:px-4 py-2.5 sm:py-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer hover:bg-black/30 transition-colors text-sm sm:text-base"
-        style="color-scheme: dark;"
-      >
-        <option value="" disabled class="bg-gray-800 text-white">Modell auswählen...</option>
-        <option v-for="model in chatStore.availableModels" :key="model.name" :value="model.name" class="bg-gray-800 text-white">
-          {{ model.name }} ({{ model.details.parameter_size }})
-        </option>
-      </select>
-    </div>
-
-    <!-- Current Model Display (shown when conversation exists) -->
-    <div v-else class="mb-3 sm:mb-4 p-2 sm:p-2 bg-black/10 rounded-lg border border-white/10">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-blue-400" />
-          <span class="text-xs sm:text-sm text-gray-300">Aktuelles Modell:</span>
-          <span class="text-xs sm:text-sm font-medium text-white">{{ chatStore.currentModel }}</span>
-          <!-- Session status indicator -->
-          <div v-if="isCurrentConversationTyping" class="flex items-center space-x-1 ml-2">
-            <div class="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="text-xs text-green-400">Aktive Session</span>
-          </div>
-        </div>
-        <div class="flex items-center space-x-2">
-          <!-- Cancel button when conversation is typing -->
-          <button
-            v-if="isCurrentConversationTyping"
-            @click="handleCancel"
-            class="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded border border-red-400/30 hover:border-red-300/50"
-          >
-            Abbrechen
-          </button>
-          <div class="text-xs text-gray-400 hidden sm:block">
-            Modell kann nicht während der Unterhaltung gewechselt werden
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <form @submit.prevent="handleSubmit" class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
-      <div class="flex-1 w-full">
+  <div class="p-4 sm:p-6 border-t border-gray-200/30 dark:border-gray-700/30 bg-white/20 dark:bg-gray-900/20 backdrop-blur-xl">
+    <!-- Only show input form when there's a conversation -->
+    <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit" class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
+      <div class="flex-1 w-full relative">
         <textarea
           ref="textareaRef"
           v-model="message"
-          placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-          class="w-full px-3 sm:px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[3rem] sm:min-h-[3rem] max-h-32 overflow-y-auto scrollbar-thin text-sm sm:text-base mobile-placeholder"
+          :placeholder="isFocused || message ? 'Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)' : ''"
+          class="w-full px-3 py-3 bg-white/80 dark:bg-gray-800/80 border-2 border-gray-200/60 dark:border-gray-700/60 focus:border-primary-500 dark:focus:border-primary-400 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-primary-500/20 focus:bg-white dark:focus:bg-gray-800 resize-none min-h-[3.5rem] max-h-32 overflow-y-auto scrollbar-thin text-base font-medium backdrop-blur-sm shadow-lg hover:shadow-xl focus:shadow-xl transition-all duration-200 mobile-placeholder"
           :disabled="chatStore.isTyping || isCurrentConversationTyping"
           @keydown="handleKeydown"
+          @focus="onFocus"
+          @blur="onBlur"
           rows="1"
         />
+        
+        <!-- Enhanced focus indicator -->
+        <div 
+          v-if="isFocused" 
+          class="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-600/10 pointer-events-none animate-pulse"
+        ></div>
+        
+        <!-- Character counter for long messages -->
+        <div v-if="message.length > 100" class="absolute bottom-3 right-3 text-xs text-gray-400 dark:text-gray-500 bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded-lg backdrop-blur-sm shadow-sm">
+          {{ message.length }}
+        </div>
+        
+        <!-- Placeholder enhancement for empty state -->
+        <div 
+          v-if="!message && !isFocused" 
+          class="absolute inset-4 flex items-start pt-1 pointer-events-none"
+        >
+          <div class="flex items-center space-x-2 text-gray-400 dark:text-gray-500">
+            <Icon name="heroicons:chat-bubble-left-ellipsis" class="h-4 w-4 opacity-60" />
+            <span class="text-sm font-medium opacity-75">Beginne deine Unterhaltung hier...</span>
+          </div>
+        </div>
       </div>
+      
+      <!-- Cancel button when conversation is typing -->
       <button
+        v-if="isCurrentConversationTyping"
+        @click="handleCancel"
+        type="button"
+        class="w-full sm:w-auto px-4 py-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium"
+      >
+        <Icon name="heroicons:x-mark" class="h-4 w-4" />
+        <span>Abbrechen</span>
+      </button>
+      
+      <!-- Send button -->
+      <button
+        v-else
         type="submit"
         :disabled="!canSend"
-        class="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm sm:text-base font-medium touch-manipulation"
+        class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]"
       >
-        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-        <span>{{ isCurrentConversationTyping ? 'Sende...' : 'Senden' }}</span>
+        <Icon 
+          name="heroicons:paper-airplane"
+          class="h-4 w-4 sm:h-5 sm:w-5"
+        />
+        <span>Senden</span>
       </button>
     </form>
   </div>
@@ -76,20 +71,13 @@ const chatStore = useChatStore()
 const { sendMessage, cancelMessage } = useChat()
 
 const message = ref('')
-const selectedModel = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 
 const isCurrentConversationTyping = computed(() => chatStore.isConversationTyping)
 
 const canSend = computed(() => {
   if (chatStore.isTyping || isCurrentConversationTyping.value || !message.value.trim()) return false
-  
-  // If no conversation exists, we need a model selected
-  if (!chatStore.currentConversation) {
-    return selectedModel.value !== ''
-  }
-  
-  return true
+  return chatStore.currentConversation !== null
 })
 
 const handleSubmit = async () => {
@@ -103,12 +91,7 @@ const handleSubmit = async () => {
     autoResize()
   })
   
-  // Send message with model if no conversation exists
-  if (!chatStore.currentConversation) {
-    await sendMessage(messageToSend, selectedModel.value)
-  } else {
-    await sendMessage(messageToSend)
-  }
+  await sendMessage(messageToSend)
 }
 
 const handleCancel = () => {
@@ -138,44 +121,124 @@ watch(message, () => {
   })
 })
 
-// Auto-resize on mount
+// Auto-resize on mount and focus management
 onMounted(() => {
   if (textareaRef.value) {
     autoResize()
+    
+    // Focus the textarea when component mounts
+    const focusTextarea = () => {
+      if (textareaRef.value && chatStore.currentConversation && !chatStore.isLoading) {
+        textareaRef.value.focus()
+      }
+    }
+    
+    // Immediate focus if conditions are met
+    setTimeout(focusTextarea, 100)
+    
+    // Also try again after a bit longer delay to handle slow loading
+    setTimeout(focusTextarea, 500)
   }
 })
 
-// Set default model when models are loaded
-watch(() => chatStore.availableModels, (models) => {
-  if (models.length > 0 && !selectedModel.value) {
-    // Try to find gemma3:4b first, otherwise use first available model
-    const preferredModel = models.find(model => model.name === 'gemma3:4b')
-    selectedModel.value = preferredModel ? preferredModel.name : models[0].name
+// Focus textarea when conversation changes
+watch(() => chatStore.currentConversation, (newConversation) => {
+  if (newConversation && textareaRef.value) {
+    // Add a small delay to ensure the component is fully rendered
+    setTimeout(() => {
+      textareaRef.value?.focus()
+    }, 100)
   }
-}, { immediate: true })
+})
+
+// Focus textarea when chat loading is complete
+watch(() => chatStore.isLoading, (isLoading) => {
+  if (!isLoading && textareaRef.value && chatStore.currentConversation) {
+    // Chat has finished loading and there's an active conversation
+    setTimeout(() => {
+      textareaRef.value?.focus()
+    }, 200)
+  }
+})
+
+const isFocused = ref(false)
+const onFocus = () => {
+  isFocused.value = true
+}
+const onBlur = () => {
+  isFocused.value = false
+}
+
+// Method to focus the textarea from external components
+const focusInput = () => {
+  if (textareaRef.value) {
+    textareaRef.value.focus()
+  }
+}
+
+// Expose the focus method for parent components
+defineExpose({
+  focusInput
+})
 </script>
 
 <style scoped>
+/* Modern Scrollbar for textarea */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.6);
+}
+
+/* Dark mode scrollbar */
+.dark .scrollbar-thin {
+  scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.4);
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(75, 85, 99, 0.6);
+}
+
 /* Mobile placeholder text optimization */
 .mobile-placeholder::placeholder {
-  font-size: 0.75rem; /* 12px - smaller on mobile */
+  font-size: 0.8rem;
   line-height: 1.4;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 /* Responsive placeholder text */
 @media (min-width: 640px) {
   .mobile-placeholder::placeholder {
-    font-size: 1rem; /* 16px - normal size on desktop */
+    font-size: 0.875rem;
     line-height: 1.5;
-    opacity: 0.7;
+    opacity: 0.6;
   }
 }
 
 /* Extra small screens - even smaller placeholder */
 @media (max-width: 375px) {
   .mobile-placeholder::placeholder {
-    font-size: 0.6875rem; /* 11px - very small screens */
+    font-size: 0.75rem;
     line-height: 1.3;
   }
 }

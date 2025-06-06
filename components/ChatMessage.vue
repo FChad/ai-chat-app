@@ -245,8 +245,196 @@ if (process.client) {
 </script>
 
 <style scoped>
-/* Import highlight.js theme for light mode */
+/* Import highlight.js themes for light and dark modes */
 @import 'highlight.js/styles/github.css';
+
+/* Dark mode highlight.js theme */
+@media (prefers-color-scheme: dark) {
+  :deep(.hljs) {
+    background: transparent !important;
+    color: #afb6bb !important;
+  }
+  
+  :deep(.hljs-doctag),
+  :deep(.hljs-keyword),
+  :deep(.hljs-meta .hljs-keyword),
+  :deep(.hljs-template-tag),
+  :deep(.hljs-template-variable),
+  :deep(.hljs-type),
+  :deep(.hljs-variable.language_) {
+    color: #ff7b72 !important;
+  }
+  
+  :deep(.hljs-title),
+  :deep(.hljs-title.class_),
+  :deep(.hljs-title.class_.inherited__),
+  :deep(.hljs-title.function_) {
+    color: #d2a8ff !important;
+  }
+  
+  :deep(.hljs-attr),
+  :deep(.hljs-attribute),
+  :deep(.hljs-literal),
+  :deep(.hljs-meta),
+  :deep(.hljs-number),
+  :deep(.hljs-operator),
+  :deep(.hljs-selector-attr),
+  :deep(.hljs-selector-class),
+  :deep(.hljs-selector-id),
+  :deep(.hljs-variable) {
+    color: #79c0ff !important;
+  }
+  
+  :deep(.hljs-string),
+  :deep(.hljs-meta .hljs-string),
+  :deep(.hljs-regexp) {
+    color: #a5d6ff !important;
+  }
+  
+  :deep(.hljs-built_in),
+  :deep(.hljs-symbol) {
+    color: #ffa657 !important;
+  }
+  
+  :deep(.hljs-code),
+  :deep(.hljs-comment),
+  :deep(.hljs-formula) {
+    color: #8b949e !important;
+  }
+  
+  :deep(.hljs-name),
+  :deep(.hljs-quote),
+  :deep(.hljs-selector-pseudo),
+  :deep(.hljs-selector-tag) {
+    color: #7ee787 !important;
+  }
+  
+  :deep(.hljs-subst) {
+    color: #e6edf3 !important;
+  }
+  
+  :deep(.hljs-section) {
+    color: #1f6feb !important;
+    font-weight: bold;
+  }
+  
+  :deep(.hljs-bullet) {
+    color: #f2cc60 !important;
+  }
+  
+  :deep(.hljs-emphasis) {
+    color: #e6edf3 !important;
+    font-style: italic;
+  }
+  
+  :deep(.hljs-strong) {
+    color: #e6edf3 !important;
+    font-weight: bold;
+  }
+  
+  :deep(.hljs-addition) {
+    color: #aff5b4 !important;
+    background-color: #033a16 !important;
+  }
+  
+  :deep(.hljs-deletion) {
+    color: #ffdcd7 !important;
+    background-color: #67060c !important;
+  }
+}
+
+/* Dark mode class-based theme for Nuxt color mode */
+.dark :deep(.hljs) {
+  background: transparent !important;
+  color: #e6edf3 !important;
+}
+
+.dark :deep(.hljs-doctag),
+.dark :deep(.hljs-keyword),
+.dark :deep(.hljs-meta .hljs-keyword),
+.dark :deep(.hljs-template-tag),
+.dark :deep(.hljs-template-variable),
+.dark :deep(.hljs-type),
+.dark :deep(.hljs-variable.language_) {
+  color: #ff7b72 !important;
+}
+
+.dark :deep(.hljs-title),
+.dark :deep(.hljs-title.class_),
+.dark :deep(.hljs-title.class_.inherited__),
+.dark :deep(.hljs-title.function_) {
+  color: #d2a8ff !important;
+}
+
+.dark :deep(.hljs-attr),
+.dark :deep(.hljs-attribute),
+.dark :deep(.hljs-literal),
+.dark :deep(.hljs-meta),
+.dark :deep(.hljs-number),
+.dark :deep(.hljs-operator),
+.dark :deep(.hljs-selector-attr),
+.dark :deep(.hljs-selector-class),
+.dark :deep(.hljs-selector-id),
+.dark :deep(.hljs-variable) {
+  color: #79c0ff !important;
+}
+
+.dark :deep(.hljs-string),
+.dark :deep(.hljs-meta .hljs-string),
+.dark :deep(.hljs-regexp) {
+  color: #a5d6ff !important;
+}
+
+.dark :deep(.hljs-built_in),
+.dark :deep(.hljs-symbol) {
+  color: #ffa657 !important;
+}
+
+.dark :deep(.hljs-code),
+.dark :deep(.hljs-comment),
+.dark :deep(.hljs-formula) {
+  color: #8b949e !important;
+}
+
+.dark :deep(.hljs-name),
+.dark :deep(.hljs-quote),
+.dark :deep(.hljs-selector-pseudo),
+.dark :deep(.hljs-selector-tag) {
+  color: #7ee787 !important;
+}
+
+.dark :deep(.hljs-subst) {
+  color: #e6edf3 !important;
+}
+
+.dark :deep(.hljs-section) {
+  color: #1f6feb !important;
+  font-weight: bold;
+}
+
+.dark :deep(.hljs-bullet) {
+  color: #f2cc60 !important;
+}
+
+.dark :deep(.hljs-emphasis) {
+  color: #e6edf3 !important;
+  font-style: italic;
+}
+
+.dark :deep(.hljs-strong) {
+  color: #e6edf3 !important;
+  font-weight: bold;
+}
+
+.dark :deep(.hljs-addition) {
+  color: #aff5b4 !important;
+  background-color: #033a16 !important;
+}
+
+.dark :deep(.hljs-deletion) {
+  color: #ffdcd7 !important;
+  background-color: #67060c !important;
+}
 
 /* Custom prose styles for better markdown integration */
 :deep(.prose) {

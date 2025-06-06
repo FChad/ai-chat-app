@@ -8,7 +8,7 @@
     <!-- Dialog -->
     <div 
       @click.stop
-      class="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-scale-in"
+      class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-scale-in"
       :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'"
     >
       <!-- Header -->
@@ -155,7 +155,7 @@
       <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200/30 dark:border-gray-700/30">
         <button
           @click="closeDialog"
-          class="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors font-medium"
+          class="px-6 py-2.5 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-200 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]"
         >
           Schließen
         </button>

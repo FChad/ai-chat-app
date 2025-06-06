@@ -114,7 +114,7 @@
     <div class="p-4 sm:p-6 border-t border-gray-200/30 dark:border-gray-700/30">
       <button
         @click="$emit('openSettings')"
-        class="w-full px-4 py-3 bg-gray-100/60 dark:bg-gray-800/60 hover:bg-gray-200/60 dark:hover:bg-gray-700/60 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium backdrop-blur-sm active:scale-[0.98]"
+        class="w-full px-4 py-3 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]"
       >
         <Icon name="heroicons:cog-6-tooth" class="h-4 w-4" />
         <span>Einstellungen</span>

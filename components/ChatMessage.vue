@@ -252,7 +252,7 @@ if (process.client) {
 @media (prefers-color-scheme: dark) {
   :deep(.hljs) {
     background: transparent !important;
-    color: #afb6bb !important;
+    color: inherit !important;
   }
   
   :deep(.hljs-doctag),
@@ -282,13 +282,13 @@ if (process.client) {
   :deep(.hljs-selector-class),
   :deep(.hljs-selector-id),
   :deep(.hljs-variable) {
-    color: #79c0ff !important;
+    color: #44a8ff !important;
   }
   
   :deep(.hljs-string),
   :deep(.hljs-meta .hljs-string),
   :deep(.hljs-regexp) {
-    color: #a5d6ff !important;
+    color: #ffb341 !important;
   }
   
   :deep(.hljs-built_in),

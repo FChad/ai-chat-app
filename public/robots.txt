@@ -1,2 +1,36 @@
 User-Agent: *
-Disallow:
+Disallow: /
+
+# Block all crawlers and bots
+User-Agent: Googlebot
+Disallow: /
+
+User-Agent: Bingbot
+Disallow: /
+
+User-Agent: Slurp
+Disallow: /
+
+User-Agent: DuckDuckBot
+Disallow: /
+
+User-Agent: Baiduspider
+Disallow: /
+
+User-Agent: YandexBot
+Disallow: /
+
+User-Agent: facebookexternalhit
+Disallow: /
+
+User-Agent: Twitterbot
+Disallow: /
+
+User-Agent: LinkedInBot
+Disallow: /
+
+User-Agent: WhatsApp
+Disallow: /
+
+User-Agent: Applebot
+Disallow: /

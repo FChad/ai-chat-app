@@ -31,6 +31,14 @@ export default defineNuxtConfig({
         { rel: 'manifest', href: '/site.webmanifest' }
       ],
       meta: [
+        // Prevent indexing by search engines
+        { name: 'robots', content: 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate' },
+        { name: 'googlebot', content: 'noindex, nofollow, noarchive, nosnippet, noimageindex' },
+        { name: 'bingbot', content: 'noindex, nofollow, noarchive, nosnippet, noimageindex' },
+        { property: 'og:robots', content: 'noindex, nofollow' },
+        { name: 'twitter:robots', content: 'noindex, nofollow' },
+
+        // App meta tags
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },

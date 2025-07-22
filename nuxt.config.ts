@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
   modules: ['@nuxtjs/color-mode', '@nuxtjs/tailwindcss', '@nuxt/icon', '@pinia/nuxt'],
-  
+
   colorMode: {
     preference: 'system', // default theme
     fallback: 'light', // fallback theme
@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     classSuffix: '',
     storageKey: 'nuxt-color-mode'
   },
-  
+
   runtimeConfig: {
     // Private keys (only available on server-side)
     ollamaApiUrl: process.env.OLLAMA_API_URL,

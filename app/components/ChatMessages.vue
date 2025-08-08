@@ -73,8 +73,15 @@
     </div>
 
     <!-- Chat Messages -->
-    <ChatMessage v-for="message in chatStore.currentMessages" :key="message.id" :message="message.content"
-      :is-user="message.role === 'user'" :is-ai="message.role === 'assistant'" :timestamp="message.timestamp" />
+    <ChatMessage
+      v-for="(message, idx) in chatStore.currentMessages"
+      :key="message.id"
+      :message="message.content"
+      :is-user="message.role === 'user'"
+      :is-ai="message.role === 'assistant'"
+      :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
+      :timestamp="message.timestamp"
+    />
 
     <!-- Typing indicator based on session activity -->
     <ChatMessage v-if="chatStore.isConversationTyping" message="" :is-user="false" :is-typing="true" timestamp="" />

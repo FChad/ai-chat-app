@@ -48,15 +48,64 @@ interface Props {
   isUser: boolean
   isAi?: boolean
   isTyping?: boolean
+  isStreaming?: boolean
   timestamp: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isAi: false,
-  isTyping: false
+  isTyping: false,
+  isStreaming: false
 })
 
 const { highlightCode, getLanguageName, configureHighlight, detectLanguage } = useHighlight()
+
+// Escape helper for rendering the unfinished streaming tail as plain text
+const escapeHtml = (text: string): string => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+// Split message into a stable (safe to markdown-parse) part and a tail that is still streaming
+// Heuristics:
+// - If there is an unclosed fenced code block (odd count of ```), everything from the last ``` is tail
+// - Otherwise, if the message does not end with a newline, treat the last line as tail to avoid
+//   transient markdown (e.g., lists or horizontal rules) flicker while the line is incomplete
+const splitStreamingSafe = (input: string): { safe: string; tail: string } => {
+  if (!input) return { safe: '', tail: '' }
+
+  let cutIndex = input.length
+
+  // Detect unclosed fenced code block
+  const fenceRegex = /```/g
+  let fenceCount = 0
+  let match: RegExpExecArray | null
+  let lastFenceIndex = -1
+  while ((match = fenceRegex.exec(input)) !== null) {
+    fenceCount++
+    lastFenceIndex = match.index
+  }
+  const hasUnclosedFence = fenceCount % 2 === 1
+  if (hasUnclosedFence && lastFenceIndex >= 0) {
+    cutIndex = Math.min(cutIndex, lastFenceIndex)
+  }
+
+  // If not ending with newline, avoid parsing the last incomplete line
+  if (!input.endsWith('\n')) {
+    const lastNewline = input.lastIndexOf('\n')
+    const incompleteLineStart = lastNewline >= 0 ? lastNewline + 1 : 0
+    cutIndex = Math.min(cutIndex, incompleteLineStart)
+  }
+
+  if (cutIndex < input.length) {
+    return { safe: input.slice(0, cutIndex), tail: input.slice(cutIndex) }
+  }
+  return { safe: input, tail: '' }
+}
 
 // Configure marked with custom renderer for code blocks
 const setupMarked = () => {
@@ -196,8 +245,13 @@ const renderedMessage = computed(() => {
   if (!props.message) return ''
   
   try {
-    // Process markdown with syntax highlighting (synchronous)
-    const result = marked(props.message)
+    // For AI messages, split into stable and streaming tail to avoid flicker during streaming
+    // For user messages, render completely without the split to preserve formatting
+    const shouldSplit = props.isAi && props.isStreaming
+    const { safe, tail } = shouldSplit ? splitStreamingSafe(props.message) : { safe: props.message, tail: '' }
+
+    // Process markdown with syntax highlighting (synchronous) for stable part only
+    const result = marked(safe)
     
     // Handle both string and Promise returns
     let htmlResult = ''
@@ -212,7 +266,13 @@ const renderedMessage = computed(() => {
     }
     
     // Post-process to add copy buttons and enhance code blocks
-    return postProcessHTML(htmlResult)
+    const enhanced = postProcessHTML(htmlResult)
+
+    // Append the unparsed tail as escaped plaintext to prevent transient formatting
+    if (tail) {
+      return enhanced + `<span class="streaming-tail">${escapeHtml(tail)}</span>`
+    }
+    return enhanced
   } catch (error) {
     console.error('Markdown parsing error:', error)
     // Fallback to escaped HTML
@@ -474,7 +534,7 @@ if (process.client) {
 
 /* Inline code styling with Tailwind */
 :deep(.prose code:not(.code-block-content code)) {
-  @apply px-1 py-0.5 rounded-md text-sm font-semibold bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-600 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-400 break-words font-mono;
+  @apply px-1 py-0.5 rounded-lg text-sm font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-400 break-words font-mono;
 }
 
 :deep(.dark .prose code:not(.code-block-content code)) {

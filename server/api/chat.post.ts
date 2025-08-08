@@ -1,4 +1,4 @@
-import type { ChatRequest } from '~/types/chat'
+import type { ChatRequest } from '../../types/chat'
 
 export default defineEventHandler(async (event) => {
   // Handle CORS preflight requests
@@ -125,12 +125,15 @@ export default defineEventHandler(async (event) => {
 
     if (stream) {
       // Handle streaming response
-      // Enhanced headers for better compatibility
-      setHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
-      setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+      // Enhanced headers for better compatibility (reduce proxy buffering and disable compression)
+      setHeader(event, 'Content-Type', 'application/x-ndjson; charset=utf-8')
+      setHeader(event, 'Cache-Control', 'no-transform, no-cache, no-store, must-revalidate, proxy-revalidate')
       setHeader(event, 'Pragma', 'no-cache')
       setHeader(event, 'Expires', '0')
       setHeader(event, 'Connection', 'keep-alive')
+      setHeader(event, 'X-Accel-Buffering', 'no') // for nginx
+      setHeader(event, 'Content-Encoding', 'identity') // disable gzip to avoid buffering
+      setHeader(event, 'Vary', 'Accept-Encoding')
       setHeader(event, 'Access-Control-Allow-Origin', '*')
       setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
       setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -144,30 +147,40 @@ export default defineEventHandler(async (event) => {
           const decoder = new TextDecoder()
           let chunkCount = 0
           let buffer = '' // Buffer for incomplete JSON strings
+          const encoder = new TextEncoder()
+          // Periodic heartbeat to nudge proxies/browsers to flush (helps on IPv6/HTTP2)
+          const keepAlive = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode('\n'))
+            } catch (_) {
+              // ignore if stream already closed
+            }
+          }, 15000)
 
           const pump = async () => {
             try {
               while (true) {
                 const { done, value } = await reader.read()
-                
+
                 if (done) {
                   // Process any remaining data in buffer
                   if (buffer.trim()) {
                     try {
                       const data = JSON.parse(buffer)
                       data.sessionId = sessionId
-                      
+
                       // Transform modern chat response to maintain compatibility with frontend
                       if (data.message && data.message.content) {
                         data.response = data.message.content
                       }
-                      
+
                       const finalLine = JSON.stringify(data) + '\n'
                       controller.enqueue(new TextEncoder().encode(finalLine))
                     } catch (e) {
                       console.warn('Error parsing final buffer JSON:', e)
                     }
                   }
+                  clearInterval(keepAlive)
                   controller.close()
                   break
                 }
@@ -184,49 +197,49 @@ export default defineEventHandler(async (event) => {
 
                 for (let i = 0; i < buffer.length; i++) {
                   const char = buffer[i]
-                  
+
                   if (escaped) {
                     escaped = false
                     continue
                   }
-                  
+
                   if (char === '\\') {
                     escaped = true
                     continue
                   }
-                  
+
                   if (char === '"') {
                     inString = !inString
                     continue
                   }
-                  
+
                   if (!inString) {
                     if (char === '{') {
                       braceCount++
                     } else if (char === '}') {
                       braceCount--
-                      
+
                       if (braceCount === 0) {
                         // Found complete JSON object
                         const jsonString = buffer.substring(startIndex, i + 1)
-                        
+
                         try {
                           const data = JSON.parse(jsonString)
-                          
+
                           // Add sessionId to the response data
                           data.sessionId = sessionId
-                          
+
                           // Transform modern chat response to maintain compatibility with frontend
                           if (data.message && data.message.content) {
                             data.response = data.message.content
                           }
-                          
+
                           const modifiedLine = JSON.stringify(data) + '\n'
                           controller.enqueue(new TextEncoder().encode(modifiedLine))
                         } catch (e) {
                           console.warn('Error parsing JSON object:', e)
                         }
-                        
+
                         // Move to next potential JSON object
                         startIndex = i + 1
                         while (startIndex < buffer.length && buffer[startIndex] !== '{') {
@@ -247,6 +260,7 @@ export default defineEventHandler(async (event) => {
               }
             } catch (error) {
               console.error('Error in streaming for session', sessionId, ':', error)
+              clearInterval(keepAlive)
               controller.error(error)
             }
           }
@@ -255,11 +269,13 @@ export default defineEventHandler(async (event) => {
         }
       })
 
-      // Return the transformed stream
+      // Return the transformed stream (newline-delimited JSON)
       return sendStream(event, transformedStream)
     } else {
       // Handle non-streaming response
-      setHeader(event, 'Content-Type', 'application/json')
+      setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
+      setHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate')
+      setHeader(event, 'Pragma', 'no-cache')
       setHeader(event, 'Access-Control-Allow-Origin', '*')
       setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
       setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -267,10 +283,10 @@ export default defineEventHandler(async (event) => {
       setHeader(event, 'X-Session-ID', sessionId)
 
       const data = await response.json()
-      
+
       // Add sessionId to the response data
       data.sessionId = sessionId
-      
+
       // Transform modern chat response to maintain compatibility with frontend
       if (data.message && data.message.content) {
         // Modern chat API response format
@@ -282,12 +298,12 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Chat API error for session:', error.sessionId || 'unknown', error)
-    
+
     // If it's already a createError, re-throw it
     if (error.statusCode) {
       throw error
     }
-    
+
     // Handle other errors
     throw createError({
       statusCode: 500,

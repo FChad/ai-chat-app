@@ -4,6 +4,11 @@ export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
   try {
+    // Disable caching to avoid stale lists over changing networks
+    setHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate')
+    setHeader(event, 'Pragma', 'no-cache')
+    setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
+
     // Get environment variables
     const ollamaApiUrl = runtimeConfig.ollamaApiUrl
     const ollamaApiUser = runtimeConfig.ollamaApiUser
@@ -51,7 +56,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json()
-    
+
     // Validate response structure
     if (!data || !Array.isArray(data.models)) {
       throw createError({
@@ -66,12 +71,12 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Models API error:', error)
-    
+
     // If it's already a createError, re-throw it
     if (error.statusCode) {
       throw error
     }
-    
+
     // Handle other errors
     throw createError({
       statusCode: 500,

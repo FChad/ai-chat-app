@@ -1,4 +1,4 @@
-import type { ChatRequest } from '~/types/chat'
+import type { ChatRequest, Conversation, Message } from '../../types/chat'
 import { generateUUID } from '~/utils/uuid'
 
 export const useChat = () => {
@@ -8,12 +8,12 @@ export const useChat = () => {
     if (!message.trim()) return
 
     const userMessage = message.trim()
-    
+
     // If no current conversation and model is provided, create new conversation
     if (!chatStore.currentConversation && model) {
       chatStore.createNewConversation(model, userMessage)
     }
-    
+
     if (!chatStore.currentConversation) {
       console.error('No conversation available')
       return
@@ -22,7 +22,7 @@ export const useChat = () => {
     // Generate unique session ID for this request
     const sessionId = generateUUID()
     const conversationId = chatStore.currentConversation.id
-    
+
     // Create AbortController for this session
     const controller = new AbortController()
 
@@ -40,7 +40,7 @@ export const useChat = () => {
     try {
       // Prepare messages array for modern Chat API
       // Convert stored messages to the format expected by Ollama
-      const messages = chatStore.currentConversation.messages.map(msg => ({
+      const messages = chatStore.currentConversation.messages.map((msg: Message) => ({
         role: msg.role,
         content: msg.content
       }))
@@ -56,9 +56,11 @@ export const useChat = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/x-ndjson'
         },
         body: JSON.stringify(requestBody),
-        signal: controller.signal // Add abort signal
+        signal: controller.signal, // Add abort signal
+        cache: 'no-store'
       })
 
       if (!response.ok) {
@@ -74,7 +76,7 @@ export const useChat = () => {
       }
 
       // Add empty assistant message to the conversation associated with this session
-      const targetConversation = chatStore.conversations.find(c => c.id === conversationId)
+      const targetConversation = chatStore.conversations.find((c: Conversation) => c.id === conversationId)
       if (targetConversation) {
         chatStore.addMessageToConversation(conversationId, {
           role: 'assistant',
@@ -88,125 +90,64 @@ export const useChat = () => {
       let assistantMessage = ''
 
       if (chatStore.isStreamModeEnabled) {
-        // Handle streaming response
+        // Handle streaming response using NDJSON line parsing
         const reader = response.body?.getReader()
         if (!reader) {
           throw new Error('No response body for streaming')
         }
 
         const decoder = new TextDecoder()
-        let lastResponseData: any = null
-        let chunkCount = 0
-        let buffer = '' // Buffer for incomplete JSON strings
+        let buffer = ''
 
         try {
           while (true) {
             const { done, value } = await reader.read()
-            
             if (done) {
-              // Process any remaining data in buffer
-              if (buffer.trim()) {
+              // Process any remaining line
+              const line = buffer.trim()
+              if (line) {
                 try {
-                  const data = JSON.parse(buffer)
-                  if (data.sessionId !== sessionId) {
-                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
-                  } else if (data.response || (data.message && data.message.content)) {
-                    const content = data.response || data.message.content
-                    assistantMessage += content
-                    chatStore.updateLastMessage(assistantMessage, sessionId)
+                  const data = JSON.parse(line)
+                  const effectiveSessionId = data.sessionId ?? sessionId
+                  if (effectiveSessionId === sessionId) {
+                    const content = data.response || data.message?.content
+                    if (content) {
+                      assistantMessage += content
+                      chatStore.updateLastMessage(assistantMessage, sessionId)
+                    }
                   }
                 } catch (e) {
-                  console.warn('Error parsing final buffer JSON:', e)
+                  console.warn('Error parsing final NDJSON line:', e)
                 }
               }
               break
             }
 
-            chunkCount++
-            const chunk = decoder.decode(value, { stream: true })
-            buffer += chunk
+            buffer += decoder.decode(value, { stream: true })
 
-            // Try to extract complete JSON objects from buffer
-            let startIndex = 0
-            let braceCount = 0
-            let inString = false
-            let escaped = false
-
-            for (let i = 0; i < buffer.length; i++) {
-              const char = buffer[i]
-              
-              if (escaped) {
-                escaped = false
-                continue
-              }
-              
-              if (char === '\\') {
-                escaped = true
-                continue
-              }
-              
-              if (char === '"') {
-                inString = !inString
-                continue
-              }
-              
-              if (!inString) {
-                if (char === '{') {
-                  braceCount++
-                } else if (char === '}') {
-                  braceCount--
-                  
-                  if (braceCount === 0) {
-                    // Found complete JSON object
-                    const jsonString = buffer.substring(startIndex, i + 1)
-                    
-                    try {
-                      const data = JSON.parse(jsonString)
-                      lastResponseData = data
-
-                      // Add sessionId to the response data if not present
-                      if (!data.sessionId) {
-                        data.sessionId = sessionId
-                      }
-
-                      // Check if this response belongs to current session
-                      if (data.sessionId !== sessionId) {
-                        console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
-                      } else {
-                        if (data.response || (data.message && data.message.content)) {
-                          // Handle both legacy (response) and modern (message.content) formats
-                          const content = data.response || data.message.content
-                          assistantMessage += content
-                          
-                          // Update the assistant message in real-time for the specific session
-                          chatStore.updateLastMessage(assistantMessage, sessionId)
-                        }
-
-                        if (data.done) {
-                          buffer = buffer.substring(i + 1) // Keep remaining data
-                          break
-                        }
-                      }
-                    } catch (e) {
-                      console.warn('Error parsing JSON object:', e)
+            // Consume complete lines
+            let newlineIndex = buffer.indexOf('\n')
+            while (newlineIndex !== -1) {
+              const line = buffer.slice(0, newlineIndex).trim()
+              buffer = buffer.slice(newlineIndex + 1)
+              if (line) {
+                try {
+                  const data = JSON.parse(line)
+                  const effectiveSessionId = data.sessionId ?? sessionId
+                  if (effectiveSessionId !== sessionId) {
+                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${effectiveSessionId}`)
+                  } else {
+                    const content = data.response || data.message?.content
+                    if (content) {
+                      assistantMessage += content
+                      chatStore.updateLastMessage(assistantMessage, sessionId)
                     }
-                    
-                    // Move to next potential JSON object
-                    startIndex = i + 1
-                    while (startIndex < buffer.length && buffer[startIndex] !== '{') {
-                      startIndex++
-                    }
-                    i = startIndex - 1 // Will be incremented by for loop
                   }
+                } catch (e) {
+                  console.warn('Error parsing NDJSON line:', e)
                 }
               }
-            }
-
-            // Keep incomplete JSON in buffer for next iteration
-            if (startIndex < buffer.length) {
-              buffer = buffer.substring(startIndex)
-            } else {
-              buffer = ''
+              newlineIndex = buffer.indexOf('\n')
             }
           }
         } catch (streamError: any) {
@@ -219,7 +160,7 @@ export const useChat = () => {
         // Handle non-streaming response
         try {
           const data = await response.json()
-          
+
           // Check if this response belongs to current session
           if (data.sessionId && data.sessionId !== sessionId) {
             console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
@@ -244,7 +185,7 @@ export const useChat = () => {
 
     } catch (error: any) {
       console.error('Error sending message for session:', sessionId, error)
-      
+
       // Remove the last user message if there was an error
       if (chatStore.currentConversation) {
         const messages = chatStore.currentConversation.messages
@@ -270,7 +211,7 @@ export const useChat = () => {
 
   const cancelMessage = (conversationId: string) => {
     // Find the session for this conversation
-    const conversation = chatStore.conversations.find(c => c.id === conversationId)
+    const conversation = chatStore.conversations.find((c: Conversation) => c.id === conversationId)
     if (conversation?.sessionId) {
       chatStore.cancelChatSession(conversation.sessionId)
     }
@@ -278,11 +219,11 @@ export const useChat = () => {
 
   const loadModels = async () => {
     try {
-      const response = await fetch('/api/models')
+      const response = await fetch('/api/models', { cache: 'no-store' })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const data = await response.json()
       chatStore.setAvailableModels(data.models || [])
     } catch (error) {
@@ -304,8 +245,8 @@ export const useChat = () => {
 
 // Helper function
 const formatTime = (date: Date) => {
-  return date.toLocaleTimeString('de-DE', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  return date.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit'
   })
 } 

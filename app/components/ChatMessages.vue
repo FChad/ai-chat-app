@@ -2,9 +2,9 @@
   <div ref="messagesContainer" @scroll="handleScrollEvent"
     class="flex-1 p-4 sm:p-6 overflow-y-auto scrollbar-thin space-y-3 sm:space-y-4 min-h-0">
     <!-- Loading State -->
-    <div v-if="chatStore.isLoading" class="text-center text-gray-500 dark:text-gray-400 mt-16 sm:mt-32">
+    <div v-if="chatStore.isLoading" class="flex items-center justify-center min-h-[50vh]">
       <div
-        class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm mx-4 sm:mx-8 border border-gray-200/30 dark:border-gray-700/30 max-w-md mx-auto">
+        class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 max-w-md w-full mx-4 text-center text-gray-500 dark:text-gray-400">
         <div
           class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl mx-auto mb-6">
           <Icon name="heroicons:arrow-path" class="h-12 w-12 sm:h-16 sm:w-16 text-white animate-spin" />

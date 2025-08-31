@@ -1,6 +1,5 @@
 {
-  "name": "askchadai",
-  "version": "0.1.0-beta",
+  "name": "nuxt-app",
   "private": true,
   "type": "module",
   "scripts": {

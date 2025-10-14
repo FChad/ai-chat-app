@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody<ChatRequest>(event)
-    const { model = 'gemma3:4b', messages, stream = true, sessionId } = body
+    const { model = 'meta-llama/llama-3.3-8b-instruct:free', messages, stream = true, sessionId } = body
 
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -55,39 +55,21 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get environment variables
-    const ollamaApiUrl = runtimeConfig.ollamaApiUrl
-    const ollamaApiUser = runtimeConfig.ollamaApiUser
-    const ollamaApiKey = runtimeConfig.ollamaApiKey
+    const openrouterApiKey = runtimeConfig.openrouterApiKey
 
     // Validate environment variables
-    if (!ollamaApiUrl) {
-      console.error('OLLAMA_API_URL environment variable is not set')
+    if (!openrouterApiKey) {
+      console.error('OPENROUTER_API_KEY environment variable is not set')
       throw createError({
         statusCode: 500,
-        statusMessage: 'OLLAMA_API_URL environment variable is not set'
+        statusMessage: 'OPENROUTER_API_KEY environment variable is not set'
       })
     }
 
-    if (!ollamaApiUser) {
-      console.error('OLLAMA_API_USER environment variable is not set')
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'OLLAMA_API_USER environment variable is not set'
-      })
-    }
+    // OpenRouter API endpoint
+    const apiUrl = 'https://openrouter.ai/api/v1/chat/completions'
 
-    if (!ollamaApiKey) {
-      console.error('OLLAMA_API_KEY environment variable is not set')
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'OLLAMA_API_KEY environment variable is not set'
-      })
-    }
-
-    // Use the modern Ollama Chat API endpoint
-    const apiUrl = `${ollamaApiUrl}/chat`
-
-    // Prepare request body for modern Chat API
+    // Prepare request body for OpenRouter API (OpenAI-compatible)
     const requestBody = {
       model: model.trim(),
       messages: messages.map(msg => ({
@@ -101,30 +83,32 @@ export default defineEventHandler(async (event) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${Buffer.from(`${ollamaApiUser}:${ollamaApiKey}`).toString('base64')}`
+        'Authorization': `Bearer ${openrouterApiKey}`,
+        'HTTP-Referer': 'https://github.com/FChad/nuxt-ollama-chat', // Optional: für OpenRouter Tracking
+        'X-Title': 'AskChadAI' // Optional: für OpenRouter Tracking
       },
       body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
-      console.error('Ollama API error:', response.status, response.statusText, errorText)
+      console.error('OpenRouter API error:', response.status, response.statusText, errorText)
       throw createError({
         statusCode: response.status,
-        statusMessage: `Ollama API error: ${response.statusText} - ${errorText}`
+        statusMessage: `OpenRouter API error: ${response.statusText} - ${errorText}`
       })
     }
 
     if (!response.body) {
-      console.error('No response body from Ollama API')
+      console.error('No response body from OpenRouter API')
       throw createError({
         statusCode: 500,
-        statusMessage: 'No response body from Ollama API'
+        statusMessage: 'No response body from OpenRouter API'
       })
     }
 
     if (stream) {
-      // Handle streaming response
+      // Handle streaming response - OpenRouter uses OpenAI format (SSE with "data:" prefix)
       // Enhanced headers for better compatibility (reduce proxy buffering and disable compression)
       setHeader(event, 'Content-Type', 'application/x-ndjson; charset=utf-8')
       setHeader(event, 'Cache-Control', 'no-transform, no-cache, no-store, must-revalidate, proxy-revalidate')
@@ -140,15 +124,15 @@ export default defineEventHandler(async (event) => {
       setHeader(event, 'Access-Control-Expose-Headers', 'X-Session-ID')
       setHeader(event, 'X-Session-ID', sessionId)
 
-      // Create a transform stream to add sessionId to each chunk and handle modern chat response format
+      // Create a transform stream to convert OpenAI SSE format to our format
       const transformedStream = new ReadableStream({
         start(controller) {
           const reader = response.body!.getReader()
           const decoder = new TextDecoder()
-          let chunkCount = 0
-          let buffer = '' // Buffer for incomplete JSON strings
+          let buffer = ''
           const encoder = new TextEncoder()
-          // Periodic heartbeat to nudge proxies/browsers to flush (helps on IPv6/HTTP2)
+
+          // Periodic heartbeat to nudge proxies/browsers to flush
           const keepAlive = setInterval(() => {
             try {
               controller.enqueue(encoder.encode('\n'))
@@ -163,99 +147,62 @@ export default defineEventHandler(async (event) => {
                 const { done, value } = await reader.read()
 
                 if (done) {
-                  // Process any remaining data in buffer
-                  if (buffer.trim()) {
-                    try {
-                      const data = JSON.parse(buffer)
-                      data.sessionId = sessionId
-
-                      // Transform modern chat response to maintain compatibility with frontend
-                      if (data.message && data.message.content) {
-                        data.response = data.message.content
-                      }
-
-                      const finalLine = JSON.stringify(data) + '\n'
-                      controller.enqueue(new TextEncoder().encode(finalLine))
-                    } catch (e) {
-                      console.warn('Error parsing final buffer JSON:', e)
-                    }
-                  }
                   clearInterval(keepAlive)
                   controller.close()
                   break
                 }
 
-                chunkCount++
                 const chunk = decoder.decode(value, { stream: true })
                 buffer += chunk
 
-                // Try to extract complete JSON objects from buffer
-                let startIndex = 0
-                let braceCount = 0
-                let inString = false
-                let escaped = false
+                // Process complete lines (SSE format: "data: {...}\n\n")
+                const lines = buffer.split('\n')
+                buffer = lines.pop() || '' // Keep incomplete line in buffer
 
-                for (let i = 0; i < buffer.length; i++) {
-                  const char = buffer[i]
+                for (const line of lines) {
+                  const trimmedLine = line.trim()
 
-                  if (escaped) {
-                    escaped = false
+                  // Skip empty lines and comments
+                  if (!trimmedLine || trimmedLine.startsWith(':')) {
                     continue
                   }
 
-                  if (char === '\\') {
-                    escaped = true
+                  // Check for [DONE] message
+                  if (trimmedLine === 'data: [DONE]') {
+                    // Send final done message in our format
+                    const doneMessage = JSON.stringify({
+                      done: true,
+                      sessionId: sessionId
+                    }) + '\n'
+                    controller.enqueue(encoder.encode(doneMessage))
                     continue
                   }
 
-                  if (char === '"') {
-                    inString = !inString
-                    continue
-                  }
+                  // Parse SSE data lines
+                  if (trimmedLine.startsWith('data: ')) {
+                    try {
+                      const jsonStr = trimmedLine.substring(6) // Remove "data: " prefix
+                      const data = JSON.parse(jsonStr)
 
-                  if (!inString) {
-                    if (char === '{') {
-                      braceCount++
-                    } else if (char === '}') {
-                      braceCount--
-
-                      if (braceCount === 0) {
-                        // Found complete JSON object
-                        const jsonString = buffer.substring(startIndex, i + 1)
-
-                        try {
-                          const data = JSON.parse(jsonString)
-
-                          // Add sessionId to the response data
-                          data.sessionId = sessionId
-
-                          // Transform modern chat response to maintain compatibility with frontend
-                          if (data.message && data.message.content) {
-                            data.response = data.message.content
-                          }
-
-                          const modifiedLine = JSON.stringify(data) + '\n'
-                          controller.enqueue(new TextEncoder().encode(modifiedLine))
-                        } catch (e) {
-                          console.warn('Error parsing JSON object:', e)
+                      // Transform OpenAI format to our format
+                      if (data.choices && data.choices[0]?.delta?.content) {
+                        const transformedData = {
+                          message: {
+                            role: 'assistant',
+                            content: data.choices[0].delta.content
+                          },
+                          response: data.choices[0].delta.content, // Legacy compatibility
+                          done: false,
+                          sessionId: sessionId
                         }
 
-                        // Move to next potential JSON object
-                        startIndex = i + 1
-                        while (startIndex < buffer.length && buffer[startIndex] !== '{') {
-                          startIndex++
-                        }
-                        i = startIndex - 1 // Will be incremented by for loop
+                        const modifiedLine = JSON.stringify(transformedData) + '\n'
+                        controller.enqueue(encoder.encode(modifiedLine))
                       }
+                    } catch (e) {
+                      console.warn('Error parsing SSE JSON:', e)
                     }
                   }
-                }
-
-                // Keep incomplete JSON in buffer for next iteration
-                if (startIndex < buffer.length) {
-                  buffer = buffer.substring(startIndex)
-                } else {
-                  buffer = ''
                 }
               }
             } catch (error) {
@@ -284,16 +231,18 @@ export default defineEventHandler(async (event) => {
 
       const data = await response.json()
 
-      // Add sessionId to the response data
-      data.sessionId = sessionId
-
-      // Transform modern chat response to maintain compatibility with frontend
-      if (data.message && data.message.content) {
-        // Modern chat API response format
-        data.response = data.message.content
+      // Transform OpenAI format to our format
+      const transformedData = {
+        message: {
+          role: 'assistant',
+          content: data.choices?.[0]?.message?.content || ''
+        },
+        response: data.choices?.[0]?.message?.content || '', // Legacy compatibility
+        done: true,
+        sessionId: sessionId
       }
 
-      return data
+      return transformedData
     }
 
   } catch (error: any) {
@@ -307,7 +256,7 @@ export default defineEventHandler(async (event) => {
     // Handle other errors
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || 'Failed to communicate with Ollama API'
+      statusMessage: error.message || 'Failed to communicate with OpenRouter API'
     })
   }
 }) 

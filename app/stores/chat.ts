@@ -1,32 +1,32 @@
 import { defineStore } from 'pinia'
-import type { Message, OllamaModel, Conversation, ActiveChatSession, AppSettings } from '~/types/chat'
+import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings } from '~/types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // State
   const conversations = ref<Conversation[]>([])
   const currentConversationId = ref<string | null>(null)
   const isTyping = ref(false)
-  const availableModels = ref<OllamaModel[]>([])
+  const availableModels = ref<AIModel[]>([])
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
   const isLoading = ref(true) // Add loading state
-  
+
   // App Settings with defaults
   const settings = ref<AppSettings>({
     streamMode: true // Default to streaming enabled for better user experience
   })
 
   // Getters
-  const currentConversation = computed(() => 
+  const currentConversation = computed(() =>
     conversations.value.find(c => c.id === currentConversationId.value) || null
   )
 
   const hasConversations = computed(() => conversations.value.length > 0)
-  
+
   const canSendMessage = computed(() => !isTyping.value && currentConversation.value !== null)
-  
+
   const currentMessages = computed(() => currentConversation.value?.messages || [])
-  
+
   const currentModel = computed(() => currentConversation.value?.model || '')
 
   const isConversationTyping = computed(() => {
@@ -47,7 +47,7 @@ export const useChatStore = defineStore('chat', () => {
   const createNewConversation = (model: string, firstMessage?: string): string => {
     const id = Date.now().toString()
     const now = new Date().toISOString()
-    
+
     const conversation: Conversation = {
       id,
       title: firstMessage ? generateConversationTitle(firstMessage) : 'Neue Unterhaltung',
@@ -57,11 +57,11 @@ export const useChatStore = defineStore('chat', () => {
       updatedAt: now,
       sessionId: undefined // Will be set when first message is sent
     }
-    
+
     conversations.value.unshift(conversation)
     currentConversationId.value = id
     saveToLocalStorage()
-    
+
     return id
   }
 
@@ -70,7 +70,7 @@ export const useChatStore = defineStore('chat', () => {
       currentConversationId.value = null
       return
     }
-    
+
     const conversation = conversations.value.find(c => c.id === id)
     if (conversation) {
       currentConversationId.value = id
@@ -84,15 +84,15 @@ export const useChatStore = defineStore('chat', () => {
       ...message,
       id: Date.now().toString()
     }
-    
+
     currentConversation.value.messages.push(messageWithId)
     currentConversation.value.updatedAt = new Date().toISOString()
-    
+
     // Update title if this is the first user message
     if (message.role === 'user' && currentConversation.value.messages.length === 1) {
       currentConversation.value.title = generateConversationTitle(message.content)
     }
-    
+
     saveToLocalStorage()
   }
 
@@ -106,15 +106,15 @@ export const useChatStore = defineStore('chat', () => {
       ...message,
       id: Date.now().toString()
     }
-    
+
     conversation.messages.push(messageWithId)
     conversation.updatedAt = new Date().toISOString()
-    
+
     // Update title if this is the first user message
     if (message.role === 'user' && conversation.messages.length === 1) {
       conversation.title = generateConversationTitle(message.content)
     }
-    
+
     saveToLocalStorage()
   }
 
@@ -123,7 +123,7 @@ export const useChatStore = defineStore('chat', () => {
     if (!sessionId) {
       // Only update current conversation if no sessionId provided (legacy support)
       if (!currentConversation.value) return
-      
+
       const messages = currentConversation.value.messages
       if (messages.length > 0) {
         const lastMessage = messages[messages.length - 1]
@@ -141,7 +141,7 @@ export const useChatStore = defineStore('chat', () => {
     if (!conversation) {
       return
     }
-    
+
     const messages = conversation.messages
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1]
@@ -161,14 +161,14 @@ export const useChatStore = defineStore('chat', () => {
       if (conversation.sessionId) {
         cancelChatSession(conversation.sessionId)
       }
-      
+
       conversations.value.splice(index, 1)
-      
+
       // If we deleted the current conversation, select another one or clear
       if (currentConversationId.value === id) {
         currentConversationId.value = conversations.value.length > 0 ? conversations.value[0].id : null
       }
-      
+
       saveToLocalStorage()
     }
   }
@@ -179,7 +179,7 @@ export const useChatStore = defineStore('chat', () => {
       session.controller.abort()
     })
     activeSessions.value.clear()
-    
+
     conversations.value = []
     currentConversationId.value = null
     saveToLocalStorage()
@@ -189,7 +189,7 @@ export const useChatStore = defineStore('chat', () => {
     isTyping.value = typing
   }
 
-  const setAvailableModels = (models: OllamaModel[]) => {
+  const setAvailableModels = (models: AIModel[]) => {
     availableModels.value = models
   }
 
@@ -216,9 +216,9 @@ export const useChatStore = defineStore('chat', () => {
       controller,
       startTime: Date.now()
     }
-    
+
     activeSessions.value.set(sessionId, session)
-    
+
     // Update conversation with session ID
     const conversation = conversations.value.find(c => c.id === conversationId)
     if (conversation) {
@@ -229,7 +229,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const endChatSession = (sessionId: string): void => {
     activeSessions.value.delete(sessionId)
-    
+
     // Remove sessionId from conversation
     const conversation = conversations.value.find(c => c.sessionId === sessionId)
     if (conversation) {
@@ -262,10 +262,10 @@ export const useChatStore = defineStore('chat', () => {
         ...conv,
         sessionId: undefined
       }))
-      
+
       localStorage.setItem('chat-conversations', JSON.stringify(conversationsToSave))
       localStorage.setItem('chat-settings', JSON.stringify(settings.value))
-      
+
       if (currentConversationId.value) {
         localStorage.setItem('chat-current-conversation', currentConversationId.value)
       } else {
@@ -282,13 +282,13 @@ export const useChatStore = defineStore('chat', () => {
         if (savedConversations) {
           conversations.value = JSON.parse(savedConversations)
         }
-        
+
         const savedSettings = localStorage.getItem('chat-settings')
         if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings)
           settings.value = { ...settings.value, ...parsedSettings }
         }
-        
+
         const savedCurrentId = localStorage.getItem('chat-current-conversation')
         if (savedCurrentId && conversations.value.find(c => c.id === savedCurrentId)) {
           currentConversationId.value = savedCurrentId
@@ -323,7 +323,7 @@ export const useChatStore = defineStore('chat', () => {
     activeSessions,
     settings,
     isLoading,
-    
+
     // Getters
     currentConversation,
     hasConversations,
@@ -332,7 +332,7 @@ export const useChatStore = defineStore('chat', () => {
     currentModel,
     isConversationTyping,
     isStreamModeEnabled,
-    
+
     // Actions
     createNewConversation,
     selectConversation,
@@ -346,11 +346,11 @@ export const useChatStore = defineStore('chat', () => {
     setIsAtBottom,
     loadFromLocalStorage,
     setLoadingComplete,
-    
+
     // Settings Actions
     updateStreamMode,
     updateSettings,
-    
+
     // Session Management
     startChatSession,
     endChatSession,
@@ -362,8 +362,8 @@ export const useChatStore = defineStore('chat', () => {
 
 // Helper function
 const formatTime = (date: Date) => {
-  return date.toLocaleTimeString('de-DE', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  return date.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit'
   })
 } 

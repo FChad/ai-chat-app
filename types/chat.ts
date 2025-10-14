@@ -14,7 +14,7 @@ export interface ModelDetails {
   quantization_level: string
 }
 
-export interface OllamaModel {
+export interface AIModel {
   name: string
   model: string
   modified_at: string
@@ -23,7 +23,7 @@ export interface OllamaModel {
   details: ModelDetails
 }
 
-// Modern Ollama Chat API Request format
+// OpenRouter Chat API Request format
 export interface ChatRequest {
   model: string
   messages: Array<{
@@ -62,7 +62,7 @@ export interface ChatState {
   conversations: Conversation[]
   currentConversationId: string | null
   isTyping: boolean
-  availableModels: OllamaModel[]
+  availableModels: AIModel[]
   isAtBottom: boolean
   activeSessions: Map<string, string>
   settings: AppSettings

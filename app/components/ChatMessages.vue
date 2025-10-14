@@ -121,8 +121,8 @@ const startNewConversation = () => {
 // Set default model when models are loaded
 watch(() => chatStore.availableModels, (models) => {
   if (models.length > 0 && !selectedModel.value) {
-    // Try to find gemma3:4b first, otherwise use first available model
-    const preferredModel = models.find((model: any) => model.name === 'gemma3:4b')
+    // Try to find meta-llama/llama-3.3-8b-instruct:free first, otherwise use first available model
+    const preferredModel = models.find((model: any) => model.name === 'meta-llama/llama-3.3-8b-instruct:free')
     selectedModel.value = preferredModel ? preferredModel.name : models[0].name
   }
 }, { immediate: true })

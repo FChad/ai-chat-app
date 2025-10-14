@@ -1,12 +1,12 @@
 # AskChadAI
 
-A modern, optimized chat application with Ollama integration for direct chat with AI models.
+A modern, optimized chat application with OpenRouter integration for direct chat with AI models.
 
 ## ✨ Features
 
-- 🤖 **AI Chat**: Chat directly with various AI models
+- 🤖 **AI Chat**: Chat directly with various AI models via OpenRouter
 - 💬 **Conversation Management**: Multiple conversations like ChatGPT
-- 🔄 **Model Selection**: Choose between available Ollama models
+- 🔄 **Model Selection**: Choose between free, fast OpenRouter models
 - 🧠 **Context Preservation**: Conversations maintain their context
 - 💾 **Local Storage**: Conversations are stored in the browser
 - 🎨 **Modern UI**: Beautiful, responsive user interface with Tailwind CSS
@@ -17,7 +17,8 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 - 📤 **Export Function**: Export your conversations as JSON
 - ⚙️ **Settings**: Comprehensive settings and app information
 - 🆔 **Session Management**: UUIDv4-based session IDs for unique chat assignment
-0.1.0-beta
+- 🆓 **Free Models**: Uses free OpenRouter models for cost-effective operation
+
 ## 📁 Project Structure
 
 ```
@@ -37,8 +38,8 @@ A modern, optimized chat application with Ollama integration for direct chat wit
 │   ├── formatters.ts       # Utility functions
 │   └── uuid.ts             # UUIDv4 generation
 ├── server/api/
-│   ├── chat.post.ts        # Chat API endpoint with session support
-│   └── models.get.ts       # Models API endpoint
+│   ├── chat.post.ts        # Chat API endpoint with OpenRouter integration
+│   └── models.get.ts       # Models API endpoint with free models
 └── pages/
     └── index.vue           # Main page
 ```
@@ -56,12 +57,13 @@ npm install
 Create a `.env` file in the project root:
 
 ```env
-OLLAMA_API_URL=https://server.chad.lu/api
-OLLAMA_API_USER=apiuser
-OLLAMA_API_KEY=your_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
-**Important**: Replace `your_api_key_here` with your actual API key.
+**Important**: 
+- Get your free API key from [OpenRouter.ai](https://openrouter.ai)
+- Replace `your_openrouter_api_key_here` with your actual API key
+- The free tier includes access to several fast models
 
 ### 3. Start Development Server
 
@@ -87,17 +89,21 @@ npm run preview
 
 ### Environment Variables for Production
 
-Make sure the following environment variables are set in your production environment:
+Make sure the following environment variable is set in your production environment:
 
-- `OLLAMA_API_URL`
-- `OLLAMA_API_USER` 
-- `OLLAMA_API_KEY`
+- `OPENROUTER_API_KEY`
+
+For cloud deployments (Vercel, Netlify, etc.), configure this in your deployment settings.
 
 ## 🎨 Customizations
 
-### Using Other Ollama Models
+### Available Free Models
 
-Available models are automatically loaded from the Ollama API. You can change the default model in `stores/chat.ts`.
+The application includes these free models from OpenRouter:
+- **Meta Llama 3.3 70B Instruct** - Most powerful, best quality responses
+- **Meta Llama 3.3 8B Instruct** (default) - Faster, good balance of speed and quality
+
+You can add more models in `server/api/models.get.ts`.
 
 ### Customizing UI Styling
 
@@ -114,3 +120,11 @@ npm run lint
 # Type checking
 npm run type-check
 ```
+
+## 🌐 About OpenRouter
+
+OpenRouter provides access to various AI models through a unified API. The free tier includes several high-quality models perfect for testing and development.
+
+- Website: [openrouter.ai](https://openrouter.ai)
+- API Docs: [openrouter.ai/docs](https://openrouter.ai/docs)
+- Free models: No credit card required for free tier models

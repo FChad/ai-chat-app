@@ -38,8 +38,8 @@ export const useChat = () => {
     chatStore.setTyping(true)
 
     try {
-      // Prepare messages array for modern Chat API
-      // Convert stored messages to the format expected by Ollama
+      // Prepare messages array for OpenRouter Chat API
+      // Convert stored messages to the format expected by OpenRouter
       const messages = chatStore.currentConversation.messages.map((msg: Message) => ({
         role: msg.role,
         content: msg.content

@@ -17,9 +17,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // Private keys (only available on server-side)
-    ollamaApiUrl: process.env.OLLAMA_API_URL,
-    ollamaApiUser: process.env.OLLAMA_API_USER,
-    ollamaApiKey: process.env.OLLAMA_API_KEY,
+    openrouterApiKey: process.env.OPENROUTER_API_KEY,
   },
   app: {
     head: {

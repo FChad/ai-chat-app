@@ -20,40 +20,77 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Liste der kostenlosen, schnellen Modelle von OpenRouter
-    // Aktuell nur Llama 3.3 8B Instruct
-    const freeModels: AIModel[] = [
-      {
-        name: 'meta-llama/llama-3.3-70b-instruct:free',
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
-        modified_at: new Date().toISOString(),
-        size: 0,
-        digest: '',
-        details: {
-          parent_model: '',
-          format: '',
-          family: 'llama',
-          families: ['llama'],
-          parameter_size: '70B',
-          quantization_level: ''
-        }
-      },
-      {
-        name: 'meta-llama/llama-3.3-8b-instruct:free',
-        model: 'meta-llama/llama-3.3-8b-instruct:free',
-        modified_at: new Date().toISOString(),
-        size: 0,
-        digest: '',
-        details: {
-          parent_model: '',
-          format: '',
-          family: 'llama',
-          families: ['llama'],
-          parameter_size: '8B',
-          quantization_level: ''
-        }
+    // Fetch available models from OpenRouter API
+    const apiUrl = 'https://openrouter.ai/api/v1/models'
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${openrouterApiKey}`,
+        'HTTP-Referer': 'https://github.com/FChad/nuxt-ollama-chat',
+        'X-Title': 'AskChadAI'
       }
-    ]
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error')
+      console.error('OpenRouter API error:', response.status, response.statusText, errorText)
+      throw createError({
+        statusCode: response.status,
+        statusMessage: `OpenRouter API error: ${response.statusText}`
+      })
+    }
+
+    const data = await response.json()
+
+    // Filter nur kostenlose Modelle (pricing.prompt = "0" und pricing.completion = "0")
+    const freeModels: AIModel[] = data.data
+      .filter((model: any) => {
+        // Konvertiere Strings zu Numbers für den Vergleich
+        const promptPrice = parseFloat(model.pricing?.prompt || '1')
+        const completionPrice = parseFloat(model.pricing?.completion || '1')
+        const isFree = promptPrice === 0 && completionPrice === 0
+
+        return isFree
+      })
+      .map((model: any) => {
+        // Extrahiere Parameter-Größe aus dem Namen (z.B. "8b", "70b")
+        const sizeMatch = model.id.match(/(\d+\.?\d*[bmk])/i)
+        const parameterSize = sizeMatch ? sizeMatch[1].toUpperCase() : 'Unknown'
+
+        // Extrahiere Familie aus dem Modell-Namen
+        const family = model.id.split('/')[0] || 'unknown'
+
+        return {
+          name: model.name || model.id,
+          model: model.id,
+          modified_at: model.created ? new Date(model.created * 1000).toISOString() : new Date().toISOString(),
+          size: 0,
+          digest: '',
+          details: {
+            parent_model: '',
+            format: '',
+            family: family,
+            families: [family],
+            parameter_size: parameterSize,
+            quantization_level: '',
+            context_length: model.context_length || 0,
+            description: model.description || '',
+            popularity: model.top_provider?.max_completion_tokens || 0
+          },
+          // Speichere Popularität für Sortierung
+          _popularity: model.top_provider?.max_completion_tokens || 0
+        }
+      })
+      // Sortiere nach Beliebtheit (höhere Werte zuerst)
+      .sort((a: any, b: any) => {
+        return (b._popularity || 0) - (a._popularity || 0)
+      })
+      // Entferne temporäres Feld
+      .map((model: any) => {
+        const { _popularity, ...cleanModel } = model
+        return cleanModel
+      })
 
     return {
       models: freeModels

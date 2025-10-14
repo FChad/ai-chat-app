@@ -38,7 +38,7 @@
             <select v-model="selectedModel" :disabled="chatStore.isTyping"
               class="w-full px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-primary-200/60 dark:border-primary-700/60 rounded-xl text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-gray-800 appearance-none cursor-pointer hover:bg-white/90 dark:hover:bg-gray-800/90 hover:border-primary-300/70 dark:hover:border-primary-600/70 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl">
               <option value="" disabled>Modell auswählen...</option>
-              <option v-for="model in chatStore.availableModels" :key="model.name" :value="model.name">
+              <option v-for="model in chatStore.availableModels" :key="model.model" :value="model.model">
                 {{ model.name }} ({{ model.details.parameter_size }})
               </option>
             </select>
@@ -122,8 +122,8 @@ const startNewConversation = () => {
 watch(() => chatStore.availableModels, (models) => {
   if (models.length > 0 && !selectedModel.value) {
     // Try to find meta-llama/llama-3.3-8b-instruct:free first, otherwise use first available model
-    const preferredModel = models.find((model: any) => model.name === 'meta-llama/llama-3.3-8b-instruct:free')
-    selectedModel.value = preferredModel ? preferredModel.name : models[0].name
+    const preferredModel = models.find((model: any) => model.model === 'meta-llama/llama-3.3-8b-instruct:free')
+    selectedModel.value = preferredModel?.model || models[0]?.model || ''
   }
 }, { immediate: true })
 

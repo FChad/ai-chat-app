@@ -94,6 +94,112 @@
           </div>
         </div>
 
+        <!-- API Rate Limits Section -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-3">
+            <div class="w-6 h-6 flex items-center justify-center bg-indigo-100/60 dark:bg-indigo-900/40 rounded-xl">
+              <Icon name="heroicons:chart-bar" class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <span>API-Nutzung</span>
+          </h3>
+          
+          <div class="space-y-4">
+            <!-- Loading State -->
+            <GlassCard v-if="rateLimitLoading" padding="p-4" classes="transition-all duration-200">
+              <div class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400">
+                <Icon name="heroicons:arrow-path" class="h-5 w-5 animate-spin" />
+                <span class="text-sm">Lade API-Nutzungsdaten...</span>
+              </div>
+            </GlassCard>
+
+            <!-- Error State -->
+            <GlassCard v-else-if="rateLimitError" padding="p-4" classes="transition-all duration-200 bg-red-50/50 dark:bg-red-900/20">
+              <div class="flex items-center space-x-3 text-red-600 dark:text-red-400">
+                <Icon name="heroicons:exclamation-circle" class="h-5 w-5" />
+                <span class="text-sm">{{ rateLimitError }}</span>
+              </div>
+            </GlassCard>
+
+            <!-- Rate Limit Stats -->
+            <GlassCard v-else-if="rateLimitData" padding="p-4" classes="transition-all duration-200 hover:shadow-lg">
+              <div class="space-y-4">
+                <!-- Credits Remaining -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <Icon name="heroicons:currency-dollar" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Verbleibende Credits</span>
+                  </div>
+                  <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    {{ rateLimitData.limit_remaining !== null ? formatCredits(rateLimitData.limit_remaining) : '∞' }}
+                  </span>
+                </div>
+
+                <!-- Credit Limit -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <Icon name="heroicons:clipboard-document-check" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Credit-Limit</span>
+                  </div>
+                  <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {{ rateLimitData.limit !== null ? formatCredits(rateLimitData.limit) : 'Unbegrenzt' }}
+                  </span>
+                </div>
+
+                <!-- Usage Stats Grid -->
+                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+                  <div class="text-center p-2 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg">
+                    <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {{ formatCredits(rateLimitData.usage_daily) }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      Heute
+                    </div>
+                  </div>
+                  <div class="text-center p-2 bg-green-50/50 dark:bg-green-900/20 rounded-lg">
+                    <div class="text-lg font-bold text-green-600 dark:text-green-400">
+                      {{ formatCredits(rateLimitData.usage_weekly) }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      Diese Woche
+                    </div>
+                  </div>
+                  <div class="text-center p-2 bg-purple-50/50 dark:bg-purple-900/20 rounded-lg">
+                    <div class="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      {{ formatCredits(rateLimitData.usage_monthly) }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      Dieser Monat
+                    </div>
+                  </div>
+                  <div class="text-center p-2 bg-orange-50/50 dark:bg-orange-900/20 rounded-lg">
+                    <div class="text-lg font-bold text-orange-600 dark:text-orange-400">
+                      {{ formatCredits(rateLimitData.usage) }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      Gesamt
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Free Tier Badge -->
+                <div v-if="rateLimitData.is_free_tier" class="flex items-center justify-center space-x-2 p-2 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg">
+                  <Icon name="heroicons:sparkles" class="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  <span class="text-xs font-medium text-yellow-700 dark:text-yellow-300">Free Tier</span>
+                </div>
+
+                <!-- Refresh Button -->
+                <button
+                  @click="fetchRateLimits"
+                  class="w-full px-3 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-md hover:shadow-lg active:scale-[0.98]"
+                >
+                  <Icon name="heroicons:arrow-path" class="h-4 w-4" />
+                  <span>Aktualisieren</span>
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+        </div>
+
         <!-- Conversations Section -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-3">
@@ -204,6 +310,8 @@
 </template>
 
 <script setup lang="ts">
+import type { RateLimitData } from '../../types/chat'
+
 interface Props {
   isOpen: boolean
 }
@@ -215,6 +323,11 @@ const emit = defineEmits<{
 
 const chatStore = useChatStore()
 const showConfirmDialog = ref(false)
+
+// Rate Limit State
+const rateLimitData = ref<RateLimitData | null>(null)
+const rateLimitLoading = ref(false)
+const rateLimitError = ref<string | null>(null)
 
 const totalMessages = computed(() => {
   return chatStore.conversations.reduce((total, conv) => total + conv.messages.length, 0)
@@ -262,6 +375,42 @@ const exportConversations = () => {
     alert('Export fehlgeschlagen. Bitte versuche es erneut.')
   }
 }
+
+// Format credits with proper formatting
+const formatCredits = (credits: number): string => {
+  if (credits === 0) return '0'
+  if (credits < 0.01) return credits.toFixed(4)
+  if (credits < 1) return credits.toFixed(2)
+  return credits.toFixed(2)
+}
+
+// Fetch rate limits from API
+const fetchRateLimits = async () => {
+  rateLimitLoading.value = true
+  rateLimitError.value = null
+  
+  try {
+    const response = await $fetch<{ success: boolean; data: RateLimitData }>('/api/limits')
+    
+    if (response.success) {
+      rateLimitData.value = response.data
+    } else {
+      throw new Error('Failed to fetch rate limits')
+    }
+  } catch (error: any) {
+    console.error('Error fetching rate limits:', error)
+    rateLimitError.value = error.message || 'Fehler beim Laden der API-Nutzungsdaten'
+  } finally {
+    rateLimitLoading.value = false
+  }
+}
+
+// Watch for dialog open state and fetch rate limits
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    fetchRateLimits()
+  }
+})
 
 // Close dialog on Escape key
 onMounted(() => {

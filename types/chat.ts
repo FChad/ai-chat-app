@@ -12,6 +12,9 @@ export interface ModelDetails {
   families: string[] | null
   parameter_size: string
   quantization_level: string
+  context_length?: number
+  description?: string
+  popularity?: number
 }
 
 export interface AIModel {

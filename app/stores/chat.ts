@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings } from '~/types/chat'
+import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings } from '../../types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -127,7 +127,7 @@ export const useChatStore = defineStore('chat', () => {
       const messages = currentConversation.value.messages
       if (messages.length > 0) {
         const lastMessage = messages[messages.length - 1]
-        if (lastMessage.role === 'assistant') {
+        if (lastMessage && lastMessage.role === 'assistant') {
           lastMessage.content = content
           currentConversation.value.updatedAt = new Date().toISOString()
           saveToLocalStorage()
@@ -145,7 +145,7 @@ export const useChatStore = defineStore('chat', () => {
     const messages = conversation.messages
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1]
-      if (lastMessage.role === 'assistant') {
+      if (lastMessage && lastMessage.role === 'assistant') {
         lastMessage.content = content
         conversation.updatedAt = new Date().toISOString()
         saveToLocalStorage()
@@ -158,7 +158,7 @@ export const useChatStore = defineStore('chat', () => {
     if (index !== -1) {
       // Cancel any active session for this conversation
       const conversation = conversations.value[index]
-      if (conversation.sessionId) {
+      if (conversation && conversation.sessionId) {
         cancelChatSession(conversation.sessionId)
       }
 
@@ -166,7 +166,7 @@ export const useChatStore = defineStore('chat', () => {
 
       // If we deleted the current conversation, select another one or clear
       if (currentConversationId.value === id) {
-        currentConversationId.value = conversations.value.length > 0 ? conversations.value[0].id : null
+        currentConversationId.value = conversations.value.length > 0 ? conversations.value[0]?.id ?? null : null
       }
 
       saveToLocalStorage()
@@ -293,7 +293,7 @@ export const useChatStore = defineStore('chat', () => {
         if (savedCurrentId && conversations.value.find(c => c.id === savedCurrentId)) {
           currentConversationId.value = savedCurrentId
         } else if (conversations.value.length > 0) {
-          currentConversationId.value = conversations.value[0].id
+          currentConversationId.value = conversations.value[0]?.id ?? null
         }
       } catch (error) {
         console.error('Error loading conversations from localStorage:', error)

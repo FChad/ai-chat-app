@@ -15,7 +15,6 @@ export const useChat = () => {
     }
 
     if (!chatStore.currentConversation) {
-      console.error('No conversation available')
       return
     }
 
@@ -65,14 +64,14 @@ export const useChat = () => {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error')
-        console.error('Chat API error:', response.status, response.statusText, errorText)
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
-      }
 
-      // Verify session ID from response headers
-      const responseSessionId = response.headers.get('X-Session-ID')
-      if (responseSessionId !== sessionId) {
-        console.warn(`Session ID mismatch: expected ${sessionId}, got ${responseSessionId}`)
+        // Handle specific error codes with user-friendly messages
+        if (response.status === 429) {
+          // Rate limit error
+          throw new Error('RATE_LIMIT_ERROR')
+        }
+
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
       }
 
       // Add empty assistant message to the conversation associated with this session
@@ -117,7 +116,7 @@ export const useChat = () => {
                     }
                   }
                 } catch (e) {
-                  console.warn('Error parsing final NDJSON line:', e)
+                  // Ignore parsing errors
                 }
               }
               break
@@ -134,9 +133,7 @@ export const useChat = () => {
                 try {
                   const data = JSON.parse(line)
                   const effectiveSessionId = data.sessionId ?? sessionId
-                  if (effectiveSessionId !== sessionId) {
-                    console.warn(`Response session ID mismatch: expected ${sessionId}, got ${effectiveSessionId}`)
-                  } else {
+                  if (effectiveSessionId === sessionId) {
                     const content = data.response || data.message?.content
                     if (content) {
                       assistantMessage += content
@@ -144,7 +141,7 @@ export const useChat = () => {
                     }
                   }
                 } catch (e) {
-                  console.warn('Error parsing NDJSON line:', e)
+                  // Ignore parsing errors
                 }
               }
               newlineIndex = buffer.indexOf('\n')
@@ -152,7 +149,6 @@ export const useChat = () => {
           }
         } catch (streamError: any) {
           if (streamError.name !== 'AbortError') {
-            console.error('Error reading stream for session:', sessionId, streamError)
             throw streamError
           }
         }
@@ -160,11 +156,6 @@ export const useChat = () => {
         // Handle non-streaming response
         try {
           const data = await response.json()
-
-          // Check if this response belongs to current session
-          if (data.sessionId && data.sessionId !== sessionId) {
-            console.warn(`Response session ID mismatch: expected ${sessionId}, got ${data.sessionId}`)
-          }
 
           if (data.message && data.message.content) {
             // Modern chat API non-streaming response
@@ -177,28 +168,43 @@ export const useChat = () => {
           }
         } catch (jsonError: any) {
           if (jsonError.name !== 'AbortError') {
-            console.error('Error parsing JSON response for session:', sessionId, jsonError)
             throw jsonError
           }
         }
       }
 
     } catch (error: any) {
-      console.error('Error sending message for session:', sessionId, error)
 
       // Remove the last user message if there was an error
       if (chatStore.currentConversation) {
         const messages = chatStore.currentConversation.messages
-        if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+        if (messages && messages.length > 0 && messages[messages.length - 1]?.role === 'user') {
           messages.pop()
         }
       }
 
       if (error.name !== 'AbortError') {
+        // Determine user-friendly error message
+        let userMessage = 'Entschuldigung, es gab einen Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.'
+
+        if (error.message === 'RATE_LIMIT_ERROR') {
+          userMessage = '⚠️ Das Modell ist vorübergehend ausgelastet.\n\n' +
+            'Das kostenlose Modell hat ein Rate-Limit erreicht. Bitte versuchen Sie es in wenigen Minuten erneut oder wählen Sie ein anderes Modell aus.'
+        } else if (error.message && error.message.includes('429')) {
+          userMessage = '⚠️ Zu viele Anfragen.\n\n' +
+            'Der Dienst ist vorübergehend überlastet. Bitte warten Sie einen Moment und versuchen Sie es erneut.'
+        } else if (error.message && error.message.includes('503')) {
+          userMessage = '⚠️ Der Dienst ist vorübergehend nicht verfügbar.\n\n' +
+            'Bitte versuchen Sie es in wenigen Minuten erneut.'
+        } else if (error.message && error.message.includes('401')) {
+          userMessage = '⚠️ Authentifizierungsfehler.\n\n' +
+            'Es gab ein Problem mit der API-Authentifizierung. Bitte kontaktieren Sie den Administrator.'
+        }
+
         // Show error to user
         chatStore.addMessage({
           role: 'assistant',
-          content: `Entschuldigung, es gab einen Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.\n\nFehlerdetails: ${error.message || 'Unbekannter Fehler'}`,
+          content: userMessage,
           timestamp: formatTime(new Date())
         })
       }
@@ -227,7 +233,7 @@ export const useChat = () => {
       const data = await response.json()
       chatStore.setAvailableModels(data.models || [])
     } catch (error) {
-      console.error('Error loading models:', error)
+      // Silently fail - models list will remain empty
     }
   }
 

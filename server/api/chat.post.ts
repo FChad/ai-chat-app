@@ -59,7 +59,6 @@ export default defineEventHandler(async (event) => {
 
     // Validate environment variables
     if (!openrouterApiKey) {
-      console.error('OPENROUTER_API_KEY environment variable is not set')
       throw createError({
         statusCode: 500,
         statusMessage: 'OPENROUTER_API_KEY environment variable is not set'
@@ -92,7 +91,6 @@ export default defineEventHandler(async (event) => {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
-      console.error('OpenRouter API error:', response.status, response.statusText, errorText)
       throw createError({
         statusCode: response.status,
         statusMessage: `OpenRouter API error: ${response.statusText} - ${errorText}`
@@ -100,7 +98,6 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!response.body) {
-      console.error('No response body from OpenRouter API')
       throw createError({
         statusCode: 500,
         statusMessage: 'No response body from OpenRouter API'
@@ -200,13 +197,12 @@ export default defineEventHandler(async (event) => {
                         controller.enqueue(encoder.encode(modifiedLine))
                       }
                     } catch (e) {
-                      console.warn('Error parsing SSE JSON:', e)
+                      // Ignore parsing errors
                     }
                   }
                 }
               }
             } catch (error) {
-              console.error('Error in streaming for session', sessionId, ':', error)
               clearInterval(keepAlive)
               controller.error(error)
             }
@@ -246,8 +242,6 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
-    console.error('Chat API error for session:', error.sessionId || 'unknown', error)
-
     // If it's already a createError, re-throw it
     if (error.statusCode) {
       throw error

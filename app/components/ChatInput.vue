@@ -125,6 +125,16 @@ watch(() => chatStore.isLoading, (isLoading) => {
   }
 })
 
+// Focus textarea when AI finishes typing
+watch(() => chatStore.isTyping, (isTyping, wasTyping) => {
+  if (wasTyping && !isTyping && textareaRef.value && chatStore.currentConversation) {
+    // AI has finished typing, refocus the input field
+    setTimeout(() => {
+      textareaRef.value?.focus()
+    }, 100)
+  }
+})
+
 // focus state UI removed; keep logic minimal
 
 // Method to focus the textarea from external components

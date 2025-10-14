@@ -1,16 +1,11 @@
 <template>
   <!-- Backdrop -->
-  <div 
-    v-if="isOpen"
-    @click="closeDialog"
-    class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in"
-  >
+  <div v-if="isOpen" @click="closeDialog"
+    class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
     <!-- Dialog -->
-    <div 
-      @click.stop
+    <div @click.stop
       class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-scale-in"
-      :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'"
-    >
+      :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200/30 dark:border-gray-700/30">
         <div class="flex items-center space-x-3">
@@ -22,11 +17,10 @@
             <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
           </div>
         </div>
-        <button
-          @click="closeDialog"
-          class="w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm group"
-        >
-          <Icon name="heroicons:x-mark" class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
+        <button @click="closeDialog"
+          class="w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm group">
+          <Icon name="heroicons:x-mark"
+            class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
         </button>
       </div>
 
@@ -40,14 +34,15 @@
             </div>
             <span>App-Einstellungen</span>
           </h3>
-          
+
           <div class="space-y-4">
             <!-- Theme Toggle -->
             <GlassCard padding="p-4" classes="transition-all duration-200 hover:shadow-lg">
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <div class="flex items-center space-x-3 mb-2">
-                    <div class="w-6 h-6 flex items-center justify-center bg-purple-100/60 dark:bg-purple-900/40 rounded-xl">
+                    <div
+                      class="w-6 h-6 flex items-center justify-center bg-purple-100/60 dark:bg-purple-900/40 rounded-xl">
                       <Icon name="heroicons:moon" class="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     </div>
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Design-Modus</span>
@@ -67,134 +62,26 @@
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <div class="flex items-center space-x-3 mb-2">
-                    <div class="w-6 h-6 flex items-center justify-center bg-green-100/60 dark:bg-green-900/40 rounded-xl">
+                    <div
+                      class="w-6 h-6 flex items-center justify-center bg-green-100/60 dark:bg-green-900/40 rounded-xl">
                       <Icon name="heroicons:play" class="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Streaming-Modus</span>
                   </div>
                   <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Antworten werden in Echtzeit gestreamt. Deaktivieren Sie diese Option, 
+                    Antworten werden in Echtzeit gestreamt. Deaktivieren Sie diese Option,
                     um komplette Antworten auf einmal zu erhalten.
                   </p>
                 </div>
                 <div class="ml-4">
-                  <button
-                    @click="toggleStreamMode"
+                  <button @click="toggleStreamMode"
                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 active:scale-95"
-                    :class="chatStore.isStreamModeEnabled ? 'bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg' : 'bg-gray-300 dark:bg-gray-600'"
-                  >
+                    :class="chatStore.isStreamModeEnabled ? 'bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg' : 'bg-gray-300 dark:bg-gray-600'">
                     <span
                       class="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-all duration-200"
-                      :class="chatStore.isStreamModeEnabled ? 'translate-x-6' : 'translate-x-1'"
-                    ></span>
+                      :class="chatStore.isStreamModeEnabled ? 'translate-x-6' : 'translate-x-1'"></span>
                   </button>
                 </div>
-              </div>
-            </GlassCard>
-          </div>
-        </div>
-
-        <!-- API Rate Limits Section -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-3">
-            <div class="w-6 h-6 flex items-center justify-center bg-indigo-100/60 dark:bg-indigo-900/40 rounded-xl">
-              <Icon name="heroicons:chart-bar" class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <span>API-Nutzung</span>
-          </h3>
-          
-          <div class="space-y-4">
-            <!-- Loading State -->
-            <GlassCard v-if="rateLimitLoading" padding="p-4" classes="transition-all duration-200">
-              <div class="flex items-center justify-center space-x-3 text-gray-600 dark:text-gray-400">
-                <Icon name="heroicons:arrow-path" class="h-5 w-5 animate-spin" />
-                <span class="text-sm">Lade API-Nutzungsdaten...</span>
-              </div>
-            </GlassCard>
-
-            <!-- Error State -->
-            <GlassCard v-else-if="rateLimitError" padding="p-4" classes="transition-all duration-200 bg-red-50/50 dark:bg-red-900/20">
-              <div class="flex items-center space-x-3 text-red-600 dark:text-red-400">
-                <Icon name="heroicons:exclamation-circle" class="h-5 w-5" />
-                <span class="text-sm">{{ rateLimitError }}</span>
-              </div>
-            </GlassCard>
-
-            <!-- Rate Limit Stats -->
-            <GlassCard v-else-if="rateLimitData" padding="p-4" classes="transition-all duration-200 hover:shadow-lg">
-              <div class="space-y-4">
-                <!-- Credits Remaining -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <Icon name="heroicons:currency-dollar" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Verbleibende Credits</span>
-                  </div>
-                  <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                    {{ rateLimitData.limit_remaining !== null ? formatCredits(rateLimitData.limit_remaining) : '∞' }}
-                  </span>
-                </div>
-
-                <!-- Credit Limit -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <Icon name="heroicons:clipboard-document-check" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Credit-Limit</span>
-                  </div>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {{ rateLimitData.limit !== null ? formatCredits(rateLimitData.limit) : 'Unbegrenzt' }}
-                  </span>
-                </div>
-
-                <!-- Usage Stats Grid -->
-                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-                  <div class="text-center p-2 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                      {{ formatCredits(rateLimitData.usage_daily) }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Heute
-                    </div>
-                  </div>
-                  <div class="text-center p-2 bg-green-50/50 dark:bg-green-900/20 rounded-lg">
-                    <div class="text-lg font-bold text-green-600 dark:text-green-400">
-                      {{ formatCredits(rateLimitData.usage_weekly) }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Diese Woche
-                    </div>
-                  </div>
-                  <div class="text-center p-2 bg-purple-50/50 dark:bg-purple-900/20 rounded-lg">
-                    <div class="text-lg font-bold text-purple-600 dark:text-purple-400">
-                      {{ formatCredits(rateLimitData.usage_monthly) }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Dieser Monat
-                    </div>
-                  </div>
-                  <div class="text-center p-2 bg-orange-50/50 dark:bg-orange-900/20 rounded-lg">
-                    <div class="text-lg font-bold text-orange-600 dark:text-orange-400">
-                      {{ formatCredits(rateLimitData.usage) }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                      Gesamt
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Free Tier Badge -->
-                <div v-if="rateLimitData.is_free_tier" class="flex items-center justify-center space-x-2 p-2 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg">
-                  <Icon name="heroicons:sparkles" class="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                  <span class="text-xs font-medium text-yellow-700 dark:text-yellow-300">Free Tier</span>
-                </div>
-
-                <!-- Refresh Button -->
-                <button
-                  @click="fetchRateLimits"
-                  class="w-full px-3 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-md hover:shadow-lg active:scale-[0.98]"
-                >
-                  <Icon name="heroicons:arrow-path" class="h-4 w-4" />
-                  <span>Aktualisieren</span>
-                </button>
               </div>
             </GlassCard>
           </div>
@@ -208,7 +95,7 @@
             </div>
             <span>Unterhaltungen</span>
           </h3>
-          
+
           <div class="space-y-4">
             <!-- Conversation Stats -->
             <GlassCard padding="p-4" classes="transition-all duration-200 hover:shadow-lg">
@@ -235,20 +122,15 @@
             <!-- Action Buttons -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- Export Conversations -->
-              <button
-                @click="exportConversations"
-                class="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98]"
-              >
+              <button @click="exportConversations"
+                class="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
                 <Icon name="heroicons:arrow-down-tray" class="h-4 w-4" />
                 <span>Exportieren</span>
               </button>
 
               <!-- Clear All Conversations -->
-              <button
-                @click="confirmClearAll"
-                :disabled="chatStore.conversations.length === 0"
-                class="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl disabled:shadow-sm disabled:cursor-not-allowed active:scale-[0.98]"
-              >
+              <button @click="confirmClearAll" :disabled="chatStore.conversations.length === 0"
+                class="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl disabled:shadow-sm disabled:cursor-not-allowed active:scale-[0.98]">
                 <Icon name="heroicons:trash" class="h-4 w-4" />
                 <span>Alle löschen</span>
               </button>
@@ -259,10 +141,8 @@
 
       <!-- Footer -->
       <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200/30 dark:border-gray-700/30">
-        <button
-          @click="closeDialog"
-          class="px-6 py-2.5 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-200 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]"
-        >
+        <button @click="closeDialog"
+          class="px-6 py-2.5 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-200 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]">
           Schließen
         </button>
       </div>
@@ -270,11 +150,10 @@
   </div>
 
   <!-- Confirmation Dialog -->
-  <div 
-    v-if="showConfirmDialog"
-    class="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in"
-  >
-    <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in">
+  <div v-if="showConfirmDialog"
+    class="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
+    <div
+      class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-sm animate-scale-in">
       <div class="p-6">
         <div class="flex items-center space-x-3 mb-4">
           <div class="p-2 bg-red-100/60 dark:bg-red-900/40 rounded-xl">
@@ -285,22 +164,18 @@
             <p class="text-sm text-gray-600 dark:text-gray-400">Unwiderrufliche Aktion</p>
           </div>
         </div>
-        
+
         <p class="text-sm text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
           Möchtest du wirklich alle Unterhaltungen löschen? Diese Aktion kann nicht rückgängig gemacht werden.
         </p>
-        
+
         <div class="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-          <button
-            @click="showConfirmDialog = false"
-            class="w-full sm:w-auto px-4 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors font-medium"
-          >
+          <button @click="showConfirmDialog = false"
+            class="w-full sm:w-auto px-4 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors font-medium">
             Abbrechen
           </button>
-          <button
-            @click="clearAllConversations"
-            class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]"
-          >
+          <button @click="clearAllConversations"
+            class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
             Löschen
           </button>
         </div>
@@ -310,8 +185,6 @@
 </template>
 
 <script setup lang="ts">
-import type { RateLimitData } from '../../types/chat'
-
 interface Props {
   isOpen: boolean
 }
@@ -323,11 +196,6 @@ const emit = defineEmits<{
 
 const chatStore = useChatStore()
 const showConfirmDialog = ref(false)
-
-// Rate Limit State
-const rateLimitData = ref<RateLimitData | null>(null)
-const rateLimitLoading = ref(false)
-const rateLimitError = ref<string | null>(null)
 
 const totalMessages = computed(() => {
   return chatStore.conversations.reduce((total, conv) => total + conv.messages.length, 0)
@@ -358,59 +226,23 @@ const exportConversations = () => {
       conversations: chatStore.conversations,
       settings: chatStore.settings
     }
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement('a')
     a.href = url
     a.download = `askchadai-conversations-${new Date().toISOString().split('T')[0]}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    
+
     URL.revokeObjectURL(url)
   } catch (error) {
     console.error('Export failed:', error)
     alert('Export fehlgeschlagen. Bitte versuche es erneut.')
   }
 }
-
-// Format credits with proper formatting
-const formatCredits = (credits: number): string => {
-  if (credits === 0) return '0'
-  if (credits < 0.01) return credits.toFixed(4)
-  if (credits < 1) return credits.toFixed(2)
-  return credits.toFixed(2)
-}
-
-// Fetch rate limits from API
-const fetchRateLimits = async () => {
-  rateLimitLoading.value = true
-  rateLimitError.value = null
-  
-  try {
-    const response = await $fetch<{ success: boolean; data: RateLimitData }>('/api/limits')
-    
-    if (response.success) {
-      rateLimitData.value = response.data
-    } else {
-      throw new Error('Failed to fetch rate limits')
-    }
-  } catch (error: any) {
-    console.error('Error fetching rate limits:', error)
-    rateLimitError.value = error.message || 'Fehler beim Laden der API-Nutzungsdaten'
-  } finally {
-    rateLimitLoading.value = false
-  }
-}
-
-// Watch for dialog open state and fetch rate limits
-watch(() => props.isOpen, (isOpen) => {
-  if (isOpen) {
-    fetchRateLimits()
-  }
-})
 
 // Close dialog on Escape key
 onMounted(() => {
@@ -419,9 +251,9 @@ onMounted(() => {
       closeDialog()
     }
   }
-  
+
   document.addEventListener('keydown', handleEscape)
-  
+
   onUnmounted(() => {
     document.removeEventListener('keydown', handleEscape)
   })
@@ -464,4 +296,4 @@ onMounted(() => {
 .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background-color: rgba(75, 85, 99, 0.6);
 }
-</style> 
+</style>

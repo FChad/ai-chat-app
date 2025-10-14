@@ -1,41 +1,36 @@
 <template>
   <div class="flex h-full relative font-system">
     <!-- Mobile Overlay -->
-    <div 
-      v-if="isMobileSidebarOpen" 
-      @click="closeMobileSidebar"
-      class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-all duration-300"
-    ></div>
+    <div v-if="isMobileSidebarOpen" @click="closeMobileSidebar"
+      class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-all duration-300">
+    </div>
 
     <!-- Sidebar -->
-    <ConversationSidebar 
-      :class="[
-        'transition-all duration-300 ease-out z-50',
-        'lg:relative lg:translate-x-0',
-        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      ]"
-      :is-mobile-open="isMobileSidebarOpen"
-      @open-settings="showSettingsDialog = true" 
-      @close-mobile="closeMobileSidebar"
-    />
-    
+    <ConversationSidebar :class="[
+      'transition-all duration-300 ease-out z-50',
+      'lg:relative lg:translate-x-0',
+      isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+    ]" :is-mobile-open="isMobileSidebarOpen" @open-settings="showSettingsDialog = true"
+      @close-mobile="closeMobileSidebar" />
+
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col min-w-0 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-l border-white/20 dark:border-gray-700/30">
+    <div
+      class="flex-1 flex flex-col min-w-0 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-l border-white/20 dark:border-gray-700/30">
       <!-- Header -->
-      <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30 p-4 sm:px-6 flex items-center">
+      <div
+        class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30 p-4 sm:px-6 flex items-center">
         <div class="flex items-center justify-between w-full">
           <div class="flex items-center space-x-3 sm:space-x-4">
             <!-- Mobile Menu Button -->
-            <button
-              @click="toggleMobileSidebar"
-              class="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm"
-            >
+            <button @click="toggleMobileSidebar"
+              class="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm">
               <Icon name="heroicons:bars-3" class="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </button>
-            
+
             <!-- App Icon & Title -->
             <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
                 <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
@@ -44,16 +39,17 @@
               </div>
             </div>
           </div>
-          
+
           <div class="flex items-center space-x-3">
             <!-- Current Model Info -->
-            <div v-if="chatStore.currentConversation" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100/60 dark:bg-gray-700/60 rounded-full backdrop-blur-sm">
+            <div v-if="chatStore.currentConversation"
+              class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100/60 dark:bg-gray-700/60 rounded-full backdrop-blur-sm">
               <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary-500" />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ chatStore.currentConversation.model.split(':')[0] }}
               </span>
             </div>
-            
+
             <!-- Theme Toggle -->
             <ThemeToggle />
           </div>
@@ -71,10 +67,7 @@
     </div>
 
     <!-- Settings Dialog -->
-    <SettingsDialog 
-      :is-open="showSettingsDialog" 
-      @close="showSettingsDialog = false" 
-    />
+    <SettingsDialog :is-open="showSettingsDialog" @close="showSettingsDialog = false" />
   </div>
 </template>
 
@@ -85,7 +78,6 @@ useHead({
 })
 
 const chatStore = useChatStore()
-const { loadModels } = useChat()
 const { scrollToBottom } = useScrolling()
 
 const chatMessagesRef = ref()
@@ -114,14 +106,11 @@ watch(() => chatStore.currentConversationId, () => {
   closeMobileSidebar()
 })
 
-// Load models and conversations on mount
+// Load conversations on mount
 onMounted(async () => {
   try {
-    // Load conversations from localStorage first (this sets loading state)
+    // Load conversations from localStorage (this sets loading state)
     chatStore.loadFromLocalStorage()
-    
-    // Then load models from API
-    await loadModels()
   } catch (error) {
     console.error('Error during initialization:', error)
     // Ensure loading is complete even if there's an error
@@ -143,11 +132,11 @@ onMounted(() => {
       isMobileSidebarOpen.value = false
     }
   }
-  
+
   window.addEventListener('resize', handleResize)
-  
+
   onUnmounted(() => {
     window.removeEventListener('resize', handleResize)
   })
 })
-</script> 
+</script>

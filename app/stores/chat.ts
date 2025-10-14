@@ -6,7 +6,6 @@ export const useChatStore = defineStore('chat', () => {
   const conversations = ref<Conversation[]>([])
   const currentConversationId = ref<string | null>(null)
   const isTyping = ref(false)
-  const availableModels = ref<AIModel[]>([])
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
   const isLoading = ref(true) // Add loading state
@@ -189,9 +188,7 @@ export const useChatStore = defineStore('chat', () => {
     isTyping.value = typing
   }
 
-  const setAvailableModels = (models: AIModel[]) => {
-    availableModels.value = models
-  }
+
 
   const setIsAtBottom = (atBottom: boolean) => {
     isAtBottom.value = atBottom
@@ -318,7 +315,6 @@ export const useChatStore = defineStore('chat', () => {
     conversations,
     currentConversationId,
     isTyping,
-    availableModels,
     isAtBottom,
     activeSessions,
     settings,
@@ -342,7 +338,6 @@ export const useChatStore = defineStore('chat', () => {
     deleteConversation,
     clearAllConversations,
     setTyping,
-    setAvailableModels,
     setIsAtBottom,
     loadFromLocalStorage,
     setLoadingComplete,

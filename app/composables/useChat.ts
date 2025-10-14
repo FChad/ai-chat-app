@@ -1,4 +1,4 @@
-import type { ChatRequest, Conversation, Message } from '../../types/chat'
+import type { ChatRequest, Conversation, Message, AIModel } from '../../types/chat'
 import { generateUUID } from '~/utils/uuid'
 
 export const useChat = () => {
@@ -223,7 +223,7 @@ export const useChat = () => {
     }
   }
 
-  const loadModels = async () => {
+  const loadModels = async (): Promise<AIModel[]> => {
     try {
       const response = await fetch('/api/models', { cache: 'no-store' })
       if (!response.ok) {
@@ -231,9 +231,10 @@ export const useChat = () => {
       }
 
       const data = await response.json()
-      chatStore.setAvailableModels(data.models || [])
+      return data.models || []
     } catch (error) {
-      // Silently fail - models list will remain empty
+      // Silently fail - return empty array
+      return []
     }
   }
 

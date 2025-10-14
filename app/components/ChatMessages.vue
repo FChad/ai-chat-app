@@ -11,7 +11,7 @@
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Lade Daten...</h3>
         <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-          Unterhaltungen und Modelle werden geladen
+          Unterhaltungen werden geladen
         </p>
       </div>
     </div>
@@ -38,7 +38,7 @@
             <select v-model="selectedModel" :disabled="chatStore.isTyping"
               class="w-full px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-primary-200/60 dark:border-primary-700/60 rounded-xl text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-gray-800 appearance-none cursor-pointer hover:bg-white/90 dark:hover:bg-gray-800/90 hover:border-primary-300/70 dark:hover:border-primary-600/70 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl">
               <option value="" disabled>Modell auswählen...</option>
-              <option v-for="model in chatStore.availableModels" :key="model.model" :value="model.model">
+              <option v-for="model in availableModels" :key="model.model" :value="model.model">
                 {{ model.name }} ({{ model.details.parameter_size }})
               </option>
             </select>
@@ -73,15 +73,10 @@
     </div>
 
     <!-- Chat Messages -->
-    <ChatMessage
-      v-for="(message, idx) in chatStore.currentMessages"
-      :key="message.id"
-      :message="message.content"
-      :is-user="message.role === 'user'"
-      :is-ai="message.role === 'assistant'"
+    <ChatMessage v-for="(message, idx) in chatStore.currentMessages" :key="message.id" :message="message.content"
+      :is-user="message.role === 'user'" :is-ai="message.role === 'assistant'"
       :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
-      :timestamp="message.timestamp"
-    />
+      :timestamp="message.timestamp" />
 
     <!-- Typing indicator based on session activity -->
     <ChatMessage v-if="chatStore.isConversationTyping" message="" :is-user="false" :is-typing="true" timestamp="" />
@@ -89,12 +84,27 @@
 </template>
 
 <script setup lang="ts">
+import type { AIModel } from '../../types/chat'
+
 const chatStore = useChatStore()
 const { handleScroll, autoScrollIfAtBottom } = useScrolling()
-const { startNewConversation: createConversation } = useChat()
+const { startNewConversation: createConversation, loadModels } = useChat()
 
 const messagesContainer = ref<HTMLElement>()
 const selectedModel = ref('')
+const availableModels = ref<AIModel[]>([])
+
+// Load models when component mounts or when conversation changes to null
+const loadAvailableModels = async () => {
+  availableModels.value = await loadModels()
+}
+
+// Watch for when there's no current conversation to load models
+watch(() => chatStore.currentConversation, (conversation) => {
+  if (!conversation) {
+    loadAvailableModels()
+  }
+}, { immediate: true })
 
 const handleScrollEvent = () => {
   if (messagesContainer.value) {
@@ -119,7 +129,7 @@ const startNewConversation = () => {
 }
 
 // Set default model when models are loaded
-watch(() => chatStore.availableModels, (models) => {
+watch(availableModels, (models) => {
   if (models.length > 0 && !selectedModel.value) {
     // Try to find meta-llama/llama-3.3-8b-instruct:free first, otherwise use first available model
     const preferredModel = models.find((model: any) => model.model === 'meta-llama/llama-3.3-8b-instruct:free')

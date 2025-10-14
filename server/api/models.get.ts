@@ -76,7 +76,30 @@ export default defineEventHandler(async (event) => {
             quantization_level: '',
             context_length: model.context_length || 0,
             description: model.description || '',
-            popularity: model.top_provider?.max_completion_tokens || 0
+            popularity: model.top_provider?.max_completion_tokens || 0,
+            // OpenRouter specific fields
+            architecture: model.architecture ? {
+              input_modalities: model.architecture.input_modalities || [],
+              output_modalities: model.architecture.output_modalities || [],
+              tokenizer: model.architecture.tokenizer || '',
+              instruct_type: model.architecture.instruct_type || null
+            } : undefined,
+            pricing: model.pricing ? {
+              prompt: model.pricing.prompt || '0',
+              completion: model.pricing.completion || '0',
+              request: model.pricing.request || '0',
+              image: model.pricing.image || '0',
+              web_search: model.pricing.web_search || '0',
+              internal_reasoning: model.pricing.internal_reasoning || '0',
+              input_cache_read: model.pricing.input_cache_read || '0',
+              input_cache_write: model.pricing.input_cache_write || '0'
+            } : undefined,
+            top_provider: model.top_provider ? {
+              context_length: model.top_provider.context_length || 0,
+              max_completion_tokens: model.top_provider.max_completion_tokens || 0,
+              is_moderated: model.top_provider.is_moderated || false
+            } : undefined,
+            supported_parameters: model.supported_parameters || []
           },
           // Speichere Popularität für Sortierung
           _popularity: model.top_provider?.max_completion_tokens || 0

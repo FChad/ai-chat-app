@@ -34,17 +34,7 @@
           <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             KI-Modell auswählen
           </label>
-          <div class="relative">
-            <select v-model="selectedModel" :disabled="chatStore.isTyping"
-              class="w-full px-4 py-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-primary-200/60 dark:border-primary-700/60 rounded-xl text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-gray-800 appearance-none cursor-pointer hover:bg-white/90 dark:hover:bg-gray-800/90 hover:border-primary-300/70 dark:hover:border-primary-600/70 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl">
-              <option value="" disabled>Modell auswählen...</option>
-              <option v-for="model in availableModels" :key="model.model" :value="model.model">
-                {{ model.name }} ({{ model.details.parameter_size }})
-              </option>
-            </select>
-            <Icon name="heroicons:chevron-down"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400 pointer-events-none" />
-          </div>
+          <ModelSelectionDialog v-model="selectedModel" :models="availableModels" :disabled="chatStore.isTyping" />
         </div>
 
         <!-- Start Chat Button -->

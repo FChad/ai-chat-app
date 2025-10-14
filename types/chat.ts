@@ -5,6 +5,30 @@ export interface Message {
   id?: string
 }
 
+export interface ModelArchitecture {
+  input_modalities: string[]  // ["file", "image", "text"]
+  output_modalities: string[]  // ["text"]
+  tokenizer: string
+  instruct_type: string | null
+}
+
+export interface ModelPricing {
+  prompt: string              // Cost per input token
+  completion: string          // Cost per output token
+  request: string            // Fixed cost per API request
+  image: string             // Cost per image input
+  web_search: string        // Cost per web search operation
+  internal_reasoning: string // Cost for internal reasoning tokens
+  input_cache_read: string   // Cost per cached input token read
+  input_cache_write: string  // Cost per cached input token write
+}
+
+export interface TopProvider {
+  context_length: number
+  max_completion_tokens: number
+  is_moderated: boolean
+}
+
 export interface ModelDetails {
   parent_model: string
   format: string
@@ -15,6 +39,11 @@ export interface ModelDetails {
   context_length?: number
   description?: string
   popularity?: number
+  // OpenRouter specific fields
+  architecture?: ModelArchitecture
+  pricing?: ModelPricing
+  top_provider?: TopProvider
+  supported_parameters?: string[]
 }
 
 export interface AIModel {

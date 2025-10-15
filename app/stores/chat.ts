@@ -281,7 +281,6 @@ export const useChatStore = defineStore('chat', () => {
 
         if (!savedVersion || savedVersion !== currentVersion) {
           // Clear old localStorage data for migration
-          console.log('Migrating to new version, clearing old data...')
           localStorage.removeItem('chat-conversations')
           localStorage.removeItem('chat-settings')
           localStorage.removeItem('chat-current-conversation')

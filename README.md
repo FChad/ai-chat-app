@@ -108,9 +108,9 @@ You can add more models in `server/api/models.get.ts`.
 ### Customizing UI Styling
 
 Styles are located in:
-- `assets/css/main.css` - Global styles
+- `app/assets/css/tailwind.css` - Global styles and Tailwind utilities
 - Components use Tailwind CSS classes
-- `components/ChatMessage.vue` - Markdown styling
+- `app/components/ChatMessage.vue` - Markdown styling
 
 ### Testing
 ```bash

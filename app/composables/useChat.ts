@@ -1,5 +1,6 @@
 import type { ChatRequest, Conversation, Message, AIModel } from '../../types/chat'
 import { generateUUID } from '~/utils/uuid'
+import { formatTime } from '~/utils/formatters'
 
 export const useChat = () => {
   const chatStore = useChatStore()
@@ -248,12 +249,4 @@ export const useChat = () => {
     loadModels,
     startNewConversation
   }
-}
-
-// Helper function
-const formatTime = (date: Date) => {
-  return date.toLocaleTimeString('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 } 

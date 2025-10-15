@@ -3,7 +3,7 @@ export const useScrolling = () => {
 
   const scrollToBottom = (container: HTMLElement | null) => {
     if (!container) return
-    
+
     nextTick(() => {
       container.scrollTop = container.scrollHeight
       chatStore.setIsAtBottom(true)
@@ -17,15 +17,8 @@ export const useScrolling = () => {
     chatStore.setIsAtBottom(isAtBottom)
   }
 
-  const autoScrollIfAtBottom = (container: HTMLElement | null) => {
-    if (chatStore.isAtBottom && container) {
-      scrollToBottom(container)
-    }
-  }
-
   return {
     scrollToBottom,
-    handleScroll,
-    autoScrollIfAtBottom
+    handleScroll
   }
 } 

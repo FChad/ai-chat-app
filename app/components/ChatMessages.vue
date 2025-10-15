@@ -75,7 +75,7 @@
 import type { AIModel } from '../../types/chat'
 
 const chatStore = useChatStore()
-const { handleScroll, autoScrollIfAtBottom } = useScrolling()
+const { handleScroll, scrollToBottom } = useScrolling()
 const { startNewConversation: createConversation, loadModels } = useChat()
 
 const messagesContainer = ref<HTMLElement>()
@@ -118,12 +118,16 @@ const startNewConversation = () => {
 
 // Auto-scroll when new messages are added
 watch(() => chatStore.currentMessages, () => {
-  autoScrollIfAtBottom(messagesContainer.value ?? null)
+  if (chatStore.isAtBottom && messagesContainer.value) {
+    scrollToBottom(messagesContainer.value)
+  }
 }, { deep: true })
 
 // Auto-scroll when typing state changes (session-based)
 watch(() => chatStore.isConversationTyping, () => {
-  autoScrollIfAtBottom(messagesContainer.value ?? null)
+  if (chatStore.isAtBottom && messagesContainer.value) {
+    scrollToBottom(messagesContainer.value)
+  }
 })
 
 // Auto-scroll when conversation changes

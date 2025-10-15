@@ -202,9 +202,14 @@ export default defineEventHandler(async (event) => {
                   }
                 }
               }
-            } catch (error) {
+            } catch (error: any) {
               clearInterval(keepAlive)
-              controller.error(error)
+              // Ignore aborted errors (client disconnected)
+              if (error?.code === 'ABORT_ERR' || error?.message?.includes('aborted')) {
+                controller.close()
+              } else {
+                controller.error(error)
+              }
             }
           }
 
@@ -242,10 +247,22 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
+    // Ignore aborted/cancelled requests (client disconnected)
+    if (error?.code === 'ABORT_ERR' ||
+      error?.message?.includes('aborted') ||
+      error?.message?.includes('cancelled') ||
+      error?.code === 'ECONNRESET') {
+      // Client disconnected, this is normal - don't log as error
+      return
+    }
+
     // If it's already a createError, re-throw it
     if (error.statusCode) {
       throw error
     }
+
+    // Log actual errors for debugging
+    console.error('Chat API error:', error)
 
     // Handle other errors
     throw createError({

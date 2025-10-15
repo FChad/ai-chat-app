@@ -1,6 +1,5 @@
 import type { ChatRequest, Conversation, Message, AIModel } from '../../types/chat'
 import { generateUUID } from '~/utils/uuid'
-import { formatTime } from '~/utils/formatters'
 
 export const useChat = () => {
   const chatStore = useChatStore()
@@ -30,7 +29,7 @@ export const useChat = () => {
     chatStore.addMessage({
       role: 'user',
       content: userMessage,
-      timestamp: formatTime(new Date())
+      timestamp: new Date().toISOString()
     })
 
     // Start the chat session
@@ -81,7 +80,7 @@ export const useChat = () => {
         chatStore.addMessageToConversation(conversationId, {
           role: 'assistant',
           content: '',
-          timestamp: formatTime(new Date())
+          timestamp: new Date().toISOString()
         })
       }
 
@@ -206,7 +205,7 @@ export const useChat = () => {
         chatStore.addMessage({
           role: 'assistant',
           content: userMessage,
-          timestamp: formatTime(new Date())
+          timestamp: new Date().toISOString()
         })
       }
     } finally {

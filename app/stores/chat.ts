@@ -368,12 +368,4 @@ export const useChatStore = defineStore('chat', () => {
     getActiveSession,
     isSessionActive
   }
-})
-
-// Helper function
-const formatTime = (date: Date) => {
-  return date.toLocaleTimeString('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-} 
+}) 

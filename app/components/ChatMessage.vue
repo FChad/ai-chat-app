@@ -1,39 +1,43 @@
 <template>
   <div class="flex animate-fade-in" :class="isUser ? 'justify-end' : 'justify-start'">
-    <div class="flex max-w-[95%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-4xl" :class="isUser ? 'flex-row-reverse' : 'flex-row'">
+    <div class="flex max-w-[95%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-4xl"
+      :class="isUser ? 'flex-row-reverse' : 'flex-row'">
       <!-- Avatar -->
       <div class="flex-shrink-0" :class="isUser ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'">
-        <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg" 
-             :class="avatarClasses">
-          <Icon 
-            :name="avatarIcon" 
-            class="h-3 w-3 sm:h-5 sm:w-5 text-white flex-shrink-0" 
-          />
+        <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg"
+          :class="avatarClasses">
+          <Icon :name="avatarIcon" class="h-3 w-3 sm:h-5 sm:w-5 text-white flex-shrink-0" />
         </div>
       </div>
-      
+
       <!-- Message bubble -->
       <div class="relative min-w-0 flex-1">
-        <div class="px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-sm sm:text-base backdrop-blur-sm border shadow-lg" 
-             :class="bubbleClasses">
-          
-          <!-- Typing indicator -->
-          <div v-if="isTyping" class="flex items-center space-x-1">
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing"></div>
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.16s]"></div>
-            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.32s]"></div>
-            <span class="text-xs sm:text-sm ml-2 opacity-70">tippt...</span>
-          </div>
-          
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-sm sm:text-base backdrop-blur-sm border shadow-lg"
+          :class="bubbleClasses">
+
           <!-- Message content with markdown support -->
-          <div v-else class="prose prose-sm max-w-none text-inherit" :class="proseClasses">
+          <div v-if="message" class="prose prose-sm max-w-none text-inherit" :class="proseClasses">
             <div v-html="renderedMessage"></div>
           </div>
+
+          <!-- Typing indicator shown below the message content when AI is typing -->
+          <div v-if="isTyping" class="flex items-center space-x-1"
+            :class="message ? 'mt-3 pt-3 border-t border-gray-200/30 dark:border-gray-700/30' : ''">
+            <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing"></div>
+            <div
+              class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.16s]">
+            </div>
+            <div
+              class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.32s]">
+            </div>
+            <span class="text-xs sm:text-sm ml-2 opacity-70">tippt...</span>
+          </div>
         </div>
-        
+
         <!-- Timestamp -->
-        <div v-if="timestamp" class="text-xs text-gray-500 dark:text-gray-400 mt-1.5 font-medium" :class="isUser ? 'text-right' : 'text-left'">
-          {{ timestamp }}
+        <div v-if="timestamp" class="text-xs text-gray-500 dark:text-gray-400 mt-1.5 font-medium"
+          :class="isUser ? 'text-right' : 'text-left'">
+          {{ formattedTimestamp }}
         </div>
       </div>
     </div>
@@ -120,7 +124,7 @@ const setupMarked = () => {
 // Setup marked on mount and ensure it's properly configured
 onMounted(() => {
   setupMarked()
-  
+
   // Force re-render if needed
   nextTick(() => {
     // Ensure highlight.js is properly initialized
@@ -133,6 +137,25 @@ const avatarClasses = computed(() => {
   if (props.isUser) return 'bg-gradient-to-br from-primary-500 to-primary-600'
   if (props.isAi) return 'bg-gradient-to-br from-blue-500 to-blue-600'
   return 'bg-gradient-to-br from-green-500 to-green-600'
+})
+
+// Format timestamp for display
+const formattedTimestamp = computed(() => {
+  if (!props.timestamp) return ''
+
+  try {
+    const date = new Date(props.timestamp)
+    return date.toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    // If timestamp is already formatted or invalid, return as is
+    return props.timestamp
+  }
 })
 
 const avatarIcon = computed(() => {
@@ -175,11 +198,11 @@ const postProcessHTML = (html: string): string => {
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
         .trim()
-      
+
       // Apply syntax highlighting to the decoded code
       const highlightedCode = highlightCode(decodedCode, language)
       const languageName = getLanguageName(language)
-      
+
       return `
         <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
           <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
@@ -196,7 +219,7 @@ const postProcessHTML = (html: string): string => {
       `
     }
   )
-  
+
   // Also handle code blocks without language class
   result = result.replace(
     /<pre><code>([\s\S]*?)<\/code><\/pre>/g,
@@ -205,7 +228,7 @@ const postProcessHTML = (html: string): string => {
       if (match.includes('code-block-container')) {
         return match
       }
-      
+
       // Decode HTML entities
       const decodedCode = code
         .replace(/&lt;/g, '<')
@@ -214,12 +237,12 @@ const postProcessHTML = (html: string): string => {
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
         .trim()
-      
+
       // Auto-detect language
       const detectedLanguage = detectLanguage(decodedCode)
       const highlightedCode = highlightCode(decodedCode, detectedLanguage)
       const languageName = getLanguageName(detectedLanguage)
-      
+
       return `
         <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
           <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
@@ -236,14 +259,14 @@ const postProcessHTML = (html: string): string => {
       `
     }
   )
-  
+
   return result
 }
 
 // Compute rendered markdown
 const renderedMessage = computed(() => {
   if (!props.message) return ''
-  
+
   try {
     // For AI messages, split into stable and streaming tail to avoid flicker during streaming
     // For user messages, render completely without the split to preserve formatting
@@ -252,7 +275,7 @@ const renderedMessage = computed(() => {
 
     // Process markdown with syntax highlighting (synchronous) for stable part only
     const result = marked(safe)
-    
+
     // Handle both string and Promise returns
     let htmlResult = ''
     if (typeof result === 'string') {
@@ -264,7 +287,7 @@ const renderedMessage = computed(() => {
     } else {
       htmlResult = String(result)
     }
-    
+
     // Post-process to add copy buttons and enhance code blocks
     const enhanced = postProcessHTML(htmlResult)
 
@@ -283,7 +306,7 @@ const renderedMessage = computed(() => {
 })
 
 // Add copy to clipboard function to global scope
-if (process.client) {
+if (typeof window !== 'undefined') {
   (window as any).copyToClipboard = (button: HTMLElement) => {
     const code = decodeURIComponent(button.getAttribute('data-code') || '')
     navigator.clipboard.writeText(code).then(() => {
@@ -314,7 +337,7 @@ if (process.client) {
     background: transparent !important;
     color: inherit !important;
   }
-  
+
   :deep(.hljs-doctag),
   :deep(.hljs-keyword),
   :deep(.hljs-meta .hljs-keyword),
@@ -324,14 +347,14 @@ if (process.client) {
   :deep(.hljs-variable.language_) {
     color: #ff7b72 !important;
   }
-  
+
   :deep(.hljs-title),
   :deep(.hljs-title.class_),
   :deep(.hljs-title.class_.inherited__),
   :deep(.hljs-title.function_) {
     color: #d2a8ff !important;
   }
-  
+
   :deep(.hljs-attr),
   :deep(.hljs-attribute),
   :deep(.hljs-literal),
@@ -344,59 +367,59 @@ if (process.client) {
   :deep(.hljs-variable) {
     color: #44a8ff !important;
   }
-  
+
   :deep(.hljs-string),
   :deep(.hljs-meta .hljs-string),
   :deep(.hljs-regexp) {
     color: #ffb341 !important;
   }
-  
+
   :deep(.hljs-built_in),
   :deep(.hljs-symbol) {
     color: #ffa657 !important;
   }
-  
+
   :deep(.hljs-code),
   :deep(.hljs-comment),
   :deep(.hljs-formula) {
     color: #8b949e !important;
   }
-  
+
   :deep(.hljs-name),
   :deep(.hljs-quote),
   :deep(.hljs-selector-pseudo),
   :deep(.hljs-selector-tag) {
     color: #7ee787 !important;
   }
-  
+
   :deep(.hljs-subst) {
     color: #e6edf3 !important;
   }
-  
+
   :deep(.hljs-section) {
     color: #1f6feb !important;
     font-weight: bold;
   }
-  
+
   :deep(.hljs-bullet) {
     color: #f2cc60 !important;
   }
-  
+
   :deep(.hljs-emphasis) {
     color: #e6edf3 !important;
     font-style: italic;
   }
-  
+
   :deep(.hljs-strong) {
     color: #e6edf3 !important;
     font-weight: bold;
   }
-  
+
   :deep(.hljs-addition) {
     color: #aff5b4 !important;
     background-color: #033a16 !important;
   }
-  
+
   :deep(.hljs-deletion) {
     color: #ffdcd7 !important;
     background-color: #67060c !important;
@@ -555,23 +578,23 @@ if (process.client) {
   :deep(.code-block-container) {
     @apply my-2 rounded-lg max-w-[calc(100vw-4rem)];
   }
-  
+
   :deep(.code-block-content) {
     @apply text-xs p-3 leading-snug;
   }
-  
+
   :deep(.code-block-header) {
     @apply px-3 py-2 text-[0.6875rem];
   }
-  
+
   :deep(.code-block-copy) {
     @apply px-2 py-1 text-[0.6875rem] gap-0.5;
   }
-  
+
   :deep(.code-block-copy svg) {
     @apply w-3.5 h-3.5;
   }
-  
+
   :deep(.prose code:not(.code-block-content code)) {
     @apply text-xs px-1.5 py-0.5;
   }
@@ -582,9 +605,9 @@ if (process.client) {
   :deep(.code-block-container) {
     @apply my-1.5 max-w-[calc(100vw-3rem)];
   }
-  
+
   :deep(.code-block-content) {
     @apply text-[0.6875rem] p-2 leading-tight;
   }
 }
-</style> 
+</style>

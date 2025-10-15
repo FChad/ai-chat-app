@@ -253,7 +253,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // Local Storage
   const saveToLocalStorage = () => {
-    if (process.client) {
+    if (typeof window !== 'undefined') {
       // Don't save sessionId to localStorage as it's session-specific
       const conversationsToSave = conversations.value.map(conv => ({
         ...conv,
@@ -272,9 +272,25 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   const loadFromLocalStorage = () => {
-    if (process.client) {
+    if (typeof window !== 'undefined') {
       isLoading.value = true
       try {
+        // Check for version and migrate if necessary
+        const currentVersion = '0.0.1' // Update this when making breaking changes
+        const savedVersion = localStorage.getItem('chat-app-version')
+
+        if (!savedVersion || savedVersion !== currentVersion) {
+          // Clear old localStorage data for migration
+          console.log('Migrating to new version, clearing old data...')
+          localStorage.removeItem('chat-conversations')
+          localStorage.removeItem('chat-settings')
+          localStorage.removeItem('chat-current-conversation')
+          localStorage.setItem('chat-app-version', currentVersion)
+          // Don't load old data, start fresh
+          isLoading.value = false
+          return
+        }
+
         const savedConversations = localStorage.getItem('chat-conversations')
         if (savedConversations) {
           conversations.value = JSON.parse(savedConversations)

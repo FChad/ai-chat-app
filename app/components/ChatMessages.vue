@@ -118,15 +118,6 @@ const startNewConversation = () => {
   }
 }
 
-// Set default model when models are loaded
-watch(availableModels, (models) => {
-  if (models.length > 0 && !selectedModel.value) {
-    // Try to find meta-llama/llama-3.3-8b-instruct:free first, otherwise use first available model
-    const preferredModel = models.find((model: any) => model.model === 'meta-llama/llama-3.3-8b-instruct:free')
-    selectedModel.value = preferredModel?.model || models[0]?.model || ''
-  }
-}, { immediate: true })
-
 // Auto-scroll when new messages are added
 watch(() => chatStore.currentMessages, () => {
   autoScrollIfAtBottom(messagesContainer.value ?? null)

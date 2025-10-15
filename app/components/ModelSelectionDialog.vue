@@ -56,24 +56,40 @@
                             <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button v-for="model in filteredModels" :key="model.model"
                                     @click="selectModel(model.model)"
-                                    class="text-left p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg group"
-                                    :class="selectedModel === model.model
-                                        ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-900/20'
-                                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 bg-white dark:bg-gray-800'">
+                                    class="relative text-left p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl group overflow-hidden"
+                                    :class="tempSelectedModel === model.model
+                                        ? 'border-primary-500 bg-gradient-to-br from-primary-50/80 to-primary-100/50 dark:from-primary-900/30 dark:to-primary-800/20 shadow-lg'
+                                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 bg-white dark:bg-gray-800 shadow-sm'">
+
+                                    <!-- Selection Badge -->
+                                    <div v-if="tempSelectedModel === model.model"
+                                        class="absolute top-3 right-3 w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center shadow-lg ring-4 ring-primary-100 dark:ring-primary-900/50">
+                                        <Icon name="heroicons:check" class="h-4 w-4 text-white" />
+                                    </div>
 
                                     <!-- Model Header -->
-                                    <div class="flex items-start justify-between mb-2">
-                                        <div class="flex-1 min-w-0">
-                                            <h3 class="font-semibold text-gray-900 dark:text-gray-100 truncate text-sm">
-                                                {{ model.name }}
-                                            </h3>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                {{ model.details.parameter_size }} • {{ model.details.family }}
-                                            </p>
-                                        </div>
-                                        <div v-if="selectedModel === model.model"
-                                            class="flex-shrink-0 ml-2 w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center">
-                                            <Icon name="heroicons:check" class="h-4 w-4 text-white" />
+                                    <div class="mb-3">
+                                        <h3
+                                            class="font-bold text-base text-gray-900 dark:text-gray-100 mb-1.5 leading-tight">
+                                            {{ model.name }}
+                                        </h3>
+                                        <div class="flex items-center justify-between gap-3 text-xs">
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+                                                    {{ model.details.family }}
+                                                </span>
+                                                <span
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 font-medium">
+                                                    <Icon name="heroicons:cpu-chip" class="h-3.5 w-3.5 mr-1" />
+                                                    {{ model.details.parameter_size }}
+                                                </span>
+                                            </div>
+                                            <div
+                                                class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                                <Icon name="heroicons:clock" class="h-3.5 w-3.5" />
+                                                <span>{{ formatDate(model.modified_at) }}</span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -85,9 +101,8 @@
                                         </p>
                                         <button v-if="model.details.description.length > 150"
                                             @click.stop="toggleDescription(model.model)"
-                                            class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium mt-1 flex items-center gap-1">
-                                            {{ expandedDescriptions[model.model] ? 'Weniger anzeigen' : 'Mehr anzeigen'
-                                            }}
+                                            class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold mt-1.5 flex items-center gap-1">
+                                            {{ expandedDescriptions[model.model] ? 'Weniger' : 'Mehr' }}
                                             <Icon
                                                 :name="expandedDescriptions[model.model] ? 'heroicons:chevron-up' : 'heroicons:chevron-down'"
                                                 class="h-3 w-3" />
@@ -95,47 +110,28 @@
                                     </div>
 
                                     <!-- Quick Stats -->
-                                    <div class="flex items-center gap-3 text-xs">
+                                    <div
+                                        class="flex flex-wrap items-center gap-3 py-3 px-3 -mx-1 bg-gray-50/80 dark:bg-gray-900/40 rounded-xl">
                                         <!-- Context Length -->
-                                        <div class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                            <Icon name="heroicons:document-text" class="h-3.5 w-3.5" />
-                                            <span>{{ formatContextLength(model.details.context_length) }}</span>
+                                        <div
+                                            class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                            <Icon name="heroicons:document-text" class="h-4 w-4 text-primary-500" />
+                                            <span>{{ formatContextLength(model.details.context_length) }} Kontext</span>
                                         </div>
 
                                         <!-- Max Output -->
-                                        <div v-if="model.details.top_provider"
-                                            class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                            <Icon name="heroicons:arrow-up-tray" class="h-3.5 w-3.5" />
-                                            <span>{{ formatNumber(model.details.top_provider.max_completion_tokens)
-                                                }}</span>
+                                        <div v-if="model.details.top_provider?.max_completion_tokens"
+                                            class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                            <Icon name="heroicons:arrow-up-tray" class="h-4 w-4 text-green-500" />
+                                            <span>{{ formatNumber(model.details.top_provider.max_completion_tokens) }}
+                                                Max</span>
                                         </div>
 
                                         <!-- Input Modalities -->
                                         <div v-if="model.details.architecture?.input_modalities && model.details.architecture.input_modalities.length > 1"
-                                            class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                            <Icon name="heroicons:photo" class="h-3.5 w-3.5" />
-                                            <span>Multi</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Features Badge -->
-                                    <div v-if="model.details.supported_parameters && model.details.supported_parameters.length > 0"
-                                        class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ getImportantFeatures(model.details.supported_parameters).length }}
-                                                Features
-                                            </span>
-                                            <div class="flex items-center gap-1.5">
-                                                <span v-if="hasFeature(model, 'tools')"
-                                                    class="w-2 h-2 rounded-full bg-blue-500"
-                                                    title="Function Calling"></span>
-                                                <span v-if="hasFeature(model, 'structured_outputs')"
-                                                    class="w-2 h-2 rounded-full bg-green-500"
-                                                    title="JSON Schema"></span>
-                                                <span v-if="hasFeature(model, 'reasoning')"
-                                                    class="w-2 h-2 rounded-full bg-purple-500" title="Reasoning"></span>
-                                            </div>
+                                            class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                            <Icon name="heroicons:photo" class="h-4 w-4 text-purple-500" />
+                                            <span>Multimodal</span>
                                         </div>
                                     </div>
                                 </button>
@@ -144,37 +140,17 @@
 
                         <!-- Footer -->
                         <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                            <!-- Feature Legend -->
-                            <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                                <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Feature-Indikatoren:</p>
-                                <div class="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                        <span>Function Calling</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                        <span>JSON Schema</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                                        <span>Reasoning</span>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                     {{ filteredModels.length }} kostenlose {{ filteredModels.length === 1 ? 'Modell' :
-                                    'Modelle' }}
+                                        'Modelle' }}
                                 </p>
                                 <div class="flex gap-3">
                                     <button @click="closeDialog"
                                         class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium">
                                         Abbrechen
                                     </button>
-                                    <button @click="confirmSelection" :disabled="!selectedModel"
+                                    <button @click="confirmSelection" :disabled="!tempSelectedModel"
                                         class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg transition-all duration-200 text-sm font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed">
                                         Auswählen
                                     </button>
@@ -208,12 +184,14 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const searchQuery = ref('')
 const selectedModel = ref(props.modelValue || '')
+const tempSelectedModel = ref(props.modelValue || '')
 const expandedDescriptions = ref<Record<string, boolean>>({})
 
 // Watch for external changes to modelValue
 watch(() => props.modelValue, (newValue) => {
     if (newValue) {
         selectedModel.value = newValue
+        tempSelectedModel.value = newValue
     }
 })
 
@@ -221,14 +199,16 @@ const openDialog = () => {
     isOpen.value = true
     searchQuery.value = ''
     expandedDescriptions.value = {} // Reset expanded states when opening
+    tempSelectedModel.value = selectedModel.value // Set temp to current selection
 }
 
 const closeDialog = () => {
     isOpen.value = false
+    tempSelectedModel.value = selectedModel.value // Reset temp selection on cancel
 }
 
 const selectModel = (modelId: string) => {
-    selectedModel.value = modelId
+    tempSelectedModel.value = modelId
 }
 
 const toggleDescription = (modelId: string) => {
@@ -236,6 +216,7 @@ const toggleDescription = (modelId: string) => {
 }
 
 const confirmSelection = () => {
+    selectedModel.value = tempSelectedModel.value
     emit('update:modelValue', selectedModel.value)
     closeDialog()
 }
@@ -246,18 +227,38 @@ const getModelName = (modelId: string): string => {
 }
 
 const filteredModels = computed(() => {
-    if (!searchQuery.value) return props.models
+    let models = props.models
 
-    const query = searchQuery.value.toLowerCase()
-    return props.models.filter(model =>
-        model.name.toLowerCase().includes(query) ||
-        model.model.toLowerCase().includes(query) ||
-        model.details.description?.toLowerCase().includes(query) ||
-        model.details.family.toLowerCase().includes(query)
-    )
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        models = models.filter(model =>
+            model.name.toLowerCase().includes(query) ||
+            model.model.toLowerCase().includes(query) ||
+            model.details.description?.toLowerCase().includes(query) ||
+            model.details.family.toLowerCase().includes(query)
+        )
+    }
+
+    // Sort by modified_at date, newest first
+    return [...models].sort((a, b) => {
+        const dateA = new Date(a.modified_at).getTime()
+        const dateB = new Date(b.modified_at).getTime()
+        return dateB - dateA // Descending order (newest first)
+    })
 })
 
 // Helper functions
+const formatDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
+}
+
 const formatContextLength = (length?: number): string => {
     if (!length) return 'N/A'
     if (length >= 1000000) return `${(length / 1000000).toFixed(1)}M`
@@ -270,15 +271,6 @@ const formatNumber = (num?: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`
     return num.toString()
-}
-
-const getImportantFeatures = (params: string[]): string[] => {
-    const important = ['tools', 'structured_outputs', 'response_format', 'reasoning', 'max_tokens', 'temperature']
-    return params.filter(p => important.includes(p))
-}
-
-const hasFeature = (model: AIModel, feature: string): boolean => {
-    return model.details.supported_parameters?.includes(feature) || false
 }
 
 // Close on Escape key

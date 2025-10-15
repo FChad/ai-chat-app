@@ -34,12 +34,28 @@
                                 </button>
                             </div>
 
-                            <!-- Search Bar -->
-                            <div class="relative">
-                                <Icon name="heroicons:magnifying-glass"
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <input v-model="searchQuery" type="text" placeholder="Modelle durchsuchen..."
-                                    class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                            <!-- Filter and Search Bar -->
+                            <div class="flex gap-3">
+                                <!-- Family Filter -->
+                                <div class="relative flex-shrink-0">
+                                    <select v-model="selectedFamily"
+                                        class="pl-3 pr-8 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer">
+                                        <option value="">Alle Families</option>
+                                        <option v-for="family in availableFamilies" :key="family" :value="family">
+                                            {{ family }}
+                                        </option>
+                                    </select>
+                                    <Icon name="heroicons:chevron-down"
+                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                                </div>
+
+                                <!-- Search Bar -->
+                                <div class="relative flex-1">
+                                    <Icon name="heroicons:magnifying-glass"
+                                        class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <input v-model="searchQuery" type="text" placeholder="Modelle durchsuchen..."
+                                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                </div>
                             </div>
                         </div>
 
@@ -96,7 +112,7 @@
                                     <!-- Description -->
                                     <div v-if="model.details.description" class="mb-3">
                                         <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed"
-                                            :class="expandedDescriptions[model.model] ? '' : 'line-clamp-2'">
+                                            :class="expandedDescriptions[model.model] ? '' : 'line-clamp-3'">
                                             {{ model.details.description }}
                                         </p>
                                         <button v-if="model.details.description.length > 150"
@@ -183,6 +199,7 @@ const emit = defineEmits<{
 
 const isOpen = ref(false)
 const searchQuery = ref('')
+const selectedFamily = ref('')
 const selectedModel = ref(props.modelValue || '')
 const tempSelectedModel = ref(props.modelValue || '')
 const expandedDescriptions = ref<Record<string, boolean>>({})
@@ -195,9 +212,16 @@ watch(() => props.modelValue, (newValue) => {
     }
 })
 
+// Compute available families
+const availableFamilies = computed(() => {
+    const families = new Set(props.models.map(model => model.details.family))
+    return Array.from(families).sort()
+})
+
 const openDialog = () => {
     isOpen.value = true
     searchQuery.value = ''
+    selectedFamily.value = ''
     expandedDescriptions.value = {} // Reset expanded states when opening
     tempSelectedModel.value = selectedModel.value // Set temp to current selection
 }
@@ -229,6 +253,12 @@ const getModelName = (modelId: string): string => {
 const filteredModels = computed(() => {
     let models = props.models
 
+    // Filter by family
+    if (selectedFamily.value) {
+        models = models.filter(model => model.details.family === selectedFamily.value)
+    }
+
+    // Filter by search query
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase()
         models = models.filter(model =>
@@ -312,10 +342,10 @@ onMounted(() => {
 }
 
 /* Line clamp for description */
-.line-clamp-2 {
+.line-clamp-3 {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

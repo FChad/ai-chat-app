@@ -24,9 +24,8 @@
                         :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
 
                         <!-- Header -->
-                        <div
-                            class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                            <div class="flex items-center justify-between mb-4">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                            <div class="flex justify-between mb-4">
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">KI-Modell
                                         auswählen</h2>
@@ -41,26 +40,26 @@
                             </div>
 
                             <!-- Filter and Search Bar -->
-                            <div class="flex gap-3">
+                            <div class="flex gap-2 sm:gap-3">
                                 <!-- Family Filter -->
-                                <div class="relative flex-shrink-0">
+                                <div class="relative flex-shrink-0 w-28 sm:w-auto">
                                     <select v-model="selectedFamily"
-                                        class="pl-3 pr-8 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer">
-                                        <option value="">Alle Families</option>
+                                        class="w-full pl-2 sm:pl-3 pr-7 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer text-sm">
+                                        <option value="">Alle</option>
                                         <option v-for="family in availableFamilies" :key="family" :value="family">
                                             {{ family }}
                                         </option>
                                     </select>
                                     <Icon name="heroicons:chevron-down"
-                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                                        class="absolute right-1.5 sm:right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400 pointer-events-none" />
                                 </div>
 
                                 <!-- Search Bar -->
-                                <div class="relative flex-1">
+                                <div class="relative flex-1 min-w-0">
                                     <Icon name="heroicons:magnifying-glass"
                                         class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                                     <input v-model="searchQuery" type="text" placeholder="Modelle durchsuchen..."
-                                        class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                        class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm" />
                                 </div>
                             </div>
                         </div>
@@ -161,8 +160,7 @@
                         </div>
 
                         <!-- Footer -->
-                        <div
-                            class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                        <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex items-center justify-end gap-3">
                                 <button @click="confirmSelection" :disabled="!tempSelectedModel"
                                     class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200 font-semibold disabled:cursor-not-allowed">

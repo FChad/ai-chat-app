@@ -134,9 +134,9 @@ onMounted(() => {
 
 // Computed properties for styling
 const avatarClasses = computed(() => {
-  if (props.isUser) return 'bg-gradient-to-br from-primary-500 to-primary-600'
-  if (props.isAi) return 'bg-gradient-to-br from-blue-500 to-blue-600'
-  return 'bg-gradient-to-br from-green-500 to-green-600'
+  if (props.isUser) return 'bg-primary-600 dark:bg-primary-500'
+  if (props.isAi) return 'bg-blue-600 dark:bg-blue-500'
+  return 'bg-green-600 dark:bg-green-500'
 })
 
 // Format timestamp for display
@@ -166,7 +166,7 @@ const avatarIcon = computed(() => {
 
 const bubbleClasses = computed(() => {
   if (props.isUser) {
-    return 'bg-gradient-to-br from-primary-500 to-primary-600 text-white border-primary-300/30'
+    return 'bg-primary-600 dark:bg-primary-500 text-white border-primary-300/30'
   }
   if (props.isAi) {
     return 'bg-white/60 dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 border-gray-200/50 dark:border-gray-700/50'
@@ -179,9 +179,9 @@ const proseClasses = computed(() => {
     return 'prose-invert prose-headings:text-white prose-strong:text-white prose-code:text-primary-100 prose-code:bg-primary-800/50 prose-pre:bg-primary-800/50 prose-pre:text-primary-100 prose-a:text-primary-200'
   }
   if (props.isAi) {
-    return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-blue-800 dark:prose-code:text-blue-200 prose-code:bg-blue-100/60 dark:prose-code:bg-blue-900/50 prose-pre:bg-blue-100/60 dark:prose-pre:bg-blue-900/50 prose-pre:text-blue-900 dark:prose-pre:text-blue-100 prose-a:text-blue-600 dark:prose-a:text-blue-400'
+    return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-code:bg-primary-100 dark:prose-code:bg-primary-900/30 prose-pre:bg-primary-100 dark:prose-pre:bg-primary-900/30 prose-pre:text-primary-900 dark:prose-pre:text-primary-100 prose-a:text-primary-600 dark:prose-a:text-primary-400'
   }
-  return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-green-800 dark:prose-code:text-green-200 prose-code:bg-green-100/60 dark:prose-code:bg-green-900/50 prose-pre:bg-green-100/60 dark:prose-pre:bg-green-900/50 prose-pre:text-green-900 dark:prose-pre:text-green-100 prose-a:text-green-600 dark:prose-a:text-green-400'
+  return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-code:bg-primary-100 dark:prose-code:bg-primary-900/30 prose-pre:bg-primary-100 dark:prose-pre:bg-primary-900/30 prose-pre:text-primary-900 dark:prose-pre:text-primary-100 prose-a:text-primary-600 dark:prose-a:text-primary-400'
 })
 
 // Post-process HTML to add copy buttons and improve code blocks
@@ -207,7 +207,7 @@ const postProcessHTML = (html: string): string => {
         <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
           <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
             <span class="code-block-language text-gray-600 font-semibold uppercase tracking-wider dark:text-gray-300">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-600 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-blue-500/20 hover:border-blue-500/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/15 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-400 dark:hover:bg-blue-400/20 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/15" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-primary-200 hover:border-primary-300 hover:-translate-y-0.5 hover:shadow-lg dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600/50" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
@@ -247,7 +247,7 @@ const postProcessHTML = (html: string): string => {
         <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
           <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
             <span class="code-block-language text-gray-600 font-semibold uppercase tracking-wider dark:text-gray-300">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-600 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-blue-500/20 hover:border-blue-500/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/15 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-400 dark:hover:bg-blue-400/20 dark:hover:border-blue-400/30 dark:hover:shadow-blue-400/15" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-primary-200 hover:border-primary-300 hover:-translate-y-0.5 hover:shadow-lg dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600/50" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
@@ -557,20 +557,20 @@ if (typeof window !== 'undefined') {
 
 /* Inline code styling with Tailwind */
 :deep(.prose code:not(.code-block-content code)) {
-  @apply px-1 py-0.5 rounded-lg text-sm font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:bg-blue-400/10 dark:border-blue-400/20 dark:text-blue-400 break-words font-mono;
+  @apply px-1 py-0.5 rounded-lg text-sm font-semibold bg-primary-100 border border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 break-words font-mono;
 }
 
 :deep(.dark .prose code:not(.code-block-content code)) {
-  @apply bg-blue-400/15 text-blue-200 border-blue-400/25;
+  @apply bg-primary-900/30 text-primary-300 border-primary-700/50;
 }
 
 /* Links with Tailwind */
 :deep(.prose a) {
-  @apply text-blue-600 underline font-medium transition-colors hover:text-blue-800;
+  @apply text-primary-600 underline font-medium transition-colors hover:text-primary-700;
 }
 
 :deep(.dark .prose a) {
-  @apply text-blue-400 hover:text-blue-200;
+  @apply text-primary-400 hover:text-primary-300;
 }
 
 /* Mobile responsive code blocks */

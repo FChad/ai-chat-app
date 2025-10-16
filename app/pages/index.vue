@@ -30,7 +30,7 @@
             <!-- App Icon & Title -->
             <div class="flex items-center space-x-3">
               <div
-                class="w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
+                class="w-10 h-10 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-xl shadow-lg">
                 <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
@@ -57,7 +57,7 @@
       </div>
 
       <!-- Chat container -->
-      <div class="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-transparent to-gray-50/20 dark:to-gray-900/20">
+      <div class="flex-1 flex flex-col min-h-0 bg-transparent">
         <!-- Messages -->
         <ChatMessages ref="chatMessagesRef" @focus-input="focusInput" />
 

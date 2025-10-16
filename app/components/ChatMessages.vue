@@ -5,8 +5,7 @@
     <div v-if="chatStore.isLoading" class="flex items-center justify-center min-h-[50vh]">
       <div
         class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 max-w-md w-full mx-4 text-center text-gray-500 dark:text-gray-400">
-        <div
-          class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl mx-auto mb-6">
+        <div class="w-20 h-20 flex items-center justify-center bg-gray-500 dark:bg-gray-400 rounded-2xl mx-auto mb-6">
           <Icon name="heroicons:arrow-path" class="h-12 w-12 sm:h-16 sm:w-16 text-white animate-spin" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Lade Daten...</h3>
@@ -21,7 +20,7 @@
       <div
         class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 max-w-md w-full mx-4 text-center text-gray-500 dark:text-gray-400">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl mx-auto mb-6">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6">
           <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Willkommen bei AskChadAI</h3>
@@ -39,7 +38,7 @@
 
         <!-- Start Chat Button -->
         <button @click="startNewConversation" :disabled="!selectedModel"
-          class="w-full px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
+          class="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
           <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5" />
           <span>Chat starten</span>
         </button>
@@ -52,7 +51,7 @@
       <div
         class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm mx-4 sm:mx-8 border border-gray-200/30 dark:border-gray-700/30">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mx-auto mb-6">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6">
           <Icon name="heroicons:sparkles" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>

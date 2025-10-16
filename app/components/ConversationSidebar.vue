@@ -16,7 +16,7 @@
       <div
         class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30 p-4 sm:px-6 flex items-center">
         <button @click="startNewConversationHandler"
-          class="w-full h-full flex items-center justify-center space-x-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98] py-3">
+          class="w-full h-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98] py-3">
           <Icon name="heroicons:plus" class="h-4 w-4" />
           <span>Neue Unterhaltung</span>
         </button>
@@ -52,10 +52,10 @@
         <!-- Conversations List - only shown when loading is complete -->
         <div v-for="conversation in chatStore.conversations" :key="conversation.id"
           @click="selectConversation(conversation.id)"
-          class="group relative p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          class="group relative p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border"
           :class="conversation.id === chatStore.currentConversationId
-            ? 'bg-primary-50/80 dark:bg-primary-900/30 border border-primary-200/50 dark:border-primary-700/50 shadow-md'
-            : 'hover:bg-gray-100/60 dark:hover:bg-gray-800/60 backdrop-blur-sm'">
+            ? 'bg-primary-50/80 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 shadow-md'
+            : 'bg-white/60 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-100/70 dark:hover:bg-gray-800/60 hover:border-gray-300/70 dark:hover:border-gray-600/70 shadow-sm hover:shadow-md backdrop-blur-sm'">
           <div class="flex items-start justify-between">
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2">
@@ -115,7 +115,7 @@
       <!-- Footer with Settings -->
       <div class="p-4 sm:p-6 border-t border-gray-200/30 dark:border-gray-700/30">
         <button @click="$emit('openSettings')"
-          class="w-full px-4 py-3 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]">
+          class="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-300/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]">
           <Icon name="heroicons:cog-6-tooth" class="h-4 w-4" />
           <span>Einstellungen</span>
         </button>
@@ -150,7 +150,7 @@
               Abbrechen
             </button>
             <button @click="deleteConversation"
-              class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
+              class="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
               Löschen
             </button>
           </div>
@@ -234,7 +234,7 @@ const isConversationTyping = (conversation: any): boolean => {
 .typing-dot {
   width: 4px;
   height: 4px;
-  background-color: rgb(59 130 246);
+  background-color: rgb(90 115 150);
   /* primary-500 */
   border-radius: 50%;
   animation: typing 1.5s infinite ease-in-out;

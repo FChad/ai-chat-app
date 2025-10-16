@@ -79,7 +79,7 @@
                                     @click="selectModel(model.model)"
                                     class="relative text-left p-5 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl group overflow-hidden"
                                     :class="tempSelectedModel === model.model
-                                        ? 'border-primary-500 bg-gradient-to-br from-primary-50/80 to-primary-100/50 dark:from-primary-900/30 dark:to-primary-800/20 shadow-lg'
+                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-lg'
                                         : 'border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 bg-white dark:bg-gray-800 shadow-sm'">
 
                                     <!-- Selection Badge -->
@@ -97,7 +97,7 @@
                                         <div class="flex items-center justify-between gap-3 text-xs">
                                             <div class="flex items-center gap-2">
                                                 <span
-                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-lg bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium">
                                                     {{ model.details.family }}
                                                 </span>
                                                 <span
@@ -143,7 +143,7 @@
                                         <!-- Max Output -->
                                         <div v-if="model.details.top_provider?.max_completion_tokens"
                                             class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
-                                            <Icon name="heroicons:arrow-up-tray" class="h-4 w-4 text-green-500" />
+                                            <Icon name="heroicons:arrow-up-tray" class="h-4 w-4 text-primary-500" />
                                             <span>{{ formatNumber(model.details.top_provider.max_completion_tokens) }}
                                                 Max</span>
                                         </div>
@@ -151,7 +151,7 @@
                                         <!-- Input Modalities -->
                                         <div v-if="model.details.architecture?.input_modalities && model.details.architecture.input_modalities.length > 1"
                                             class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
-                                            <Icon name="heroicons:photo" class="h-4 w-4 text-purple-500" />
+                                            <Icon name="heroicons:photo" class="h-4 w-4 text-primary-500" />
                                             <span>Multimodal</span>
                                         </div>
                                     </div>
@@ -172,7 +172,7 @@
                                         Abbrechen
                                     </button>
                                     <button @click="confirmSelection" :disabled="!tempSelectedModel"
-                                        class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg transition-all duration-200 text-sm font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed">
+                                        class="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 text-sm font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed">
                                         Auswählen
                                     </button>
                                 </div>

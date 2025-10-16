@@ -15,14 +15,14 @@
 
       <!-- Cancel button when conversation is typing -->
       <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
-        class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl active:scale-[0.98]">
+        class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl active:scale-[0.98]">
         <Icon name="heroicons:x-mark" class="h-4 w-4" />
         <span>Abbrechen</span>
       </button>
 
       <!-- Send button -->
       <button v-else type="submit" :disabled="!canSend"
-        class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
+        class="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
         <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
         <span>Senden</span>
       </button>

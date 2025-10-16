@@ -24,8 +24,8 @@
         <!-- App Settings Section -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-3">
-            <div class="w-6 h-6 flex items-center justify-center bg-blue-100/60 dark:bg-blue-900/40 rounded-xl">
-              <Icon name="heroicons:adjustments-horizontal" class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <div class="w-6 h-6 flex items-center justify-center bg-primary-100/60 dark:bg-primary-900/40 rounded-xl">
+              <Icon name="heroicons:adjustments-horizontal" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
             </div>
             <span>App-Einstellungen</span>
           </h3>
@@ -37,8 +37,8 @@
                 <div class="flex-1">
                   <div class="flex items-center space-x-3 mb-2">
                     <div
-                      class="w-6 h-6 flex items-center justify-center bg-purple-100/60 dark:bg-purple-900/40 rounded-xl">
-                      <Icon name="heroicons:moon" class="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      class="w-6 h-6 flex items-center justify-center bg-primary-100/60 dark:bg-primary-900/40 rounded-xl">
+                      <Icon name="heroicons:moon" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Design-Modus</span>
                   </div>
@@ -58,8 +58,8 @@
                 <div class="flex-1">
                   <div class="flex items-center space-x-3 mb-2">
                     <div
-                      class="w-6 h-6 flex items-center justify-center bg-green-100/60 dark:bg-green-900/40 rounded-xl">
-                      <Icon name="heroicons:play" class="h-4 w-4 text-green-600 dark:text-green-400" />
+                      class="w-6 h-6 flex items-center justify-center bg-primary-100/60 dark:bg-primary-900/40 rounded-xl">
+                      <Icon name="heroicons:play" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     </div>
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Streaming-Modus</span>
                   </div>
@@ -71,7 +71,7 @@
                 <div class="ml-4">
                   <button @click="toggleStreamMode"
                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 active:scale-95"
-                    :class="chatStore.isStreamModeEnabled ? 'bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg' : 'bg-gray-300 dark:bg-gray-600'">
+                    :class="chatStore.isStreamModeEnabled ? 'bg-primary-600 shadow-lg' : 'bg-gray-300 dark:bg-gray-600'">
                     <span
                       class="inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-all duration-200"
                       :class="chatStore.isStreamModeEnabled ? 'translate-x-6' : 'translate-x-1'"></span>
@@ -85,8 +85,8 @@
         <!-- Conversations Section -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-3">
-            <div class="w-6 h-6 flex items-center justify-center bg-orange-100/60 dark:bg-orange-900/40 rounded-xl">
-              <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <div class="w-6 h-6 flex items-center justify-center bg-primary-100/60 dark:bg-primary-900/40 rounded-xl">
+              <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
             </div>
             <span>Unterhaltungen</span>
           </h3>
@@ -104,7 +104,7 @@
                   </div>
                 </div>
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
                     {{ totalMessages }}
                   </div>
                   <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -118,14 +118,14 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- Export Conversations -->
               <button @click="exportConversations"
-                class="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
+                class="px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
                 <Icon name="heroicons:arrow-down-tray" class="h-4 w-4" />
                 <span>Exportieren</span>
               </button>
 
               <!-- Clear All Conversations -->
               <button @click="confirmClearAll" :disabled="chatStore.conversations.length === 0"
-                class="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl disabled:shadow-sm disabled:cursor-not-allowed active:scale-[0.98]">
+                class="px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-medium shadow-lg hover:shadow-xl disabled:shadow-sm disabled:cursor-not-allowed active:scale-[0.98]">
                 <Icon name="heroicons:trash" class="h-4 w-4" />
                 <span>Alle löschen</span>
               </button>
@@ -137,7 +137,7 @@
       <!-- Footer -->
       <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200/30 dark:border-gray-700/30">
         <button @click="closeDialog"
-          class="px-6 py-2.5 bg-gradient-to-r from-gray-100/80 to-gray-200/80 dark:from-gray-800/80 dark:to-gray-700/80 hover:from-gray-200/90 hover:to-gray-300/90 dark:hover:from-gray-700/90 dark:hover:to-gray-600/90 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded-xl transition-all duration-200 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]">
+          class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-xl transition-all duration-200 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-300/40 dark:border-gray-600/40 active:scale-[0.98] hover:scale-[1.02]">
           Schließen
         </button>
       </div>
@@ -170,7 +170,7 @@
             Abbrechen
           </button>
           <button @click="clearAllConversations"
-            class="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
+            class="w-full sm:w-auto px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl active:scale-[0.98]">
             Löschen
           </button>
         </div>

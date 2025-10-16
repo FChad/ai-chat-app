@@ -34,7 +34,6 @@ export const useChat = () => {
 
     // Build message content
     let messageContent: MessageContent = userMessage
-    const messageImages: Array<{ url: string; name?: string }> = []
 
     if (images && images.length > 0) {
       // Multi-modal message with text and images
@@ -55,21 +54,16 @@ export const useChat = () => {
             detail: 'auto'
           }
         })
-        messageImages.push({
-          url: img.base64,
-          name: img.name
-        })
       }
 
       messageContent = contentParts
     }
 
-    // Add user message
+    // Add user message (images are stored in content array, not separately)
     chatStore.addMessage({
       role: 'user',
       content: messageContent,
-      timestamp: new Date().toISOString(),
-      images: messageImages.length > 0 ? messageImages : undefined
+      timestamp: new Date().toISOString()
     })
 
     // Start the chat session

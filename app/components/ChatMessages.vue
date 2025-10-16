@@ -67,7 +67,8 @@
       :is-user="message.role === 'user'" :is-ai="message.role === 'assistant'"
       :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
       :is-typing="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
-      :timestamp="message.timestamp" :images="message.images" />
+      :timestamp="message.timestamp"
+      :images="Array.isArray(message.content) ? message.content.filter(c => c.type === 'image_url').map(c => ({ url: c.image_url?.url || '', name: undefined })) : []" />
   </div>
 </template>
 

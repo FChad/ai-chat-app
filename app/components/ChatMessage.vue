@@ -525,89 +525,157 @@ if (typeof window !== 'undefined') {
   max-width: none !important;
 }
 
-/* Prose typography with Tailwind integration */
+/* Prose typography with standard CSS */
 :deep(.prose h1),
 :deep(.prose h2),
 :deep(.prose h3),
 :deep(.prose h4),
 :deep(.prose h5),
 :deep(.prose h6) {
-  @apply mt-3 mb-2 font-bold leading-tight text-inherit;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: inherit;
 }
 
 :deep(.prose p) {
-  @apply my-2 leading-relaxed text-inherit;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.625;
+  color: inherit;
 }
 
 :deep(.prose strong) {
-  @apply font-bold text-inherit;
+  font-weight: 700;
+  color: inherit;
 }
 
 :deep(.prose ul) {
-  @apply my-3 pl-6 text-inherit list-disc;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  color: inherit;
+  list-style-type: disc;
 }
 
 :deep(.prose ol) {
-  @apply my-3 pl-6 text-inherit list-decimal;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  color: inherit;
+  list-style-type: decimal;
 }
 
 :deep(.prose li) {
-  @apply my-1 leading-normal text-inherit;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+  color: inherit;
 }
 
-/* Inline code styling with Tailwind */
+/* Inline code styling */
 :deep(.prose code:not(.code-block-content code)) {
-  @apply px-1 py-0.5 rounded-lg text-sm font-semibold bg-primary-100 border border-primary-200 text-primary-700 dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 break-words font-mono;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-word;
+}
+
+:deep(.prose code:not(.code-block-content code)) {
+  background-color: rgb(219 234 254);
+  border: 1px solid rgb(191 219 254);
+  color: rgb(29 78 216);
 }
 
 :deep(.dark .prose code:not(.code-block-content code)) {
-  @apply bg-primary-900/30 text-primary-300 border-primary-700/50;
+  background-color: rgb(29 78 216 / 0.3);
+  color: rgb(147 197 253);
+  border-color: rgb(29 78 216 / 0.5);
 }
 
-/* Links with Tailwind */
+/* Links */
 :deep(.prose a) {
-  @apply text-primary-600 underline font-medium transition-colors hover:text-primary-700;
+  color: rgb(37 99 235);
+  text-decoration: underline;
+  font-weight: 500;
+  transition-property: color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+:deep(.prose a:hover) {
+  color: rgb(29 78 216);
 }
 
 :deep(.dark .prose a) {
-  @apply text-primary-400 hover:text-primary-300;
+  color: rgb(96 165 250);
+}
+
+:deep(.dark .prose a:hover) {
+  color: rgb(147 197 253);
 }
 
 /* Mobile responsive code blocks */
 @media (max-width: 640px) {
   :deep(.code-block-container) {
-    @apply my-2 rounded-lg max-w-[calc(100vw-4rem)];
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    max-width: calc(100vw - 4rem);
   }
 
   :deep(.code-block-content) {
-    @apply text-xs p-3 leading-snug;
+    font-size: 0.75rem;
+    padding: 0.75rem;
+    line-height: 1.375;
   }
 
   :deep(.code-block-header) {
-    @apply px-3 py-2 text-[0.6875rem];
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.6875rem;
   }
 
   :deep(.code-block-copy) {
-    @apply px-2 py-1 text-[0.6875rem] gap-0.5;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    gap: 0.125rem;
   }
 
   :deep(.code-block-copy svg) {
-    @apply w-3.5 h-3.5;
+    width: 0.875rem;
+    height: 0.875rem;
   }
 
   :deep(.prose code:not(.code-block-content code)) {
-    @apply text-xs px-1.5 py-0.5;
+    font-size: 0.75rem;
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
   }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
   :deep(.code-block-container) {
-    @apply my-1.5 max-w-[calc(100vw-3rem)];
+    margin-top: 0.375rem;
+    margin-bottom: 0.375rem;
+    max-width: calc(100vw - 3rem);
   }
 
   :deep(.code-block-content) {
-    @apply text-[0.6875rem] p-2 leading-tight;
+    font-size: 0.6875rem;
+    padding: 0.5rem;
+    line-height: 1.25;
   }
 }
 </style>

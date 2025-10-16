@@ -61,7 +61,7 @@
       <!-- Chat container -->
       <div class="flex-1 flex flex-col min-h-0 bg-transparent">
         <!-- Messages -->
-        <ChatMessages ref="chatMessagesRef" @focus-input="focusInput" />
+        <ChatMessages ref="chatMessagesRef" :available-models="availableModels" @focus-input="focusInput" />
 
         <!-- Input area -->
         <ChatInput ref="chatInputRef" />

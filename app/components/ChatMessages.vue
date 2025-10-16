@@ -33,7 +33,8 @@
           <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
             KI-Modell auswählen
           </label>
-          <ModelSelectionDialog v-model="selectedModel" :models="availableModels" :disabled="chatStore.isTyping" />
+          <ModelSelectionDialog v-model="selectedModel" :models="props.availableModels"
+            :disabled="chatStore.isTyping" />
         </div>
 
         <!-- Start Chat Button -->
@@ -72,25 +73,19 @@
 <script setup lang="ts">
 import type { AIModel } from '../../types/chat'
 
+// Define props
+interface Props {
+  availableModels: AIModel[]
+}
+
+const props = defineProps<Props>()
+
 const chatStore = useChatStore()
 const { handleScroll, scrollToBottom } = useScrolling()
-const { startNewConversation: createConversation, loadModels } = useChat()
+const { startNewConversation: createConversation } = useChat()
 
 const messagesContainer = ref<HTMLElement>()
 const selectedModel = ref('')
-const availableModels = ref<AIModel[]>([])
-
-// Load models when component mounts or when conversation changes to null
-const loadAvailableModels = async () => {
-  availableModels.value = await loadModels()
-}
-
-// Watch for when there's no current conversation to load models
-watch(() => chatStore.currentConversation, (conversation) => {
-  if (!conversation) {
-    loadAvailableModels()
-  }
-}, { immediate: true })
 
 const handleScrollEvent = () => {
   if (messagesContainer.value) {

@@ -24,7 +24,7 @@
                         :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
 
                         <!-- Header -->
-                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">KI-Modell
@@ -33,7 +33,7 @@
                                         für deine Anfrage</p>
                                 </div>
                                 <button @click="closeDialog"
-                                    class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
+                                    class="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
                                     <Icon name="heroicons:x-mark"
                                         class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
                                 </button>
@@ -44,7 +44,7 @@
                                 <!-- Family Filter -->
                                 <div class="relative flex-shrink-0">
                                     <select v-model="selectedFamily"
-                                        class="pl-3 pr-8 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer">
+                                        class="pl-3 pr-8 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer">
                                         <option value="">Alle Families</option>
                                         <option v-for="family in availableFamilies" :key="family" :value="family">
                                             {{ family }}
@@ -59,7 +59,7 @@
                                     <Icon name="heroicons:magnifying-glass"
                                         class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                                     <input v-model="searchQuery" type="text" placeholder="Modelle durchsuchen..."
-                                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                                        class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                                 </div>
                             </div>
                         </div>

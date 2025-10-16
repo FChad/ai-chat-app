@@ -11,13 +11,14 @@
           :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
 
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div
+            class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Einstellungen</h2>
               <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
             </div>
             <button @click="closeDialog"
-              class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
+              class="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
               <Icon name="heroicons:x-mark"
                 class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
             </button>

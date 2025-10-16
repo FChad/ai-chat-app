@@ -2,7 +2,7 @@
   <div>
     <!-- Main Sidebar -->
     <div v-bind="$attrs"
-      class="mobile-sidebar sm:w-80 lg:w-80 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full fixed lg:relative left-0 top-0 transition-transform duration-300 lg:shadow-none"
+      class="mobile-sidebar sm:w-80 lg:w-80 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full fixed lg:relative left-0 top-0 transition-transform duration-300 lg:shadow-none"
       :class="{ 'open': isMobileOpen }">
       <!-- Mobile Close Button -->
       <div class="lg:hidden flex justify-end p-4 border-b border-gray-200 dark:border-gray-700">
@@ -14,7 +14,7 @@
 
       <!-- Header with New Conversation Button -->
       <div
-        class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 sm:px-6 flex items-center">
+        class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 sm:px-6 flex items-center">
         <button @click="startNewConversationHandler"
           class="w-full h-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium py-3">
           <Icon name="heroicons:plus" class="h-4 w-4" />
@@ -112,7 +112,7 @@
       </div>
 
       <!-- Footer with Settings -->
-      <div class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+      <div class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900">
         <button @click="$emit('openSettings')"
           class="w-full px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-medium border border-gray-200 dark:border-gray-700">
           <Icon name="heroicons:cog-6-tooth" class="h-5 w-5" />

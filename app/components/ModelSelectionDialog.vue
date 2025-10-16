@@ -132,7 +132,7 @@
 
                                     <!-- Quick Stats -->
                                     <div
-                                        class="flex flex-wrap items-center gap-3 py-3 px-3 -mx-1 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                        class="flex flex-wrap items-center gap-3 py-3 px-3 -mx-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
                                         <!-- Context Length -->
                                         <div
                                             class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">

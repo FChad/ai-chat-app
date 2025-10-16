@@ -22,6 +22,19 @@
         <span>Senden</span>
       </button>
     </form>
+
+    <!-- Placeholder when no conversation is selected -->
+    <div v-else class="invisible flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
+      <div
+        class="flex-1 w-full px-3 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-500 text-sm leading-5 min-h-[46px] flex items-center cursor-not-allowed">
+        Wähle eine Unterhaltung aus, um eine Nachricht zu senden...
+      </div>
+      <button type="button" disabled
+        class="w-full sm:w-auto px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
+        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
+        <span>Senden</span>
+      </button>
+    </div>
   </div>
 </template>
 

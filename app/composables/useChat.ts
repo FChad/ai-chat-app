@@ -1,11 +1,18 @@
-import type { ChatRequest, Conversation, Message, AIModel } from '../../types/chat'
+import type { ChatRequest, Conversation, Message, AIModel, MessageContent } from '../../types/chat'
 import { generateUUID } from '~/utils/uuid'
+
+interface ImageFile {
+  file: File
+  preview: string
+  name: string
+  base64: string
+}
 
 export const useChat = () => {
   const chatStore = useChatStore()
 
-  const sendMessage = async (message: string, model?: string) => {
-    if (!message.trim()) return
+  const sendMessage = async (message: string, images?: ImageFile[], model?: string) => {
+    if (!message.trim() && (!images || images.length === 0)) return
 
     const userMessage = message.trim()
 
@@ -25,11 +32,44 @@ export const useChat = () => {
     // Create AbortController for this session
     const controller = new AbortController()
 
+    // Build message content
+    let messageContent: MessageContent = userMessage
+    const messageImages: Array<{ url: string; name?: string }> = []
+
+    if (images && images.length > 0) {
+      // Multi-modal message with text and images
+      const contentParts: Array<{ type: 'text' | 'image_url'; text?: string; image_url?: { url: string; detail?: 'low' | 'high' | 'auto' } }> = []
+
+      if (userMessage) {
+        contentParts.push({
+          type: 'text',
+          text: userMessage
+        })
+      }
+
+      for (const img of images) {
+        contentParts.push({
+          type: 'image_url',
+          image_url: {
+            url: img.base64,
+            detail: 'auto'
+          }
+        })
+        messageImages.push({
+          url: img.base64,
+          name: img.name
+        })
+      }
+
+      messageContent = contentParts
+    }
+
     // Add user message
     chatStore.addMessage({
       role: 'user',
-      content: userMessage,
-      timestamp: new Date().toISOString()
+      content: messageContent,
+      timestamp: new Date().toISOString(),
+      images: messageImages.length > 0 ? messageImages : undefined
     })
 
     // Start the chat session

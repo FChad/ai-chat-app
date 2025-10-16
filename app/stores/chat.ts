@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings } from '../../types/chat'
+import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -37,10 +37,29 @@ export const useChatStore = defineStore('chat', () => {
   const isStreamModeEnabled = computed(() => settings.value.streamMode)
 
   // Actions
-  const generateConversationTitle = (firstMessage: string): string => {
+  const generateConversationTitle = (messageContent: MessageContent): string => {
+    // Extract text from MessageContent (can be string or array)
+    let text = ''
+    let hasImages = false
+
+    if (typeof messageContent === 'string') {
+      text = messageContent
+    } else if (Array.isArray(messageContent)) {
+      // Find the first text content in the array
+      const textContent = messageContent.find(item => item.type === 'text' && item.text)
+      text = textContent?.text || ''
+      // Check if there are images
+      hasImages = messageContent.some(item => item.type === 'image_url')
+    }
+
+    // If no text but has images, use a default title
+    if (!text.trim() && hasImages) {
+      return '📷 Bildnachricht'
+    }
+
     // Generate a title from the first message (max 50 chars)
-    const title = firstMessage.trim().slice(0, 50)
-    return title.length < firstMessage.trim().length ? title + '...' : title
+    const title = text.trim().slice(0, 50)
+    return title.length < text.trim().length ? title + '...' : title
   }
 
   const createNewConversation = (model: string, firstMessage?: string): string => {

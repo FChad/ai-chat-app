@@ -1,26 +1,54 @@
 <template>
   <div class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <!-- Only show input form when there's a conversation -->
-    <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit"
-      class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
-      <textarea ref="textareaRef" v-model="message"
-        placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-        class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
-        :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
+    <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit" class="flex flex-col space-y-3">
 
-      <!-- Cancel button when conversation is typing -->
-      <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
-        class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
-        <Icon name="heroicons:x-mark" class="h-4 w-4" />
-        <span>Abbrechen</span>
-      </button>
+      <!-- Image preview area -->
+      <div v-if="selectedImages.length > 0" class="flex flex-wrap gap-2 pb-2">
+        <div v-for="(img, index) in selectedImages" :key="index" class="relative group">
+          <img :src="img.preview" :alt="img.name"
+            class="h-20 w-20 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600" />
+          <button type="button" @click="removeImage(index)"
+            class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Icon name="heroicons:x-mark" class="h-3 w-3" />
+          </button>
+          <div
+            class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 truncate rounded-b-lg">
+            {{ img.name }}
+          </div>
+        </div>
+      </div>
 
-      <!-- Send button -->
-      <button v-else type="submit" :disabled="!canSend"
-        class="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
-        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-        <span>Senden</span>
-      </button>
+      <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+        <textarea ref="textareaRef" v-model="message"
+          placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
+          class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
+          :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
+
+        <div class="flex space-x-2 w-full sm:w-auto">
+          <!-- Image upload button - only show if model supports images -->
+          <label v-if="supportsImages"
+            class="px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer flex-shrink-0"
+            title="Bild hochladen">
+            <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple class="hidden" />
+            <Icon name="heroicons:photo" class="h-5 w-5" />
+          </label>
+
+          <!-- Cancel button when conversation is typing -->
+          <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
+            class="flex-1 sm:flex-initial px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
+            <Icon name="heroicons:x-mark" class="h-4 w-4" />
+            <span>Abbrechen</span>
+          </button>
+
+          <!-- Send button -->
+          <button v-else type="submit" :disabled="!canSend"
+            class="flex-1 sm:flex-initial px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
+            <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
+            <span>Senden</span>
+          </button>
+        </div>
+      </div>
     </form>
 
     <!-- Placeholder when no conversation is selected -->
@@ -39,31 +67,133 @@
 </template>
 
 <script setup lang="ts">
+import type { AIModel } from '../../types/chat'
+
+interface Props {
+  currentModel?: AIModel | null
+}
+
+const props = defineProps<Props>()
+
 const chatStore = useChatStore()
 const { sendMessage, cancelMessage } = useChat()
 
 const message = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
+const fileInputRef = ref<HTMLInputElement>()
+
+interface ImageFile {
+  file: File
+  preview: string
+  name: string
+  base64: string
+}
+
+const selectedImages = ref<ImageFile[]>([])
 
 const isCurrentConversationTyping = computed(() => chatStore.isConversationTyping)
 
+// Check if current model supports image input
+const supportsImages = computed(() => {
+  if (!props.currentModel?.details?.architecture?.input_modalities) return false
+  return props.currentModel.details.architecture.input_modalities.includes('image')
+})
+
+// Clear selected images when switching to a model that doesn't support images
+watch(supportsImages, (newValue) => {
+  if (!newValue && selectedImages.value.length > 0) {
+    // Clean up image previews
+    selectedImages.value.forEach(img => {
+      if (img?.preview) {
+        URL.revokeObjectURL(img.preview)
+      }
+    })
+    selectedImages.value = []
+  }
+})
+
 const canSend = computed(() => {
-  if (chatStore.isTyping || isCurrentConversationTyping.value || !message.value.trim()) return false
+  if (chatStore.isTyping || isCurrentConversationTyping.value) return false
+  if (!message.value.trim() && selectedImages.value.length === 0) return false
   return chatStore.currentConversation !== null
 })
+
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  for (const file of Array.from(files)) {
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      console.warn('Only images are supported')
+      continue
+    }
+
+    // Check file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      console.warn('Image too large (max 20MB)')
+      continue
+    }
+
+    // Create preview and base64
+    const preview = URL.createObjectURL(file)
+    const base64 = await fileToBase64(file)
+
+    selectedImages.value.push({
+      file,
+      preview,
+      name: file.name,
+      base64
+    })
+  }
+
+  // Reset input
+  if (target) target.value = ''
+}
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Failed to read file'))
+      }
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+const removeImage = (index: number) => {
+  // Revoke object URL to free memory
+  const img = selectedImages.value[index]
+  if (img?.preview) {
+    URL.revokeObjectURL(img.preview)
+  }
+  selectedImages.value.splice(index, 1)
+}
 
 const handleSubmit = async () => {
   if (!canSend.value) return
 
   const messageToSend = message.value
+  const imagesToSend = [...selectedImages.value]
+
   message.value = ''
+
+  // Clean up image previews
+  selectedImages.value.forEach(img => URL.revokeObjectURL(img.preview))
+  selectedImages.value = []
 
   // Reset textarea height
   nextTick(() => {
     autoResize()
   })
 
-  await sendMessage(messageToSend)
+  await sendMessage(messageToSend, imagesToSend)
 }
 
 const handleCancel = () => {

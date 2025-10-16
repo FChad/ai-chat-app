@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
     // Validate messages structure
     for (const msg of messages) {
-      if (!msg.role || !msg.content || typeof msg.content !== 'string') {
+      if (!msg.role || !msg.content) {
         throw createError({
           statusCode: 400,
           statusMessage: 'Each message must have role and content'
@@ -50,6 +50,13 @@ export default defineEventHandler(async (event) => {
         throw createError({
           statusCode: 400,
           statusMessage: 'Message role must be user, assistant, or system'
+        })
+      }
+      // Content can be string or array (for multi-modal)
+      if (typeof msg.content !== 'string' && !Array.isArray(msg.content)) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Message content must be a string or array'
         })
       }
     }
@@ -73,7 +80,7 @@ export default defineEventHandler(async (event) => {
       model: model.trim(),
       messages: messages.map(msg => ({
         role: msg.role,
-        content: msg.content.trim()
+        content: typeof msg.content === 'string' ? msg.content.trim() : msg.content
       })),
       stream: stream
     }

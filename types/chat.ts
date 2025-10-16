@@ -1,8 +1,25 @@
+// Content can be either a string or an array for multi-modal messages (text + images)
+export type MessageContent =
+  | string
+  | Array<{
+    type: 'text' | 'image_url'
+    text?: string
+    image_url?: {
+      url: string // data:image/jpeg;base64,... or https://...
+      detail?: 'low' | 'high' | 'auto' // for vision models
+    }
+  }>
+
 export interface Message {
   role: 'user' | 'assistant' | 'system'
-  content: string
+  content: MessageContent
   timestamp: string
   id?: string
+  // For displaying images in the UI
+  images?: Array<{
+    url: string
+    name?: string
+  }>
 }
 
 export interface ModelArchitecture {
@@ -62,7 +79,7 @@ export interface ChatRequest {
   model: string
   messages: Array<{
     role: 'user' | 'assistant' | 'system'
-    content: string
+    content: MessageContent
   }>
   stream?: boolean
   sessionId: string

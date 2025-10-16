@@ -1,4 +1,17 @@
 <template>
+  <!-- Image Modal -->
+  <Teleport to="body">
+    <div v-if="showImageModal" @click="closeImageModal"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-90 p-4 animate-fade-in">
+      <button @click="closeImageModal"
+        class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <Icon name="heroicons:x-mark" class="h-6 w-6 text-gray-700 dark:text-gray-300" />
+      </button>
+      <img :src="selectedImageUrl" alt="Full size image" class="max-w-full max-h-full object-contain rounded-lg"
+        @click.stop />
+    </div>
+  </Teleport>
+
   <div class="flex animate-fade-in" :class="isUser ? 'justify-end' : 'justify-start'">
     <div class="flex max-w-[95%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-4xl"
       :class="isUser ? 'flex-row-reverse' : 'flex-row'">
@@ -16,6 +29,18 @@
           <!-- Message content with markdown support -->
           <div v-if="message" class="prose prose-sm max-w-none text-inherit" :class="proseClasses">
             <div v-html="renderedMessage"></div>
+          </div>
+
+          <!-- Images if present -->
+          <div v-if="images && images.length > 0" :class="message ? 'mt-3' : ''" class="flex flex-wrap gap-2">
+            <div v-for="(img, idx) in images" :key="idx" class="relative group">
+              <img :src="img.url" :alt="img.name || 'Image'"
+                class="max-w-xs max-h-60 object-contain rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer hover:opacity-90 hover:scale-105 transition-all"
+                @click="openImageModal(img.url)" />
+              <div v-if="img.name" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ img.name }}
+              </div>
+            </div>
           </div>
 
           <!-- Typing indicator shown below the message content when AI is typing -->
@@ -52,6 +77,10 @@ interface Props {
   isTyping?: boolean
   isStreaming?: boolean
   timestamp: string
+  images?: Array<{
+    url: string
+    name?: string
+  }>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +90,37 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { highlightCode, getLanguageName, configureHighlight, detectLanguage } = useHighlight()
+
+const showImageModal = ref(false)
+const selectedImageUrl = ref('')
+
+const openImageModal = (url: string) => {
+  selectedImageUrl.value = url
+  showImageModal.value = true
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden'
+}
+
+const closeImageModal = () => {
+  showImageModal.value = false
+  selectedImageUrl.value = ''
+  // Restore body scroll
+  document.body.style.overflow = ''
+}
+
+// Close modal on Escape key
+onMounted(() => {
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && showImageModal.value) {
+      closeImageModal()
+    }
+  }
+  window.addEventListener('keydown', handleKeydown)
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+  })
+})
 
 // Escape helper for rendering the unfinished streaming tail as plain text
 const escapeHtml = (text: string): string => {

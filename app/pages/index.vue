@@ -64,7 +64,7 @@
         <ChatMessages ref="chatMessagesRef" :available-models="availableModels" @focus-input="focusInput" />
 
         <!-- Input area -->
-        <ChatInput ref="chatInputRef" />
+        <ChatInput ref="chatInputRef" :current-model="currentModelDetails" />
       </div>
     </div>
 

@@ -1,13 +1,12 @@
 <template>
-  <div
-    class="p-4 sm:p-6 border-t border-gray-200/30 dark:border-gray-700/30 bg-white/20 dark:bg-gray-900/20 backdrop-blur-xl">
+  <div class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <!-- Only show input form when there's a conversation -->
     <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit"
       class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
       <div class="flex-1 w-full relative">
         <textarea ref="textareaRef" v-model="message"
           placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-          class="w-full px-3 py-3 bg-white/80 dark:bg-gray-800/80 border-2 border-gray-200/60 dark:border-gray-700/60 focus:border-primary-500 dark:focus:border-primary-400 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-primary-500/20 focus:bg-white dark:focus:bg-gray-800 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 font-medium backdrop-blur-sm shadow-lg hover:shadow-xl focus:shadow-xl transition-all duration-200 mobile-placeholder"
+          class="w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
           :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
 
 
@@ -15,14 +14,14 @@
 
       <!-- Cancel button when conversation is typing -->
       <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
-        class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl active:scale-[0.98]">
+        class="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
         <Icon name="heroicons:x-mark" class="h-4 w-4" />
         <span>Abbrechen</span>
       </button>
 
       <!-- Send button -->
       <button v-else type="submit" :disabled="!canSend"
-        class="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
+        class="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
         <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
         <span>Senden</span>
       </button>

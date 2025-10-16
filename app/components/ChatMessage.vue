@@ -4,16 +4,14 @@
       :class="isUser ? 'flex-row-reverse' : 'flex-row'">
       <!-- Avatar -->
       <div class="flex-shrink-0" :class="isUser ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'">
-        <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg"
-          :class="avatarClasses">
+        <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" :class="avatarClasses">
           <Icon :name="avatarIcon" class="h-3 w-3 sm:h-5 sm:w-5 text-white flex-shrink-0" />
         </div>
       </div>
 
       <!-- Message bubble -->
       <div class="relative min-w-0 flex-1">
-        <div class="px-3 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-sm sm:text-base backdrop-blur-sm border shadow-lg"
-          :class="bubbleClasses">
+        <div class="px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg text-sm sm:text-base border" :class="bubbleClasses">
 
           <!-- Message content with markdown support -->
           <div v-if="message" class="prose prose-sm max-w-none text-inherit" :class="proseClasses">
@@ -22,7 +20,7 @@
 
           <!-- Typing indicator shown below the message content when AI is typing -->
           <div v-if="isTyping" class="flex items-center space-x-1"
-            :class="message ? 'mt-3 pt-3 border-t border-gray-200/30 dark:border-gray-700/30' : ''">
+            :class="message ? 'mt-3 pt-3 border-t border-gray-200 dark:border-gray-700' : ''">
             <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing"></div>
             <div
               class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.16s]">
@@ -166,12 +164,12 @@ const avatarIcon = computed(() => {
 
 const bubbleClasses = computed(() => {
   if (props.isUser) {
-    return 'bg-primary-600 dark:bg-primary-500 text-white border-primary-300/30'
+    return 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
   }
   if (props.isAi) {
-    return 'bg-white/60 dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 border-gray-200/50 dark:border-gray-700/50'
+    return 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
   }
-  return 'bg-white/60 dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 border-gray-200/50 dark:border-gray-700/50'
+  return 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
 })
 
 const proseClasses = computed(() => {
@@ -204,17 +202,17 @@ const postProcessHTML = (html: string): string => {
       const languageName = getLanguageName(language)
 
       return `
-        <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
-          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
+        <div class="code-block-container my-3 rounded-lg overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
+          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-gray-200 border-b border-gray-300 text-xs dark:bg-gray-700 dark:border-gray-600">
             <span class="code-block-language text-gray-600 font-semibold uppercase tracking-wider dark:text-gray-300">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-primary-200 hover:border-primary-300 hover:-translate-y-0.5 hover:shadow-lg dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600/50" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-colors duration-200 hover:bg-primary-200 hover:border-primary-300 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               Kopieren
             </button>
           </div>
-          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin scrollbar-thumb-gray-400/40 scrollbar-track-transparent dark:scrollbar-thumb-gray-600/40"><code class="hljs language-${language}">${highlightedCode}</code></pre>
+          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent dark:scrollbar-thumb-gray-600"><code class="hljs language-${language}">${highlightedCode}</code></pre>
         </div>
       `
     }
@@ -244,17 +242,17 @@ const postProcessHTML = (html: string): string => {
       const languageName = getLanguageName(detectedLanguage)
 
       return `
-        <div class="code-block-container my-3 rounded-xl overflow-hidden border border-gray-300/30 bg-white/10 backdrop-blur-2xl shadow-lg dark:border-gray-600/40 dark:bg-gray-800/60 dark:shadow-black/30">
-          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-white/20 border-b border-gray-300/20 text-xs dark:bg-gray-800/80 dark:border-gray-600/30">
+        <div class="code-block-container my-3 rounded-lg overflow-hidden border border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
+          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-gray-200 border-b border-gray-300 text-xs dark:bg-gray-700 dark:border-gray-600">
             <span class="code-block-language text-gray-600 font-semibold uppercase tracking-wider dark:text-gray-300">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-all duration-200 hover:bg-primary-200 hover:border-primary-300 hover:-translate-y-0.5 hover:shadow-lg dark:bg-primary-900/30 dark:border-primary-700/50 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600/50" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary-100 border border-primary-200 rounded-lg text-primary-700 text-xs font-medium cursor-pointer transition-colors duration-200 hover:bg-primary-200 hover:border-primary-300 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300 dark:hover:bg-primary-800/40 dark:hover:border-primary-600" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
               Kopieren
             </button>
           </div>
-          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin scrollbar-thumb-gray-400/40 scrollbar-track-transparent dark:scrollbar-thumb-gray-600/40"><code class="hljs language-${detectedLanguage}">${highlightedCode}</code></pre>
+          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent dark:scrollbar-thumb-gray-600"><code class="hljs language-${detectedLanguage}">${highlightedCode}</code></pre>
         </div>
       `
     }

@@ -4,9 +4,8 @@
     <!-- Loading State -->
     <div v-if="chatStore.isLoading" class="flex items-center justify-center min-h-[50vh]">
       <div
-        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg max-w-md w-full mx-4 text-center">
-        <div
-          class="w-20 h-20 flex items-center justify-center bg-gray-500 dark:bg-gray-400 rounded-2xl mx-auto mb-6 shadow-md">
+        class="p-8 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-w-md w-full mx-4 text-center">
+        <div class="w-20 h-20 flex items-center justify-center bg-gray-400 dark:bg-gray-600 rounded-lg mx-auto mb-6">
           <Icon name="heroicons:arrow-path" class="h-12 w-12 sm:h-16 sm:w-16 text-white animate-spin" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Lade Daten...</h3>
@@ -19,9 +18,9 @@
     <!-- Welcome Modal - only shown when loading is complete and no conversation exists -->
     <div v-else-if="!chatStore.currentConversation" class="flex items-center justify-center min-h-[50vh]">
       <div
-        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg max-w-md w-full mx-4 text-center">
+        class="p-8 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 max-w-md w-full mx-4 text-center">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6 shadow-md">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-lg mx-auto mb-6">
           <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Willkommen bei AskChadAI</h3>
@@ -39,7 +38,7 @@
 
         <!-- Start Chat Button -->
         <button @click="startNewConversation" :disabled="!selectedModel"
-          class="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 text-sm font-semibold shadow-lg hover:shadow-xl disabled:shadow-sm active:scale-[0.98]">
+          class="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-semibold">
           <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5" />
           <span>Chat starten</span>
         </button>
@@ -48,10 +47,9 @@
 
     <!-- Ready for Chat - only shown when conversation exists but no messages -->
     <div v-else-if="chatStore.currentMessages.length === 0" class="text-center mt-16 sm:mt-32">
-      <div
-        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl mx-4 sm:mx-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+      <div class="p-8 bg-white dark:bg-gray-800 rounded-lg mx-4 sm:mx-8 border border-gray-200 dark:border-gray-700">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6 shadow-md">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-lg mx-auto mb-6">
           <Icon name="heroicons:sparkles" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>

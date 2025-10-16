@@ -2,7 +2,7 @@
   <div class="flex h-full relative font-system">
     <!-- Mobile Overlay -->
     <div v-if="isMobileSidebarOpen" @click="closeMobileSidebar"
-      class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-all duration-300">
+      class="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 lg:hidden transition-all duration-200">
     </div>
 
     <!-- Sidebar -->
@@ -14,23 +14,21 @@
       @close-mobile="closeMobileSidebar" />
 
     <!-- Main Chat Area -->
-    <div
-      class="flex-1 flex flex-col min-w-0 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-l border-white/20 dark:border-gray-700/30">
+    <div class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700">
       <!-- Header -->
       <div
-        class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30 p-4 sm:px-6 flex items-center">
+        class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 sm:px-6 flex items-center">
         <div class="flex items-center justify-between w-full">
           <div class="flex items-center space-x-3 sm:space-x-4">
             <!-- Mobile Menu Button -->
             <button @click="toggleMobileSidebar"
-              class="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm">
+              class="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
               <Icon name="heroicons:bars-3" class="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </button>
 
             <!-- App Icon & Title -->
             <div class="flex items-center space-x-3">
-              <div
-                class="w-10 h-10 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-xl shadow-lg">
+              <div class="w-10 h-10 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-lg">
                 <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
@@ -43,7 +41,7 @@
           <div class="flex items-center space-x-3">
             <!-- Current Model Info -->
             <div v-if="chatStore.currentConversation"
-              class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100/60 dark:bg-gray-700/60 rounded-full backdrop-blur-sm">
+              class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full">
               <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary-500" />
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ chatStore.currentConversation.model.split(':')[0] }}

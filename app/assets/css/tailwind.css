@@ -2,37 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent horizontal scroll and improve mobile experience */
+/* Base styles */
 html,
 body {
     @apply overflow-x-hidden;
 }
 
-/* Mobile input zoom prevention */
 input,
 textarea,
 select {
     @apply text-base;
 }
 
-/* Touch manipulation for better mobile interaction */
-.touch-manipulation {
-    @apply select-none;
-    touch-action: manipulation;
-}
-
-/* Mobile scrolling improvements */
-.mobile-scroll {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    @apply overflow-auto;
-}
-
-/* Custom scrollbar styling */
+/* Clean scrollbar */
 .scrollbar-thin {
-    @apply scroll-smooth;
     scrollbar-width: thin;
-    scrollbar-color: rgb(156 163 175 / 0.6) rgb(0 0 0 / 0.1);
+    scrollbar-color: rgb(161 161 170) rgb(244 244 245);
+}
+
+.dark .scrollbar-thin {
+    scrollbar-color: rgb(82 82 91) rgb(39 39 42);
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -40,22 +29,18 @@ select {
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-black/10 rounded;
+    @apply bg-gray-100 dark:bg-gray-800;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-gray-400/60 rounded border border-white/10;
+    @apply bg-gray-400 dark:bg-gray-600 rounded-full;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400/80;
+    @apply bg-gray-500 dark:bg-gray-500;
 }
 
-.scrollbar-thin::-webkit-scrollbar-thumb:active {
-    @apply bg-gray-400;
-}
-
-/* Typing indicator animation */
+/* Typing indicator */
 .typing-dot {
     @apply inline-block w-2 h-2 bg-current rounded-full;
     animation: typing 1.4s infinite ease-in-out;
@@ -73,89 +58,29 @@ select {
     animation-delay: 0;
 }
 
-/* Custom select dropdown styling */
-.custom-select {
-    @apply appearance-none bg-gray-800 text-white border border-gray-600 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1.5em 1.5em;
+/* Mobile utilities */
+.mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    @apply overflow-auto;
 }
 
-.custom-select:focus {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%235a7396' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-}
-
-.custom-select option {
-    @apply bg-gray-800 text-white py-2 px-3;
-}
-
-.custom-select option:hover,
-.custom-select option:focus,
-.custom-select option:checked {
-    @apply bg-gray-700 text-white;
-}
-
-/* Message bubble component */
-.message-bubble {
-    @apply max-w-full sm:max-w-[90%];
-}
-
-/* Mobile sidebar component */
 .mobile-sidebar {
     @apply w-[85vw] max-w-[320px];
 }
 
-/* Mobile compact spacing */
-.mobile-compact {
-    @apply p-2 sm:p-4;
-}
-
-/* Smooth transitions for mobile */
-.mobile-transition {
-    @apply transition-all duration-300 ease-in-out;
-}
-
-/* Safe area handling */
-.safe-area-inset {
-    @apply px-4 pb-4;
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-}
-
-/* Custom keyframes for typing animation */
+/* Keyframes */
 @keyframes typing {
 
     0%,
     60%,
     100% {
         transform: translateY(0);
+        opacity: 0.3;
     }
 
     30% {
         transform: translateY(-10px);
-    }
-}
-
-/* Mobile-specific utilities */
-@media (max-width: 1023px) {
-    .lg-hidden {
-        @apply hidden;
-    }
-
-    .mobile-text-base {
-        @apply text-base;
-    }
-}
-
-/* Small screen specific utilities */
-@media (max-width: 640px) {
-    .sm-compact {
-        @apply p-2;
-    }
-
-    .sm-message-bubble {
-        @apply max-w-[90%];
+        opacity: 1;
     }
 }

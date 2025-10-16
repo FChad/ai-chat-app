@@ -1,12 +1,10 @@
 <template>
-  <div 
-    :class="[
-      'bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg',
-      borderRadius,
-      padding,
-      classes
-    ]"
-  >
+  <div :class="[
+    'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
+    borderRadius,
+    padding,
+    classes
+  ]">
     <slot />
   </div>
 </template>
@@ -19,8 +17,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  borderRadius: 'rounded-xl',
+  borderRadius: 'rounded-lg',
   padding: 'p-4',
   classes: ''
 })
-</script> 
+</script>

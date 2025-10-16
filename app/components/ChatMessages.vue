@@ -46,14 +46,15 @@
     </div>
 
     <!-- Ready for Chat - only shown when conversation exists but no messages -->
-    <div v-else-if="chatStore.currentMessages.length === 0" class="text-center mt-16 sm:mt-32">
-      <div class="p-8 bg-white dark:bg-gray-800 rounded-lg mx-4 sm:mx-8 border border-gray-200 dark:border-gray-700">
+    <div v-else-if="chatStore.currentMessages.length === 0" class="flex items-center justify-center min-h-[50vh]">
+      <div
+        class="p-8 bg-gray-50 dark:bg-gray-800 rounded-lg mx-4 max-w-md w-full border border-gray-200 dark:border-gray-700 text-center">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-lg mx-auto mb-6">
-          <Icon name="heroicons:sparkles" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
+          class="w-16 h-16 flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 rounded-lg mx-auto mb-4">
+          <Icon name="heroicons:sparkles" class="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
-        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>
-        <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           Stelle eine Frage oder beginne eine Unterhaltung!
         </p>
       </div>

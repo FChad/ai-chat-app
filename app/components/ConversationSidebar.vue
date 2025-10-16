@@ -7,7 +7,7 @@
       <!-- Mobile Close Button -->
       <div class="lg:hidden flex justify-end p-4 border-b border-gray-200 dark:border-gray-700">
         <button @click="$emit('closeMobile')"
-          class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+          class="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
           <Icon name="heroicons:x-mark" class="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </button>
       </div>

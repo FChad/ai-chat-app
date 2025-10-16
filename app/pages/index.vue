@@ -22,7 +22,7 @@
           <div class="flex items-center space-x-3 sm:space-x-4">
             <!-- Mobile Menu Button -->
             <button @click="toggleMobileSidebar"
-              class="lg:hidden w-10 h-10 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+              class="lg:hidden w-10 h-10 flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
               <Icon name="heroicons:bars-3" class="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </button>
 

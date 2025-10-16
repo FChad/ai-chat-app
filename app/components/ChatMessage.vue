@@ -164,7 +164,7 @@ const avatarIcon = computed(() => {
 
 const bubbleClasses = computed(() => {
   // Both user and AI messages now use the same styling
-  return 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
+  return 'bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
 })
 
 const proseClasses = computed(() => {

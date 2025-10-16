@@ -8,14 +8,9 @@
       :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200/30 dark:border-gray-700/30">
-        <div class="flex items-center space-x-3">
-          <div class="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
-            <Icon name="heroicons:cog-6-tooth" class="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Einstellungen</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
-          </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Einstellungen</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
         </div>
         <button @click="closeDialog"
           class="w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm group">

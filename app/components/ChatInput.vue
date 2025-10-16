@@ -23,7 +23,7 @@
         <textarea ref="textareaRef" v-model="message"
           placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
           class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
-          :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
+          :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" @paste="handlePaste" rows="1" />
 
         <div class="flex space-x-2 w-full sm:w-auto">
           <!-- Image upload button - only show if model supports images -->
@@ -174,6 +174,54 @@ const removeImage = (index: number) => {
     URL.revokeObjectURL(img.preview)
   }
   selectedImages.value.splice(index, 1)
+}
+
+const handlePaste = async (event: ClipboardEvent) => {
+  // Only process images if model supports them
+  if (!supportsImages.value) return
+
+  const items = event.clipboardData?.items
+  if (!items) return
+
+  // Check if there are any image items
+  let hasImages = false
+  for (const item of Array.from(items)) {
+    if (item.type.startsWith('image/')) {
+      hasImages = true
+      event.preventDefault() // Prevent default paste behavior for images
+      
+      const file = item.getAsFile()
+      if (!file) continue
+
+      // Check file size (max 20MB)
+      if (file.size > 20 * 1024 * 1024) {
+        console.warn('Image too large (max 20MB)')
+        continue
+      }
+
+      // Create preview and base64
+      const preview = URL.createObjectURL(file)
+      const base64 = await fileToBase64(file)
+
+      // Generate a name for pasted images
+      const timestamp = new Date().toLocaleTimeString('de-DE', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      }).replace(/:/g, '-')
+      const name = `pasted-image-${timestamp}.png`
+
+      selectedImages.value.push({
+        file,
+        preview,
+        name,
+        base64
+      })
+    }
+  }
+
+  // If images were pasted, we've already prevented default
+  // If only text was pasted, let the default behavior happen
 }
 
 const handleSubmit = async () => {

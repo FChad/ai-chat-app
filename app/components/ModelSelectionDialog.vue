@@ -16,7 +16,7 @@
         <Teleport to="body">
             <Transition name="modal">
                 <div v-if="isOpen" @click="closeDialog"
-                    class="fixed inset-0 bg-black/20 dark:bg-black/40 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+                    class="fixed inset-0 bg-black/20 dark:bg-black/40 z-[60] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
 
                     <!-- Modal Content -->
                     <div @click.stop
@@ -24,7 +24,8 @@
                         :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
 
                         <!-- Header -->
-                        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                        <div
+                            class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">KI-Modell
@@ -160,7 +161,8 @@
                         </div>
 
                         <!-- Footer -->
-                        <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                        <div
+                            class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex items-center justify-end gap-3">
                                 <button @click="confirmSelection" :disabled="!tempSelectedModel"
                                     class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200 font-semibold disabled:cursor-not-allowed">

@@ -3,7 +3,7 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen" @click="closeDialog"
-        class="fixed inset-0 bg-black/20 dark:bg-black/40 z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
+        class="fixed inset-0 bg-black/20 dark:bg-black/40 z-[60] flex items-center justify-center p-4 sm:p-6 animate-fade-in">
 
         <!-- Dialog -->
         <div @click.stop
@@ -12,7 +12,7 @@
 
           <!-- Header -->
           <div
-            class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div>
               <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Einstellungen</h2>
               <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
@@ -146,7 +146,7 @@
 
           <!-- Footer -->
           <div
-            class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            class="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <button @click="closeDialog"
               class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
               Schließen

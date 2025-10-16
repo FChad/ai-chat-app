@@ -163,22 +163,12 @@ const avatarIcon = computed(() => {
 })
 
 const bubbleClasses = computed(() => {
-  if (props.isUser) {
-    return 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
-  }
-  if (props.isAi) {
-    return 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
-  }
-  return 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
+  // Both user and AI messages now use the same styling
+  return 'bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600'
 })
 
 const proseClasses = computed(() => {
-  if (props.isUser) {
-    return 'prose-invert prose-headings:text-white prose-strong:text-white prose-code:text-primary-100 prose-code:bg-primary-800/50 prose-pre:bg-primary-800/50 prose-pre:text-primary-100 prose-a:text-primary-200'
-  }
-  if (props.isAi) {
-    return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-code:bg-primary-100 dark:prose-code:bg-primary-900/30 prose-pre:bg-primary-100 dark:prose-pre:bg-primary-900/30 prose-pre:text-primary-900 dark:prose-pre:text-primary-100 prose-a:text-primary-600 dark:prose-a:text-primary-400'
-  }
+  // Both user and AI messages now use the same styling
   return 'prose-gray dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:text-primary-700 dark:prose-code:text-primary-300 prose-code:bg-primary-100 dark:prose-code:bg-primary-900/30 prose-pre:bg-primary-100 dark:prose-pre:bg-primary-900/30 prose-pre:text-primary-900 dark:prose-pre:text-primary-100 prose-a:text-primary-600 dark:prose-a:text-primary-400'
 })
 

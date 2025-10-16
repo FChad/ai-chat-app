@@ -3,14 +3,10 @@
     <!-- Only show input form when there's a conversation -->
     <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit"
       class="flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
-      <div class="flex-1 w-full relative">
-        <textarea ref="textareaRef" v-model="message"
-          placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
-          class="w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
-          :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
-
-
-      </div>
+      <textarea ref="textareaRef" v-model="message"
+        placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
+        class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
+        :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" rows="1" />
 
       <!-- Cancel button when conversation is typing -->
       <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"

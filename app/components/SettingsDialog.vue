@@ -167,7 +167,8 @@
           class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg w-full max-w-sm">
           <div class="p-6">
             <div class="flex items-center space-x-3 mb-4">
-              <div class="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-red-100 dark:bg-red-900/40 rounded-lg flex-shrink-0">
                 <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div>
@@ -181,13 +182,13 @@
             </p>
 
             <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button @click="showConfirmDialog = false"
-                class="px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-                Abbrechen
-              </button>
               <button @click="clearAllConversations"
                 class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
                 Löschen
+              </button>
+              <button @click="showConfirmDialog = false"
+                class="px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
+                Abbrechen
               </button>
             </div>
           </div>

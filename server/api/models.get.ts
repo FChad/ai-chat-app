@@ -64,6 +64,7 @@ export default defineEventHandler(async (event) => {
         return {
           name: model.name || model.id,
           model: model.id,
+          canonical_slug: model.canonical_slug || model.id,
           modified_at: model.created ? new Date(model.created * 1000).toISOString() : new Date().toISOString(),
           size: 0,
           digest: '',
@@ -77,6 +78,7 @@ export default defineEventHandler(async (event) => {
             context_length: model.context_length || 0,
             description: model.description || '',
             popularity: model.top_provider?.max_completion_tokens || 0,
+            canonical_slug: model.canonical_slug || model.id,
             // OpenRouter specific fields
             architecture: model.architecture ? {
               input_modalities: model.architecture.input_modalities || [],

@@ -44,6 +44,7 @@ export interface ModelDetails {
   pricing?: ModelPricing
   top_provider?: TopProvider
   supported_parameters?: string[]
+  canonical_slug?: string
 }
 
 export interface AIModel {
@@ -53,6 +54,7 @@ export interface AIModel {
   size: number
   digest: string
   details: ModelDetails
+  canonical_slug?: string
 }
 
 // OpenRouter Chat API Request format

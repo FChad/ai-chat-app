@@ -40,13 +40,17 @@
 
           <div class="flex items-center space-x-3">
             <!-- Current Model Info -->
-            <div v-if="chatStore.currentConversation"
-              class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full">
-              <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary-500" />
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <button v-if="chatStore.currentConversation" @click="showModelInfo"
+              class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 cursor-pointer group">
+              <Icon name="heroicons:cpu-chip"
+                class="h-4 w-4 text-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-400" />
+              <span
+                class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
                 {{ chatStore.currentConversation.model.split(':')[0] }}
               </span>
-            </div>
+              <Icon name="heroicons:information-circle"
+                class="h-4 w-4 text-gray-400 group-hover:text-primary-500 transition-colors" />
+            </button>
 
             <!-- Theme Toggle -->
             <ThemeToggle />
@@ -66,10 +70,15 @@
 
     <!-- Settings Dialog -->
     <SettingsDialog :is-open="showSettingsDialog" @close="showSettingsDialog = false" />
+
+    <!-- Model Info Dialog -->
+    <ModelInfoDialog :is-open="showModelInfoDialog" :model="currentModelDetails" @close="showModelInfoDialog = false" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { AIModel } from '../../types/chat'
+
 // Set page title
 useHead({
   title: 'AskChadAI - Intelligent Chat Assistant'
@@ -77,11 +86,19 @@ useHead({
 
 const chatStore = useChatStore()
 const { scrollToBottom } = useScrolling()
+const { loadModels } = useChat()
 
 const chatMessagesRef = ref()
 const chatInputRef = ref()
 const showSettingsDialog = ref(false)
+const showModelInfoDialog = ref(false)
 const isMobileSidebarOpen = ref(false)
+const availableModels = ref<AIModel[]>([])
+
+// Load models
+const loadAvailableModels = async () => {
+  availableModels.value = await loadModels()
+}
 
 // Method to focus the input from ChatMessages component
 const focusInput = () => {
@@ -99,6 +116,20 @@ const closeMobileSidebar = () => {
   isMobileSidebarOpen.value = false
 }
 
+// Get current model details
+const currentModelDetails = computed(() => {
+  if (!chatStore.currentConversation) return null
+  const modelId = chatStore.currentConversation.model
+  return availableModels.value.find((m: AIModel) => m.model === modelId) || null
+})
+
+// Show model info
+const showModelInfo = () => {
+  if (currentModelDetails.value) {
+    showModelInfoDialog.value = true
+  }
+}
+
 // Close mobile sidebar when conversation changes
 watch(() => chatStore.currentConversationId, () => {
   closeMobileSidebar()
@@ -107,6 +138,9 @@ watch(() => chatStore.currentConversationId, () => {
 // Load conversations on mount
 onMounted(async () => {
   try {
+    // Load available models
+    await loadAvailableModels()
+
     // Load conversations from localStorage (this sets loading state)
     chatStore.loadFromLocalStorage()
   } catch (error) {

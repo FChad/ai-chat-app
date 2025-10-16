@@ -16,21 +16,26 @@
         <Teleport to="body">
             <Transition name="modal">
                 <div v-if="isOpen" @click="closeDialog"
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6 animate-fade-in">
 
                     <!-- Modal Content -->
                     <div @click.stop
-                        class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+                        class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden transform transition-all animate-scale-in"
+                        :class="isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'">
 
                         <!-- Header -->
-                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200/30 dark:border-gray-700/30">
                             <div class="flex items-center justify-between mb-4">
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    KI-Modell auswählen
-                                </h2>
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">KI-Modell
+                                        auswählen</h2>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Wähle das passende Modell
+                                        für deine Anfrage</p>
+                                </div>
                                 <button @click="closeDialog"
-                                    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                                    <Icon name="heroicons:x-mark" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                                    class="w-10 h-10 flex items-center justify-center hover:bg-gray-100/60 dark:hover:bg-gray-700/60 rounded-xl transition-all duration-200 backdrop-blur-sm group">
+                                    <Icon name="heroicons:x-mark"
+                                        class="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
                                 </button>
                             </div>
 

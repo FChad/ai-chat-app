@@ -4,8 +4,9 @@
     <!-- Loading State -->
     <div v-if="chatStore.isLoading" class="flex items-center justify-center min-h-[50vh]">
       <div
-        class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 max-w-md w-full mx-4 text-center text-gray-500 dark:text-gray-400">
-        <div class="w-20 h-20 flex items-center justify-center bg-gray-500 dark:bg-gray-400 rounded-2xl mx-auto mb-6">
+        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg max-w-md w-full mx-4 text-center">
+        <div
+          class="w-20 h-20 flex items-center justify-center bg-gray-500 dark:bg-gray-400 rounded-2xl mx-auto mb-6 shadow-md">
           <Icon name="heroicons:arrow-path" class="h-12 w-12 sm:h-16 sm:w-16 text-white animate-spin" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Lade Daten...</h3>
@@ -18,9 +19,9 @@
     <!-- Welcome Modal - only shown when loading is complete and no conversation exists -->
     <div v-else-if="!chatStore.currentConversation" class="flex items-center justify-center min-h-[50vh]">
       <div
-        class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 max-w-md w-full mx-4 text-center text-gray-500 dark:text-gray-400">
+        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg max-w-md w-full mx-4 text-center">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6 shadow-md">
           <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Willkommen bei AskChadAI</h3>
@@ -46,12 +47,11 @@
     </div>
 
     <!-- Ready for Chat - only shown when conversation exists but no messages -->
-    <div v-else-if="chatStore.currentMessages.length === 0"
-      class="text-center text-gray-500 dark:text-gray-400 mt-16 sm:mt-32">
+    <div v-else-if="chatStore.currentMessages.length === 0" class="text-center mt-16 sm:mt-32">
       <div
-        class="p-8 bg-white/40 dark:bg-gray-800/40 rounded-3xl backdrop-blur-sm mx-4 sm:mx-8 border border-gray-200/30 dark:border-gray-700/30">
+        class="p-8 bg-white/60 dark:bg-gray-800/60 rounded-3xl backdrop-blur-xl mx-4 sm:mx-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
         <div
-          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6">
+          class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-2xl mx-auto mb-6 shadow-md">
           <Icon name="heroicons:sparkles" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
         <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>

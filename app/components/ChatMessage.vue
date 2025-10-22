@@ -315,9 +315,13 @@ const postProcessHTML = (html: string): string => {
 const renderedMessage = computed(() => {
   if (!props.message) return ''
 
+  // User messages should not be rendered as Markdown - just escape HTML
+  if (props.isUser) {
+    return escapeHtml(props.message)
+  }
+
   try {
     // For AI messages, split into stable and streaming tail to avoid flicker during streaming
-    // For user messages, render completely without the split to preserve formatting
     const shouldSplit = props.isAi && props.isStreaming
     const { safe, tail } = shouldSplit ? splitStreamingSafe(props.message) : { safe: props.message, tail: '' }
 

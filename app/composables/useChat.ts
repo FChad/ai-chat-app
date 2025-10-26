@@ -219,20 +219,20 @@ export const useChat = () => {
 
       if (error.name !== 'AbortError') {
         // Determine user-friendly error message
-        let userMessage = 'Entschuldigung, es gab einen Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.'
+        let userMessage = 'Sorry, there was an error sending the message. Please try again.'
 
         if (error.message === 'RATE_LIMIT_ERROR') {
-          userMessage = '⚠️ Das Modell ist vorübergehend ausgelastet.\n\n' +
-            'Das kostenlose Modell hat ein Rate-Limit erreicht. Bitte versuchen Sie es in wenigen Minuten erneut oder wählen Sie ein anderes Modell aus.'
+          userMessage = '⚠️ The model is temporarily busy.\n\n' +
+            'The free model has reached a rate limit. Please try again in a few minutes or select another model.'
         } else if (error.message && error.message.includes('429')) {
-          userMessage = '⚠️ Zu viele Anfragen.\n\n' +
-            'Der Dienst ist vorübergehend überlastet. Bitte warten Sie einen Moment und versuchen Sie es erneut.'
+          userMessage = '⚠️ Too many requests.\n\n' +
+            'The service is temporarily overloaded. Please wait a moment and try again.'
         } else if (error.message && error.message.includes('503')) {
-          userMessage = '⚠️ Der Dienst ist vorübergehend nicht verfügbar.\n\n' +
-            'Bitte versuchen Sie es in wenigen Minuten erneut.'
+          userMessage = '⚠️ The service is temporarily unavailable.\n\n' +
+            'Please try again in a few minutes.'
         } else if (error.message && error.message.includes('401')) {
-          userMessage = '⚠️ Authentifizierungsfehler.\n\n' +
-            'Es gab ein Problem mit der API-Authentifizierung. Bitte kontaktieren Sie den Administrator.'
+          userMessage = '⚠️ Authentication error.\n\n' +
+            'There was a problem with API authentication. Please contact the administrator.'
         }
 
         // Show error to user

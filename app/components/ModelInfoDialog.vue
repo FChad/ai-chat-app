@@ -14,10 +14,10 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                                    Modellinformationen
+                                    Model Information
                                 </h2>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Details zum aktuellen KI-Modell
+                                    Details about the current AI model
                                 </p>
                             </div>
                             <button @click="closeDialog"
@@ -78,14 +78,14 @@
                                                 class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                                         </div>
                                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            Kontextlänge
+                                            Context Length
                                         </h4>
                                     </div>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                         {{ formatContextLength(model.details.context_length) }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Maximale Token-Anzahl
+                                        Maximum token count
                                     </p>
                                 </div>
 
@@ -99,14 +99,14 @@
                                                 class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                                         </div>
                                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            Maximale Ausgabe
+                                            Maximum Output
                                         </h4>
                                     </div>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                         {{ formatNumber(model.details.top_provider.max_completion_tokens) }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Max. Completion-Token
+                                        Max completion tokens
                                     </p>
                                 </div>
 
@@ -127,7 +127,7 @@
                                         {{ model.details.format }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Modellformat
+                                        Model format
                                     </p>
                                 </div>
 
@@ -141,14 +141,14 @@
                                                 class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                                         </div>
                                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            Quantisierung
+                                            Quantization
                                         </h4>
                                     </div>
                                     <p class="text-lg font-bold text-gray-900 dark:text-gray-100">
                                         {{ model.details.quantization_level }}
                                     </p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Quantisierungsstufe
+                                        Quantization level
                                     </p>
                                 </div>
                             </div>
@@ -159,13 +159,13 @@
                                 <h4
                                     class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                                     <Icon name="heroicons:cog-6-tooth" class="h-5 w-5 text-primary-500" />
-                                    Architektur
+                                    Architecture
                                 </h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <!-- Input Modalities -->
                                     <div>
                                         <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                            Eingabe-Modalitäten
+                                            Input Modalities
                                         </p>
                                         <div class="flex flex-wrap gap-2">
                                             <span v-for="modality in model.details.architecture.input_modalities"
@@ -179,7 +179,7 @@
                                     <!-- Output Modalities -->
                                     <div>
                                         <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                            Ausgabe-Modalitäten
+                                            Output Modalities
                                         </p>
                                         <div class="flex flex-wrap gap-2">
                                             <span v-for="modality in model.details.architecture.output_modalities"
@@ -203,7 +203,7 @@
                                     <!-- Instruct Type -->
                                     <div v-if="model.details.architecture.instruct_type">
                                         <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                            Instruktionstyp
+                                            Instruction Type
                                         </p>
                                         <p class="text-sm text-gray-700 dark:text-gray-300 font-mono">
                                             {{ model.details.architecture.instruct_type }}
@@ -219,13 +219,13 @@
                                     class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                                     <Icon name="heroicons:currency-dollar"
                                         class="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                    Preise
+                                    Pricing
                                 </h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div v-if="model.details.pricing.prompt !== '0'"
                                         class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
                                         <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                            Input (pro Token)
+                                            Input (per token)
                                         </span>
                                         <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                             ${{ model.details.pricing.prompt }}
@@ -234,7 +234,7 @@
                                     <div v-if="model.details.pricing.completion !== '0'"
                                         class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
                                         <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                            Output (pro Token)
+                                            Output (per token)
                                         </span>
                                         <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                             ${{ model.details.pricing.completion }}
@@ -243,7 +243,7 @@
                                     <div v-if="model.details.pricing.request !== '0'"
                                         class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
                                         <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                            Pro Anfrage
+                                            Per request
                                         </span>
                                         <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                             ${{ model.details.pricing.request }}
@@ -252,7 +252,7 @@
                                     <div v-if="model.details.pricing.image !== '0'"
                                         class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg">
                                         <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                            Pro Bild
+                                            Per image
                                         </span>
                                         <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
                                             ${{ model.details.pricing.image }}
@@ -260,7 +260,7 @@
                                     </div>
                                 </div>
                                 <p class="text-xs text-amber-700 dark:text-amber-300 mt-3 italic">
-                                    💡 Alle angezeigten Modelle sind kostenlos nutzbar
+                                    💡 All displayed models are free to use
                                 </p>
                             </div>
 
@@ -271,7 +271,7 @@
                                     class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                                     <Icon name="heroicons:adjustments-horizontal"
                                         class="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                    Unterstützte Parameter
+                                    Supported Parameters
                                 </h4>
                                 <div class="flex flex-wrap gap-2">
                                     <span v-for="param in model.details.supported_parameters" :key="param"
@@ -281,7 +281,7 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-blue-700 dark:text-blue-300 mt-3">
-                                    Diese Parameter können bei API-Anfragen verwendet werden
+                                    These parameters can be used in API requests
                                 </p>
                             </div>
 
@@ -291,7 +291,7 @@
                                 <h4
                                     class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                                     <Icon name="heroicons:information-circle" class="h-4 w-4 text-primary-500" />
-                                    Weitere Informationen
+                                    Additional Information
                                 </h4>
                                 <div class="space-y-2 text-xs">
                                     <div v-if="model.details.canonical_slug" class="flex items-center justify-between">
@@ -301,18 +301,18 @@
                                         </span>
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Zuletzt aktualisiert</span>
+                                        <span class="text-gray-600 dark:text-gray-400">Last updated</span>
                                         <span class="font-medium text-gray-900 dark:text-gray-100">
                                             {{ formatDate(model.modified_at) }}
                                         </span>
                                     </div>
                                     <div v-if="model.details.top_provider?.is_moderated !== undefined"
                                         class="flex items-center justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Content-Moderation</span>
+                                        <span class="text-gray-600 dark:text-gray-400">Content Moderation</span>
                                         <span
                                             :class="model.details.top_provider.is_moderated ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'"
                                             class="font-semibold">
-                                            {{ model.details.top_provider.is_moderated ? 'Aktiviert' : 'Deaktiviert' }}
+                                            {{ model.details.top_provider.is_moderated ? 'Enabled' : 'Disabled' }}
                                         </span>
                                     </div>
                                 </div>
@@ -323,7 +323,7 @@
                             <Icon name="heroicons:exclamation-triangle"
                                 class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                             <p class="text-gray-500 dark:text-gray-400">
-                                Modellinformationen konnten nicht geladen werden
+                                Model information could not be loaded
                             </p>
                         </div>
                     </div>
@@ -333,7 +333,7 @@
                         <div class="flex items-center justify-end">
                             <button @click="closeDialog"
                                 class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-                                Schließen
+                                Close
                             </button>
                         </div>
                     </div>
@@ -393,10 +393,10 @@ const getParameterDescription = (param: string): string => {
 // Helper functions
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('de-DE', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
     })

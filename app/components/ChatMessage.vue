@@ -203,7 +203,7 @@ const formattedTimestamp = computed(() => {
 
   try {
     const date = new Date(props.timestamp)
-    return date.toLocaleString('de-DE', {
+    return date.toLocaleString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

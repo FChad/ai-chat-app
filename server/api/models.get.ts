@@ -43,10 +43,10 @@ export default defineEventHandler(async (event) => {
 
     const data = await response.json()
 
-    // Filter nur kostenlose Modelle (pricing.prompt = "0" und pricing.completion = "0")
+    // Filter only free models (pricing.prompt = "0" and pricing.completion = "0")
     const freeModels: AIModel[] = data.data
       .filter((model: any) => {
-        // Konvertiere Strings zu Numbers für den Vergleich
+        // Convert strings to numbers for comparison
         const promptPrice = parseFloat(model.pricing?.prompt || '1')
         const completionPrice = parseFloat(model.pricing?.completion || '1')
         const isFree = promptPrice === 0 && completionPrice === 0
@@ -54,11 +54,11 @@ export default defineEventHandler(async (event) => {
         return isFree
       })
       .map((model: any) => {
-        // Extrahiere Parameter-Größe aus dem Namen (z.B. "8b", "70b")
+        // Extract parameter size from name (e.g. "8b", "70b")
         const sizeMatch = model.id.match(/(\d+\.?\d*[bmk])/i)
         const parameterSize = sizeMatch ? sizeMatch[1].toUpperCase() : 'Unknown'
 
-        // Extrahiere Familie aus dem Modell-Namen
+        // Extract family from model name
         const family = model.id.split('/')[0] || 'unknown'
 
         return {

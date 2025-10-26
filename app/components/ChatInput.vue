@@ -21,7 +21,7 @@
 
       <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <textarea ref="textareaRef" v-model="message"
-          placeholder="Schreibe eine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
+          placeholder="Write a message... (Enter to send, Shift+Enter for new line)"
           class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
           :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" @paste="handlePaste"
           rows="1" />
@@ -30,7 +30,7 @@
           <!-- Image upload button - only show if model supports images -->
           <label v-if="supportsImages"
             class="px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer flex-shrink-0"
-            title="Bild hochladen">
+            title="Upload image">
             <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple class="hidden" />
             <Icon name="heroicons:photo" class="h-5 w-5" />
           </label>
@@ -39,14 +39,14 @@
           <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
             class="flex-1 sm:flex-initial px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
             <Icon name="heroicons:x-mark" class="h-4 w-4" />
-            <span>Abbrechen</span>
+            <span>Cancel</span>
           </button>
 
           <!-- Send button -->
           <button v-else type="submit" :disabled="!canSend"
             class="flex-1 sm:flex-initial px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
             <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>Senden</span>
+            <span>Send</span>
           </button>
         </div>
       </div>
@@ -56,12 +56,12 @@
     <div v-else class="invisible flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
       <div
         class="flex-1 w-full px-3 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-500 text-sm leading-5 min-h-[46px] flex items-center cursor-not-allowed">
-        Wähle eine Unterhaltung aus, um eine Nachricht zu senden...
+        Select a conversation to send a message...
       </div>
       <button type="button" disabled
         class="w-full sm:w-auto px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
         <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-        <span>Senden</span>
+        <span>Send</span>
       </button>
     </div>
   </div>
@@ -205,7 +205,7 @@ const handlePaste = async (event: ClipboardEvent) => {
       const base64 = await fileToBase64(file)
 
       // Generate a name for pasted images
-      const timestamp = new Date().toLocaleTimeString('de-DE', {
+      const timestamp = new Date().toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'

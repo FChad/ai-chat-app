@@ -54,7 +54,7 @@ export const useChatStore = defineStore('chat', () => {
 
     // If no text but has images, use a default title
     if (!text.trim() && hasImages) {
-      return '📷 Bildnachricht'
+      return '📷 Image message'
     }
 
     // Generate a title from the first message (max 50 chars)
@@ -68,7 +68,7 @@ export const useChatStore = defineStore('chat', () => {
 
     const conversation: Conversation = {
       id,
-      title: firstMessage ? generateConversationTitle(firstMessage) : 'Neue Unterhaltung',
+      title: firstMessage ? generateConversationTitle(firstMessage) : 'New Conversation',
       model,
       messages: [],
       createdAt: now,

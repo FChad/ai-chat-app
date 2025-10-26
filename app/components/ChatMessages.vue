@@ -8,9 +8,9 @@
         <div class="w-20 h-20 flex items-center justify-center bg-gray-400 dark:bg-gray-600 rounded-lg mx-auto mb-6">
           <Icon name="heroicons:arrow-path" class="h-12 w-12 sm:h-16 sm:w-16 text-white animate-spin" />
         </div>
-        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Lade Daten...</h3>
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Loading Data...</h3>
         <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-          Unterhaltungen werden geladen
+          Loading conversations
         </p>
       </div>
     </div>
@@ -23,15 +23,15 @@
           class="w-20 h-20 flex items-center justify-center bg-primary-600 dark:bg-primary-500 rounded-lg mx-auto mb-6">
           <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16 text-white" />
         </div>
-        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Willkommen bei AskChadAI</h3>
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Welcome to AskChadAI</h3>
         <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-          Wähle ein KI-Modell aus und starte eine intelligente Unterhaltung!
+          Select an AI model and start an intelligent conversation!
         </p>
 
         <!-- Model Selection -->
         <div class="text-left mb-6">
           <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-            KI-Modell auswählen
+            Select AI Model
           </label>
           <ModelSelectionDialog v-model="selectedModel" :models="props.availableModels"
             :disabled="chatStore.isTyping" />
@@ -41,7 +41,7 @@
         <button @click="startNewConversation" :disabled="!selectedModel"
           class="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-semibold">
           <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5" />
-          <span>Chat starten</span>
+          <span>Start Chat</span>
         </button>
       </div>
     </div>
@@ -54,9 +54,9 @@
           class="w-16 h-16 flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 rounded-lg mx-auto mb-4">
           <Icon name="heroicons:sparkles" class="h-8 w-8 text-primary-600 dark:text-primary-400" />
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Bereit für den Chat</h3>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Ready to Chat</h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-          Stelle eine Frage oder beginne eine Unterhaltung!
+          Ask a question or start a conversation!
         </p>
       </div>
     </div>

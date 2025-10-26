@@ -7,7 +7,7 @@
                 {{ getModelName(selectedModel) }}
             </span>
             <span v-else class="text-gray-500 dark:text-gray-400">
-                Modell auswählen...
+                Select model...
             </span>
             <Icon name="heroicons:chevron-down" class="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
         </button>
@@ -27,10 +27,10 @@
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex justify-between mb-4">
                                 <div>
-                                    <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">KI-Modell
-                                        auswählen</h2>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Wähle das passende Modell
-                                        für deine Anfrage</p>
+                                    <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Select AI Model
+                                    </h2>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Choose the right model
+                                        for your request</p>
                                 </div>
                                 <button @click="closeDialog"
                                     class="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
@@ -45,7 +45,7 @@
                                 <div class="relative flex-shrink-0 w-28 sm:w-auto">
                                     <select v-model="selectedFamily"
                                         class="w-full pl-2 sm:pl-3 pr-7 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none cursor-pointer text-sm">
-                                        <option value="">Alle</option>
+                                        <option value="">All</option>
                                         <option v-for="family in availableFamilies" :key="family" :value="family">
                                             {{ family }}
                                         </option>
@@ -58,7 +58,7 @@
                                 <div class="relative flex-1 min-w-0">
                                     <Icon name="heroicons:magnifying-glass"
                                         class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                    <input v-model="searchQuery" type="text" placeholder="Modelle durchsuchen..."
+                                    <input v-model="searchQuery" type="text" placeholder="Search models..."
                                         class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm" />
                                 </div>
                             </div>
@@ -70,7 +70,7 @@
                                 <Icon name="heroicons:magnifying-glass"
                                     class="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                                 <p class="text-gray-500 dark:text-gray-400">
-                                    Keine Modelle gefunden
+                                    No models found
                                 </p>
                             </div>
 
@@ -123,7 +123,7 @@
                                         <button v-if="model.details.description.length > 150"
                                             @click.stop="toggleDescription(model.model)"
                                             class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-semibold mt-1.5 flex items-center gap-1">
-                                            {{ expandedDescriptions[model.model] ? 'Weniger' : 'Mehr' }}
+                                            {{ expandedDescriptions[model.model] ? 'Less' : 'More' }}
                                             <Icon
                                                 :name="expandedDescriptions[model.model] ? 'heroicons:chevron-up' : 'heroicons:chevron-down'"
                                                 class="h-3 w-3" />
@@ -137,7 +137,7 @@
                                         <div
                                             class="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
                                             <Icon name="heroicons:document-text" class="h-4 w-4 text-primary-500" />
-                                            <span>{{ formatContextLength(model.details.context_length) }} Kontext</span>
+                                            <span>{{ formatContextLength(model.details.context_length) }} Context</span>
                                         </div>
 
                                         <!-- Max Output -->
@@ -164,11 +164,11 @@
                             <div class="flex items-center justify-end gap-3">
                                 <button @click="confirmSelection" :disabled="!tempSelectedModel"
                                     class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200 font-semibold disabled:cursor-not-allowed">
-                                    Auswählen
+                                    Select
                                 </button>
                                 <button @click="closeDialog"
                                     class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-                                    Schließen
+                                    Close
                                 </button>
                             </div>
                         </div>
@@ -279,7 +279,7 @@ const filteredModels = computed(() => {
 // Helper functions
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('de-DE', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',

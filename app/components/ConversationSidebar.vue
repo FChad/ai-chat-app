@@ -18,7 +18,7 @@
         <button @click="startNewConversationHandler"
           class="w-full h-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium py-3">
           <Icon name="heroicons:plus" class="h-4 w-4" />
-          <span>Neue Unterhaltung</span>
+          <span>New Conversation</span>
         </button>
       </div>
 
@@ -31,8 +31,8 @@
               <Icon name="heroicons:arrow-path"
                 class="h-8 w-8 opacity-60 text-gray-400 dark:text-gray-500 animate-spin" />
             </div>
-            <p class="text-sm font-medium">Lade Unterhaltungen...</p>
-            <p class="text-xs mt-1 opacity-75">Einen Moment bitte</p>
+            <p class="text-sm font-medium">Loading conversations...</p>
+            <p class="text-xs mt-1 opacity-75">One moment please</p>
           </div>
         </div>
 
@@ -44,8 +44,8 @@
               <Icon name="heroicons:chat-bubble-left-right"
                 class="h-12 w-12 opacity-60 text-gray-400 dark:text-gray-500" />
             </div>
-            <p class="text-sm font-medium">Keine Unterhaltungen</p>
-            <p class="text-xs mt-1 opacity-75">Starte eine neue Unterhaltung</p>
+            <p class="text-sm font-medium">No conversations</p>
+            <p class="text-xs mt-1 opacity-75">Start a new conversation</p>
           </div>
         </div>
 
@@ -76,7 +76,7 @@
                 <div class="flex items-center space-x-2">
                   <Icon name="heroicons:chat-bubble-left" class="h-3 w-3 text-gray-500 dark:text-gray-400" />
                   <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ conversation.messages.length }}
-                    Nachrichten</span>
+                    Messages</span>
                 </div>
 
                 <!-- Timestamp or Typing Indicator -->
@@ -89,7 +89,7 @@
                       <div class="typing-dot" style="animation-delay: 0.4s"></div>
                     </div>
                     <span
-                      class="text-xs text-primary-600 dark:text-primary-400 font-medium typing-indicator">antwortet</span>
+                      class="text-xs text-primary-600 dark:text-primary-400 font-medium typing-indicator">responding</span>
                   </template>
                   <template v-else>
                     <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -103,7 +103,7 @@
             <!-- Delete Button -->
             <button @click.stop="confirmDeleteConversation(conversation.id, conversation.title)"
               class="opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200 ml-2 flex-shrink-0"
-              :title="`Unterhaltung '${conversation.title}' löschen`" :disabled="isConversationTyping(conversation)"
+              :title="`Delete conversation '${conversation.title}'`" :disabled="isConversationTyping(conversation)"
               :class="{ 'opacity-30 cursor-not-allowed': isConversationTyping(conversation) }">
               <Icon name="heroicons:trash" class="h-4 w-4 text-red-500 dark:text-red-400" />
             </button>
@@ -116,7 +116,7 @@
         <button @click="$emit('openSettings')"
           class="w-full px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-medium border border-gray-200 dark:border-gray-700">
           <Icon name="heroicons:cog-6-tooth" class="h-5 w-5" />
-          <span>Einstellungen</span>
+          <span>Settings</span>
         </button>
       </div>
     </div>
@@ -132,25 +132,25 @@
               <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Bestätigung</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">Unwiderrufliche Aktion</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Confirmation</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Irreversible action</p>
             </div>
           </div>
 
           <p class="text-sm text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-            Möchtest du die Unterhaltung <strong>"{{ conversationToDelete?.title }}"</strong> wirklich löschen? Diese
-            Aktion
-            kann nicht rückgängig gemacht werden.
+            Do you really want to delete the conversation <strong>"{{ conversationToDelete?.title }}"</strong>? This
+            action
+            cannot be undone.
           </p>
 
           <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button @click="deleteConversation"
               class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
-              Löschen
+              Delete
             </button>
             <button @click="showConfirmDialog = false"
               class="px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-              Abbrechen
+              Cancel
             </button>
           </div>
         </div>
@@ -210,16 +210,16 @@ const formatRelativeTime = (dateString: string): string => {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) {
-    return 'Gerade eben'
+    return 'Just now'
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60)
-    return `vor ${minutes} Min`
+    return `${minutes} min ago`
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600)
-    return `vor ${hours} Std`
+    return `${hours} hr ago`
   } else {
     const days = Math.floor(diffInSeconds / 86400)
-    return `vor ${days} Tag${days > 1 ? 'en' : ''}`
+    return `${days} day${days > 1 ? 's' : ''} ago`
   }
 }
 

@@ -14,8 +14,8 @@
           <div
             class="flex justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div>
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Einstellungen</h2>
-              <p class="text-sm text-gray-600 dark:text-gray-400">Personalisiere deine Chat-Erfahrung</p>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Settings</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Customize your chat experience</p>
             </div>
             <button @click="closeDialog"
               class="w-10 h-10 flex items-center justify-center bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 group">
@@ -33,7 +33,7 @@
                   <Icon name="heroicons:adjustments-horizontal"
                     class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                 </div>
-                <span>App-Einstellungen</span>
+                <span>App Settings</span>
               </h3>
 
               <div class="space-y-4">
@@ -47,11 +47,10 @@
                           class="w-6 h-6 flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 rounded-lg">
                           <Icon name="heroicons:moon" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                         </div>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Design-Modus</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Design Mode</span>
                       </div>
                       <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Wähle zwischen hellem, dunklem oder automatischem Modus basierend auf deinen
-                        Systemeinstellungen.
+                        Choose between light, dark, or automatic mode based on your system settings.
                       </p>
                     </div>
                     <div class="ml-4">
@@ -70,11 +69,11 @@
                           class="w-6 h-6 flex items-center justify-center bg-primary-100 dark:bg-primary-900/40 rounded-lg">
                           <Icon name="heroicons:play" class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                         </div>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Streaming-Modus</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Streaming Mode</span>
                       </div>
                       <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Antworten werden in Echtzeit gestreamt. Deaktivieren Sie diese Option,
-                        um komplette Antworten auf einmal zu erhalten.
+                        Responses are streamed in real-time. Disable this option
+                        to receive complete responses all at once.
                       </p>
                     </div>
                     <div class="ml-4">
@@ -98,7 +97,7 @@
                   <Icon name="heroicons:chat-bubble-left-right"
                     class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                 </div>
-                <span>Unterhaltungen</span>
+                <span>Conversations</span>
               </h3>
 
               <div class="space-y-4">
@@ -110,7 +109,7 @@
                         {{ chatStore.conversations.length }}
                       </div>
                       <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Gespeicherte Unterhaltungen
+                        Saved Conversations
                       </div>
                     </div>
                     <div class="text-center">
@@ -118,7 +117,7 @@
                         {{ totalMessages }}
                       </div>
                       <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Gesamte Nachrichten
+                        Total Messages
                       </div>
                     </div>
                   </div>
@@ -130,14 +129,14 @@
                   <button @click="exportConversations"
                     class="px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-medium">
                     <Icon name="heroicons:arrow-down-tray" class="h-4 w-4" />
-                    <span>Exportieren</span>
+                    <span>Export</span>
                   </button>
 
                   <!-- Clear All Conversations -->
                   <button @click="confirmClearAll" :disabled="chatStore.conversations.length === 0"
                     class="px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 text-sm font-medium disabled:cursor-not-allowed">
                     <Icon name="heroicons:trash" class="h-4 w-4" />
-                    <span>Alle löschen</span>
+                    <span>Delete All</span>
                   </button>
                 </div>
               </div>
@@ -149,7 +148,7 @@
             class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <button @click="closeDialog"
               class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-              Schließen
+              Close
             </button>
           </div>
         </div>
@@ -172,23 +171,23 @@
                 <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Bestätigung</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Unwiderrufliche Aktion</p>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Confirmation</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Irreversible action</p>
               </div>
             </div>
 
             <p class="text-sm text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
-              Möchtest du wirklich alle Unterhaltungen löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+              Do you really want to delete all conversations? This action cannot be undone.
             </p>
 
             <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button @click="clearAllConversations"
                 class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 font-medium">
-                Löschen
+                Delete
               </button>
               <button @click="showConfirmDialog = false"
                 class="px-4 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-                Abbrechen
+                Cancel
               </button>
             </div>
           </div>

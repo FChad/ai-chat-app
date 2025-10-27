@@ -1,130 +1,121 @@
-# AskChadAI
+# AskChadAI - AI Chat Application
 
-A modern, optimized chat application with OpenRouter integration for direct chat with AI models.
+[![Nuxt 4](https://img.shields.io/badge/Nuxt-4.2.0-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)](https://nuxt.com)
+[![Vue 3](https://img.shields.io/badge/Vue-3.5.22-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.17-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+
+Modern AI chat application with OpenRouter integration for seamless conversations with multiple AI models.
 
 ## ✨ Features
 
-- 🤖 **AI Chat**: Chat directly with various AI models via OpenRouter
-- 💬 **Conversation Management**: Multiple conversations like ChatGPT
-- 🔄 **Model Selection**: Choose between free, fast OpenRouter models
-- 🧠 **Context Preservation**: Conversations maintain their context
-- 💾 **Local Storage**: Conversations are stored in the browser
-- 🎨 **Modern UI**: Beautiful, responsive user interface with Tailwind CSS
-- 🔒 **Secure API**: Environment-based configuration for API credentials
-- 📱 **Responsive**: Works perfectly on desktop and mobile
-- ⚡ **Streaming**: Real-time responses with Server-Sent Events
-- 🏗️ **Optimized Architecture**: Clean code structure with Composables and Pinia
-- 📤 **Export Function**: Export your conversations as JSON
-- ⚙️ **Settings**: Comprehensive settings and app information
-- 🆔 **Session Management**: UUIDv4-based session IDs for unique chat assignment
-- 🆓 **Free Models**: Uses free OpenRouter models for cost-effective operation
+- **Multiple AI Models**: Access various AI models via OpenRouter integration
+- **Conversation Management**: Multiple conversations with context preservation
+- **Real-time Streaming**: Server-Sent Events for instant AI responses
+- **Dark/Light Mode**: Theme switching with system preference detection
+- **Local Storage**: Persistent conversations stored in browser
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Type Safety**: Full TypeScript support throughout
+- **Session Management**: UUIDv4-based unique session IDs
+- **Export Functionality**: Save conversations as JSON
+- **Free Models**: Cost-effective operation with free OpenRouter models
+
+## 🛠️ Tech Stack
+
+| Category | Technologies |
+|----------|-------------|
+| **Framework** | Nuxt 4.2.0, Vue 3.5.22 |
+| **Language** | TypeScript 5.7.2 |
+| **Styling** | TailwindCSS 3.4.17, @nuxtjs/color-mode |
+| **State Management** | Pinia 3.0.3, @pinia/nuxt 0.11.2 |
+| **Icons** | @nuxt/icon 2.1.0 |
+| **Markdown** | marked 16.4.1, highlight.js 11.11.1 |
+| **AI Integration** | OpenRouter API |
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/FChad/ai-chat-app.git
+cd ai-chat-app
+npm install
+cp env.example .env  # Configure environment variables
+npm run dev  # Runs on http://localhost:3000
+```
+
+## � Scripts
+
+```bash
+npm run dev       # Development server
+npm run build     # Production build
+npm run generate  # Static site generation
+npm run preview   # Preview production build
+```
+
+## � Environment Variables
+
+| Variable | Description | Required | Default/Example |
+|----------|-------------|----------|-----------------|
+| `OPENROUTER_API_KEY` | OpenRouter API key for AI model access | Yes | `sk_or_v1_...` |
+
+**Getting your API key:**
+1. Visit [OpenRouter.ai](https://openrouter.ai)
+2. Sign up for a free account
+3. Generate an API key in your dashboard
+4. The free tier includes access to several high-quality models
 
 ## 📁 Project Structure
 
 ```
+app/
 ├── components/
-│   ├── ChatHeader.vue      # Model selection and control
-│   ├── ChatMessages.vue    # Message display
-│   ├── ChatInput.vue       # Input area with session control
-│   └── ChatMessage.vue     # Individual message
+│   ├── ChatInput.vue              # Message input with session control
+│   ├── ChatMessage.vue            # Individual message rendering
+│   ├── ChatMessages.vue           # Message list display
+│   ├── ConversationSidebar.vue    # Conversation management
+│   ├── ModelSelectionDialog.vue   # AI model selector
+│   ├── SettingsDialog.vue         # App settings
+│   └── ThemeToggle.vue            # Dark/light mode toggle
 ├── composables/
-│   ├── useChat.ts          # Chat logic with session management
-│   └── useScrolling.ts     # Scroll management
+│   ├── useChat.ts                 # Chat logic with session management
+│   ├── useScrolling.ts            # Auto-scroll functionality
+│   └── useHighlight.ts            # Code syntax highlighting
 ├── stores/
-│   └── chat.ts             # Pinia Store for chat state and sessions
-├── types/
-│   └── chat.ts             # TypeScript interfaces incl. session types
+│   └── chat.ts                    # Pinia store for chat state
 ├── utils/
-│   ├── formatters.ts       # Utility functions
-│   └── uuid.ts             # UUIDv4 generation
-├── server/api/
-│   ├── chat.post.ts        # Chat API endpoint with OpenRouter integration
-│   └── models.get.ts       # Models API endpoint with free models
+│   └── uuid.ts                    # UUIDv4 generation
 └── pages/
-    └── index.vue           # Main page
+    └── index.vue                  # Main chat interface
+server/
+└── api/
+    ├── chat.post.ts               # Chat API with OpenRouter
+    └── models.get.ts              # Available models endpoint
+types/
+└── chat.ts                        # TypeScript interfaces
 ```
 
-## 🛠️ Setup
+## 🤖 Available Models
 
-### 1. Install Dependencies
+The application includes free OpenRouter models:
+- **Meta Llama 3.3 70B Instruct** - Most powerful, best quality
+- **Meta Llama 3.3 8B Instruct** - Faster, balanced performance
 
-```bash
-npm install
-```
+Add more models in `server/api/models.get.ts`.
 
-### 2. Configure Environment Variables
+## 🎨 Customization
 
-Create a `.env` file in the project root:
+**Styling**: 
+- Global styles: `app/assets/css/tailwind.css`
+- Component styling: Tailwind CSS utility classes
+- Theme configuration: `tailwind.config.js`
 
-```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-```
+**AI Models**: 
+- Modify model list in `server/api/models.get.ts`
+- Configure default model in chat store
 
-**Important**: 
-- Get your free API key from [OpenRouter.ai](https://openrouter.ai)
-- Replace `your_openrouter_api_key_here` with your actual API key
-- The free tier includes access to several fast models
+## 📝 License
 
-### 3. Start Development Server
+MIT License
 
-```bash
-npm run dev
-```
-
-The application will then be available at `http://localhost:3000`.
-
-## 🚀 Deployment
-
-### Production Build
-
-```bash
-npm run build
-```
-
-### Preview
-
-```bash
-npm run preview
-```
-
-### Environment Variables for Production
-
-Make sure the following environment variable is set in your production environment:
-
-- `OPENROUTER_API_KEY`
-
-For cloud deployments (Vercel, Netlify, etc.), configure this in your deployment settings.
-
-## 🎨 Customizations
-
-### Available Free Models
-
-The application includes these free models from OpenRouter:
-- **Meta Llama 3.3 70B Instruct** - Most powerful, best quality responses
-- **Meta Llama 3.3 8B Instruct** (default) - Faster, good balance of speed and quality
-
-You can add more models in `server/api/models.get.ts`.
-
-### Customizing UI Styling
-
-Styles are located in:
-- `app/assets/css/tailwind.css` - Global styles and Tailwind utilities
-- Components use Tailwind CSS classes
-- `app/components/ChatMessage.vue` - Markdown styling
-
-### Testing
-```bash
-# Linting
-npm run lint
-
-# Type checking
-npm run type-check
-```
-
-## 🌐 About OpenRouter
-
-OpenRouter provides access to various AI models through a unified API. The free tier includes several high-quality models perfect for testing and development.
-
-- Website: [openrouter.ai](https://openrouter.ai)
-- API Docs: [openrouter.ai/docs](https://openrouter.ai/docs)
-- Free models: No credit card required for free tier models
+<div align="center">
+  Made with ❤️ using Nuxt 4, Vue 3, and TypeScript
+</div>

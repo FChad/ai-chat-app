@@ -162,13 +162,13 @@
                         <!-- Footer -->
                         <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                             <div class="flex items-center justify-end gap-3">
+                                <button @click="closeDialog"
+                                    class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
+                                    Cancel
+                                </button>
                                 <button @click="confirmSelection" :disabled="!tempSelectedModel"
                                     class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200 font-semibold disabled:cursor-not-allowed">
                                     Select
-                                </button>
-                                <button @click="closeDialog"
-                                    class="px-6 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium border border-gray-200 dark:border-gray-700">
-                                    Close
                                 </button>
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 ﻿# AskChadAI - AI Chat Application
 
-[![Nuxt 4](https://img.shields.io/badge/Nuxt-4.2.0-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)](https://nuxt.com)
-[![Vue 3](https://img.shields.io/badge/Vue-3.5.22-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org)
+[![Nuxt 4](https://img.shields.io/badge/Nuxt-4.2.1-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)](https://nuxt.com)
+[![Vue 3](https://img.shields.io/badge/Vue-3.5.25-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.17-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 
@@ -22,10 +22,10 @@ Modern AI chat application with OpenRouter integration for conversations with 10
 
 | Category | Technologies |
 |----------|-------------|
-| **Framework** | Nuxt 4.2.0, Vue 3.5.22 |
+| **Framework** | Nuxt 4.2.1, Vue 3.5.25 |
 | **Language** | TypeScript 5.7.2 |
 | **Styling** | TailwindCSS 3.4.17, @nuxtjs/color-mode |
-| **State** | Pinia 3.0.3, @pinia/nuxt |
+| **State** | Pinia 3.0.4, @pinia/nuxt |
 | **Icons** | @nuxt/icon, @iconify-json/heroicons |
 | **Markdown** | marked, highlight.js |
 | **AI** | OpenRouter API |

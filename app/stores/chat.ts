@@ -1,6 +1,41 @@
 import { defineStore } from 'pinia'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T & { flush: () => void; cancel: () => void } {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+  let lastArgs: Parameters<T> | null = null
+
+  const debounced = ((...args: Parameters<T>) => {
+    lastArgs = args
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => {
+      fn(...args)
+      timeoutId = null
+      lastArgs = null
+    }, delay)
+  }) as T & { flush: () => void; cancel: () => void }
+
+  debounced.flush = () => {
+    if (timeoutId && lastArgs) {
+      clearTimeout(timeoutId)
+      fn(...lastArgs)
+      timeoutId = null
+      lastArgs = null
+    }
+  }
+
+  debounced.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+      lastArgs = null
+    }
+  }
+
+  return debounced
+}
+
 export const useChatStore = defineStore('chat', () => {
   // State
   const conversations = ref<Conversation[]>([])
@@ -78,7 +113,7 @@ export const useChatStore = defineStore('chat', () => {
 
     conversations.value.unshift(conversation)
     currentConversationId.value = id
-    saveToLocalStorage()
+    saveToLocalStorage(true) // Immediate save for user action
 
     return id
   }
@@ -187,7 +222,7 @@ export const useChatStore = defineStore('chat', () => {
         currentConversationId.value = conversations.value.length > 0 ? conversations.value[0]?.id ?? null : null
       }
 
-      saveToLocalStorage()
+      saveToLocalStorage(true) // Immediate save for user action
     }
   }
 
@@ -200,7 +235,7 @@ export const useChatStore = defineStore('chat', () => {
 
     conversations.value = []
     currentConversationId.value = null
-    saveToLocalStorage()
+    saveToLocalStorage(true) // Immediate save for user action
   }
 
   const setTyping = (typing: boolean) => {
@@ -216,12 +251,12 @@ export const useChatStore = defineStore('chat', () => {
   // Settings Actions
   const updateStreamMode = (enabled: boolean) => {
     settings.value.streamMode = enabled
-    saveToLocalStorage()
+    saveToLocalStorage(true) // Immediate save for user action
   }
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     settings.value = { ...settings.value, ...newSettings }
-    saveToLocalStorage()
+    saveToLocalStorage(true) // Immediate save for user action
   }
 
   // Session Management
@@ -239,18 +274,21 @@ export const useChatStore = defineStore('chat', () => {
     const conversation = conversations.value.find(c => c.id === conversationId)
     if (conversation) {
       conversation.sessionId = sessionId
-      saveToLocalStorage()
+      saveToLocalStorage(true) // Immediate save for session start
     }
   }
 
   const endChatSession = (sessionId: string): void => {
     activeSessions.value.delete(sessionId)
 
+    // Flush any pending debounced saves to ensure all streamed content is saved
+    saveToLocalStorageDebounced.flush()
+
     // Remove sessionId from conversation
     const conversation = conversations.value.find(c => c.sessionId === sessionId)
     if (conversation) {
       conversation.sessionId = undefined
-      saveToLocalStorage()
+      saveToLocalStorage(true) // Immediate save for session end
     }
   }
 
@@ -271,7 +309,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // Local Storage
-  const saveToLocalStorage = () => {
+  const saveToLocalStorageImmediate = () => {
     if (typeof window !== 'undefined') {
       // Don't save sessionId to localStorage as it's session-specific
       const conversationsToSave = conversations.value.map(conv => ({
@@ -287,6 +325,20 @@ export const useChatStore = defineStore('chat', () => {
       } else {
         localStorage.removeItem('chat-current-conversation')
       }
+    }
+  }
+
+  // Debounced version for frequent updates (e.g., during streaming)
+  // 500ms delay balances responsiveness with performance
+  const saveToLocalStorageDebounced = debounce(saveToLocalStorageImmediate, 500)
+
+  // Smart save function: uses debounced save for streaming updates, immediate for user actions
+  const saveToLocalStorage = (immediate = false) => {
+    if (immediate) {
+      saveToLocalStorageDebounced.cancel()
+      saveToLocalStorageImmediate()
+    } else {
+      saveToLocalStorageDebounced()
     }
   }
 

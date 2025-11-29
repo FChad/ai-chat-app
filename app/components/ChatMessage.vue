@@ -94,6 +94,36 @@ const { highlightCode, getLanguageName, configureHighlight, detectLanguage } = u
 const showImageModal = ref(false)
 const selectedImageUrl = ref('')
 
+// Memoization cache for rendered markdown
+// Using a Map with message content as key to avoid re-parsing unchanged content
+const renderCache = new Map<string, { html: string; timestamp: number }>()
+const CACHE_MAX_SIZE = 50 // Limit cache size to prevent memory issues
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes TTL
+
+// Generate cache key from message content and streaming state
+const getCacheKey = (content: string, isStreaming: boolean): string => {
+  // Don't cache streaming messages as they change frequently
+  if (isStreaming) return ''
+  return content
+}
+
+// Clean old cache entries
+const cleanCache = () => {
+  const now = Date.now()
+  for (const [key, value] of renderCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      renderCache.delete(key)
+    }
+  }
+  // If still over limit, remove oldest entries
+  if (renderCache.size > CACHE_MAX_SIZE) {
+    const entries = Array.from(renderCache.entries())
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+    const toRemove = entries.slice(0, entries.length - CACHE_MAX_SIZE)
+    toRemove.forEach(([key]) => renderCache.delete(key))
+  }
+}
+
 const openImageModal = (url: string) => {
   selectedImageUrl.value = url
   showImageModal.value = true
@@ -311,7 +341,7 @@ const postProcessHTML = (html: string): string => {
   return result
 }
 
-// Compute rendered markdown
+// Compute rendered markdown with memoization
 const renderedMessage = computed(() => {
   if (!props.message) return ''
 
@@ -324,6 +354,17 @@ const renderedMessage = computed(() => {
     // For AI messages, split into stable and streaming tail to avoid flicker during streaming
     const shouldSplit = props.isAi && props.isStreaming
     const { safe, tail } = shouldSplit ? splitStreamingSafe(props.message) : { safe: props.message, tail: '' }
+
+    // Check cache for non-streaming, stable content
+    const cacheKey = getCacheKey(safe, props.isStreaming || false)
+    if (cacheKey && renderCache.has(cacheKey)) {
+      const cached = renderCache.get(cacheKey)!
+      // For streaming with tail, append the tail
+      if (tail) {
+        return cached.html + `<span class="streaming-tail">${escapeHtml(tail)}</span>`
+      }
+      return cached.html
+    }
 
     // Process markdown with syntax highlighting (synchronous) for stable part only
     const result = marked(safe)
@@ -342,6 +383,15 @@ const renderedMessage = computed(() => {
 
     // Post-process to add copy buttons and enhance code blocks
     const enhanced = postProcessHTML(htmlResult)
+
+    // Cache the result for non-streaming content
+    if (cacheKey) {
+      renderCache.set(cacheKey, { html: enhanced, timestamp: Date.now() })
+      // Periodically clean cache
+      if (renderCache.size > CACHE_MAX_SIZE * 0.8) {
+        cleanCache()
+      }
+    }
 
     // Append the unparsed tail as escaped plaintext to prevent transient formatting
     if (tail) {

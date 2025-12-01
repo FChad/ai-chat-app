@@ -78,12 +78,15 @@ echo.
 echo Cleanup completed!
 echo.
 echo Installing dependencies...
-npm install
+call npm install
 
 echo.
-echo Upgrading Nuxt and deduplicating dependencies...
-npx nuxt upgrade --dedupe
+echo Syncing package.json versions...
+node "%~dp0sync-versions.cjs"
 
 echo.
-echo All done! Project is ready for development.
+echo ========================================
+echo   All done! Project is ready for development.
+echo ========================================
+echo.
 pause

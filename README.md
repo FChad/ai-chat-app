@@ -22,10 +22,10 @@ Modern AI chat application with OpenRouter integration for conversations with 10
 
 | Category | Technologies |
 |----------|-------------|
-| **Framework** | Nuxt 4.2.1, Vue 3.5.25 |
-| **Language** | TypeScript 5.7.2 |
-| **Styling** | TailwindCSS 3.4.17, @nuxtjs/color-mode |
-| **State** | Pinia 3.0.4, @pinia/nuxt |
+| **Framework** | Nuxt, Vue |
+| **Language** | TypeScript |
+| **Styling** | TailwindCSS, @nuxtjs/color-mode |
+| **State** | Pinia, @pinia/nuxt |
 | **Icons** | @nuxt/icon, @iconify-json/heroicons |
 | **Markdown** | marked, highlight.js |
 | **AI** | OpenRouter API |

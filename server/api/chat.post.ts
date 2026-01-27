@@ -19,22 +19,22 @@ export default defineEventHandler(async (event) => {
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid messages array is required'
+        status: 400,
+        statusText: 'Valid messages array is required'
       })
     }
 
     if (!model || typeof model !== 'string') {
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid model is required'
+        status: 400,
+        statusText: 'Valid model is required'
       })
     }
 
     if (!sessionId || typeof sessionId !== 'string') {
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Valid sessionId is required'
+        status: 400,
+        statusText: 'Valid sessionId is required'
       })
     }
 
@@ -42,21 +42,21 @@ export default defineEventHandler(async (event) => {
     for (const msg of messages) {
       if (!msg.role || !msg.content) {
         throw createError({
-          statusCode: 400,
-          statusMessage: 'Each message must have role and content'
+          status: 400,
+          statusText: 'Each message must have role and content'
         })
       }
       if (!['user', 'assistant', 'system'].includes(msg.role)) {
         throw createError({
-          statusCode: 400,
-          statusMessage: 'Message role must be user, assistant, or system'
+          status: 400,
+          statusText: 'Message role must be user, assistant, or system'
         })
       }
       // Content can be string or array (for multi-modal)
       if (typeof msg.content !== 'string' && !Array.isArray(msg.content)) {
         throw createError({
-          statusCode: 400,
-          statusMessage: 'Message content must be a string or array'
+          status: 400,
+          statusText: 'Message content must be a string or array'
         })
       }
     }
@@ -67,8 +67,8 @@ export default defineEventHandler(async (event) => {
     // Validate environment variables
     if (!openrouterApiKey) {
       throw createError({
-        statusCode: 500,
-        statusMessage: 'OPENROUTER_API_KEY environment variable is not set'
+        status: 500,
+        statusText: 'OPENROUTER_API_KEY environment variable is not set'
       })
     }
 
@@ -99,15 +99,15 @@ export default defineEventHandler(async (event) => {
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
       throw createError({
-        statusCode: response.status,
-        statusMessage: `OpenRouter API error: ${response.statusText} - ${errorText}`
+        status: response.status,
+        statusText: `OpenRouter API error: ${response.statusText} - ${errorText}`
       })
     }
 
     if (!response.body) {
       throw createError({
-        statusCode: 500,
-        statusMessage: 'No response body from OpenRouter API'
+        status: 500,
+        statusText: 'No response body from OpenRouter API'
       })
     }
 
@@ -264,7 +264,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // If it's already a createError, re-throw it
-    if (error.statusCode) {
+    if (error.status) {
       throw error
     }
 
@@ -273,8 +273,8 @@ export default defineEventHandler(async (event) => {
 
     // Handle other errors
     throw createError({
-      statusCode: 500,
-      statusMessage: error.message || 'Failed to communicate with OpenRouter API'
+      status: 500,
+      statusText: error.message || 'Failed to communicate with OpenRouter API'
     })
   }
 }) 

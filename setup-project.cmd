@@ -81,6 +81,10 @@ echo Installing dependencies...
 call npm install
 
 echo.
+echo Upgrading Nuxt to latest version...
+call npx nuxt upgrade --dedupe
+
+echo.
 echo Syncing package.json versions...
 node "%~dp0sync-versions.cjs"
 

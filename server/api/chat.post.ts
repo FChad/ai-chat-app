@@ -19,22 +19,22 @@ export default defineEventHandler(async (event) => {
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw createError({
-        status: 400,
-        statusText: 'Valid messages array is required'
+        statusCode: 400,
+        statusMessage: 'Valid messages array is required'
       })
     }
 
     if (!model || typeof model !== 'string') {
       throw createError({
-        status: 400,
-        statusText: 'Valid model is required'
+        statusCode: 400,
+        statusMessage: 'Valid model is required'
       })
     }
 
     if (!sessionId || typeof sessionId !== 'string') {
       throw createError({
-        status: 400,
-        statusText: 'Valid sessionId is required'
+        statusCode: 400,
+        statusMessage: 'Valid sessionId is required'
       })
     }
 
@@ -42,21 +42,21 @@ export default defineEventHandler(async (event) => {
     for (const msg of messages) {
       if (!msg.role || !msg.content) {
         throw createError({
-          status: 400,
-          statusText: 'Each message must have role and content'
+          statusCode: 400,
+          statusMessage: 'Each message must have role and content'
         })
       }
       if (!['user', 'assistant', 'system'].includes(msg.role)) {
         throw createError({
-          status: 400,
-          statusText: 'Message role must be user, assistant, or system'
+          statusCode: 400,
+          statusMessage: 'Message role must be user, assistant, or system'
         })
       }
       // Content can be string or array (for multi-modal)
       if (typeof msg.content !== 'string' && !Array.isArray(msg.content)) {
         throw createError({
-          status: 400,
-          statusText: 'Message content must be a string or array'
+          statusCode: 400,
+          statusMessage: 'Message content must be a string or array'
         })
       }
     }
@@ -67,8 +67,8 @@ export default defineEventHandler(async (event) => {
     // Validate environment variables
     if (!openrouterApiKey) {
       throw createError({
-        status: 500,
-        statusText: 'OPENROUTER_API_KEY environment variable is not set'
+        statusCode: 500,
+        statusMessage: 'OPENROUTER_API_KEY environment variable is not set'
       })
     }
 
@@ -98,16 +98,28 @@ export default defineEventHandler(async (event) => {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
+
+      // Try to extract a useful message from OpenRouter's JSON error response
+      let errorMessage = ''
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = errorJson?.error?.message || errorJson?.message || errorText
+      } catch {
+        errorMessage = errorText
+      }
+
+      console.error('OpenRouter API error:', response.status, errorMessage)
+
       throw createError({
-        status: response.status,
-        statusText: `OpenRouter API error: ${response.statusText} - ${errorText}`
+        statusCode: response.status,
+        statusMessage: errorMessage || response.statusText
       })
     }
 
     if (!response.body) {
       throw createError({
-        status: 500,
-        statusText: 'No response body from OpenRouter API'
+        statusCode: 500,
+        statusMessage: 'No response body from OpenRouter API'
       })
     }
 
@@ -188,14 +200,41 @@ export default defineEventHandler(async (event) => {
                       const jsonStr = trimmedLine.substring(6) // Remove "data: " prefix
                       const data = JSON.parse(jsonStr)
 
+                      // Check for errors in the response (OpenRouter can return errors within choices)
+                      const choice = data.choices?.[0]
+                      if (choice?.error) {
+                        const errorData = {
+                          error: true,
+                          message: choice.error.message || 'Model returned an error',
+                          code: choice.error.code,
+                          done: true,
+                          sessionId: sessionId
+                        }
+                        controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
+                        continue
+                      }
+
+                      // Also check for top-level error field
+                      if (data.error) {
+                        const errorData = {
+                          error: true,
+                          message: data.error.message || data.error || 'API returned an error',
+                          code: data.error.code,
+                          done: true,
+                          sessionId: sessionId
+                        }
+                        controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
+                        continue
+                      }
+
                       // Transform OpenAI format to our format
-                      if (data.choices && data.choices[0]?.delta?.content) {
+                      if (choice?.delta?.content) {
                         const transformedData = {
                           message: {
                             role: 'assistant',
-                            content: data.choices[0].delta.content
+                            content: choice.delta.content
                           },
-                          response: data.choices[0].delta.content, // Legacy compatibility
+                          response: choice.delta.content, // Legacy compatibility
                           done: false,
                           sessionId: sessionId
                         }
@@ -204,7 +243,7 @@ export default defineEventHandler(async (event) => {
                         controller.enqueue(encoder.encode(modifiedLine))
                       }
                     } catch (e) {
-                      // Ignore parsing errors
+                      // Ignore parsing errors for malformed lines
                     }
                   }
                 }
@@ -239,13 +278,22 @@ export default defineEventHandler(async (event) => {
 
       const data = await response.json()
 
+      // Check for errors in the non-streaming response (OpenRouter can return errors within choices)
+      const choice = data.choices?.[0]
+      if (choice?.error) {
+        throw createError({
+          statusCode: choice.error.code || 500,
+          statusMessage: choice.error.message || 'Model returned an error'
+        })
+      }
+
       // Transform OpenAI format to our format
       const transformedData = {
         message: {
           role: 'assistant',
-          content: data.choices?.[0]?.message?.content || ''
+          content: choice?.message?.content || ''
         },
-        response: data.choices?.[0]?.message?.content || '', // Legacy compatibility
+        response: choice?.message?.content || '', // Legacy compatibility
         done: true,
         sessionId: sessionId
       }
@@ -263,8 +311,8 @@ export default defineEventHandler(async (event) => {
       return
     }
 
-    // If it's already a createError, re-throw it
-    if (error.status) {
+    // If it's already an H3 error (from createError), re-throw it
+    if (error.statusCode) {
       throw error
     }
 
@@ -273,8 +321,8 @@ export default defineEventHandler(async (event) => {
 
     // Handle other errors
     throw createError({
-      status: 500,
-      statusText: error.message || 'Failed to communicate with OpenRouter API'
+      statusCode: 500,
+      statusMessage: error.message || 'Failed to communicate with OpenRouter API'
     })
   }
 }) 

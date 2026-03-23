@@ -97,15 +97,24 @@ export const useChat = () => {
       })
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unknown error')
+        const errorText = await response.text().catch(() => '')
+
+        // Try to parse JSON error from the server
+        let errorMessage = ''
+        let statusCode = response.status
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMessage = errorJson?.statusMessage || errorJson?.message || errorJson?.statusText || ''
+        } catch {
+          errorMessage = errorText
+        }
 
         // Handle specific error codes with user-friendly messages
-        if (response.status === 429) {
-          // Rate limit error
+        if (statusCode === 429) {
           throw new Error('RATE_LIMIT_ERROR')
         }
 
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+        throw new Error(`HTTP_ERROR:${statusCode}:${errorMessage}`)
       }
 
       // Add empty assistant message to the conversation associated with this session
@@ -166,6 +175,12 @@ export const useChat = () => {
               if (line) {
                 try {
                   const data = JSON.parse(line)
+
+                  // Check if the server forwarded an error from OpenRouter
+                  if (data.error) {
+                    throw new Error(`STREAM_ERROR:${data.code || 0}:${data.message || 'Model returned an error'}`)
+                  }
+
                   const effectiveSessionId = data.sessionId ?? sessionId
                   if (effectiveSessionId === sessionId) {
                     const content = data.response || data.message?.content
@@ -174,8 +189,9 @@ export const useChat = () => {
                       chatStore.updateLastMessage(assistantMessage, sessionId)
                     }
                   }
-                } catch (e) {
-                  // Ignore parsing errors
+                } catch (e: any) {
+                  if (e.message?.startsWith('STREAM_ERROR:')) throw e
+                  // Ignore JSON parsing errors for malformed lines
                 }
               }
               newlineIndex = buffer.indexOf('\n')
@@ -209,6 +225,14 @@ export const useChat = () => {
 
     } catch (error: any) {
 
+      // Remove the last assistant message if it was empty (streaming error case)
+      if (chatStore.currentConversation) {
+        const messages = chatStore.currentConversation.messages
+        if (messages && messages.length > 0 && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content) {
+          messages.pop()
+        }
+      }
+
       // Remove the last user message if there was an error
       if (chatStore.currentConversation) {
         const messages = chatStore.currentConversation.messages
@@ -221,18 +245,31 @@ export const useChat = () => {
         // Determine user-friendly error message
         let userMessage = 'Sorry, there was an error sending the message. Please try again.'
 
-        if (error.message === 'RATE_LIMIT_ERROR') {
+        const errorMsg = error.message || ''
+
+        if (errorMsg === 'RATE_LIMIT_ERROR' || errorMsg.includes('HTTP_ERROR:429')) {
           userMessage = '⚠️ The model is temporarily busy.\n\n' +
             'The free model has reached a rate limit. Please try again in a few minutes or select another model.'
-        } else if (error.message && error.message.includes('429')) {
+        } else if (errorMsg.includes(':429:') || errorMsg.includes('rate limit')) {
           userMessage = '⚠️ Too many requests.\n\n' +
             'The service is temporarily overloaded. Please wait a moment and try again.'
-        } else if (error.message && error.message.includes('503')) {
+        } else if (errorMsg.includes(':503:') || errorMsg.includes('HTTP_ERROR:503')) {
           userMessage = '⚠️ The service is temporarily unavailable.\n\n' +
             'Please try again in a few minutes.'
-        } else if (error.message && error.message.includes('401')) {
+        } else if (errorMsg.includes(':401:') || errorMsg.includes('HTTP_ERROR:401')) {
           userMessage = '⚠️ Authentication error.\n\n' +
             'There was a problem with API authentication. Please contact the administrator.'
+        } else if (errorMsg.startsWith('STREAM_ERROR:')) {
+          // Error from within the SSE stream (model-specific)
+          const parts = errorMsg.split(':')
+          const streamMsg = parts.slice(2).join(':') || 'Unknown model error'
+          userMessage = `⚠️ Model error:\n\n${streamMsg}`
+        } else if (errorMsg.startsWith('HTTP_ERROR:')) {
+          // Extract the detail from HTTP_ERROR:status:message
+          const parts = errorMsg.split(':')
+          const statusCode = parts[1] || '?'
+          const detail = parts.slice(2).join(':') || 'Unknown error'
+          userMessage = `⚠️ Error (${statusCode}):\n\n${detail}`
         }
 
         // Show error to user

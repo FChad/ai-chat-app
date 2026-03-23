@@ -15,8 +15,8 @@ export default defineEventHandler(async (event) => {
     // Validate environment variables
     if (!openrouterApiKey) {
       throw createError({
-        status: 500,
-        statusText: 'OPENROUTER_API_KEY environment variable is not set'
+        statusCode: 500,
+        statusMessage: 'OPENROUTER_API_KEY environment variable is not set'
       })
     }
 
@@ -36,8 +36,8 @@ export default defineEventHandler(async (event) => {
       const errorText = await response.text().catch(() => 'Unknown error')
       console.error('OpenRouter API error:', response.status, response.statusText, errorText)
       throw createError({
-        status: response.status,
-        statusText: `OpenRouter API error: ${response.statusText}`
+        statusCode: response.status,
+        statusMessage: `OpenRouter API error: ${response.statusText}`
       })
     }
 
@@ -125,14 +125,14 @@ export default defineEventHandler(async (event) => {
     console.error('Models API error:', error)
 
     // If it's already a createError, re-throw it
-    if (error.status) {
+    if (error.statusCode) {
       throw error
     }
 
     // Handle other errors
     throw createError({
-      status: 500,
-      statusText: error.message || 'Failed to fetch models from OpenRouter API'
+      statusCode: 500,
+      statusMessage: error.message || 'Failed to fetch models from OpenRouter API'
     })
   }
 }) 

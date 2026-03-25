@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2026-03-25',
   devtools: { enabled: false },
   modules: ['@nuxtjs/color-mode', '@nuxtjs/tailwindcss', '@nuxt/icon', '@pinia/nuxt'],
 

@@ -43,7 +43,7 @@ export const useChatStore = defineStore('chat', () => {
   const isTyping = ref(false)
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
-  const isLoading = ref(true) // Add loading state
+  const isLoading = ref(true)
 
   // App Settings with defaults
   const settings = ref<AppSettings>({
@@ -381,10 +381,7 @@ export const useChatStore = defineStore('chat', () => {
       } catch (error) {
         console.error('Error loading conversations from localStorage:', error)
       } finally {
-        // Small delay to ensure UI has time to show loading state
-        setTimeout(() => {
-          isLoading.value = false
-        }, 100)
+        isLoading.value = false
       }
     } else {
       // On server-side, immediately set loading to false

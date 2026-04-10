@@ -2,7 +2,7 @@
   <!-- Image Modal -->
   <Teleport to="body">
     <div v-if="showImageModal" @click="closeImageModal"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 animate-fade-in">
+      class="fixed inset-0 z-100 flex items-center justify-center bg-black/90 p-4 animate-fade-in">
       <Button variant="ghost" size="icon" @click="closeImageModal"
         class="absolute top-4 right-4 bg-card hover:bg-muted rounded-full">
         <Icon name="heroicons:x-mark" class="h-6 w-6" />
@@ -12,59 +12,75 @@
     </div>
   </Teleport>
 
-  <div class="flex animate-fade-in" :class="isUser ? 'justify-end' : 'justify-start'">
-    <div class="flex max-w-[95%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-4xl"
-      :class="isUser ? 'flex-row-reverse' : 'flex-row'">
-      <!-- Avatar -->
-      <div class="flex-shrink-0" :class="isUser ? 'ml-2 sm:ml-3' : 'mr-2 sm:mr-3'">
-        <Avatar class="w-6 h-6 sm:w-10 sm:h-10" :class="avatarClasses">
-          <AvatarFallback :class="avatarClasses">
-            <Icon :name="avatarIcon" class="h-3 w-3 sm:h-5 sm:w-5 text-inherit flex-shrink-0" />
-          </AvatarFallback>
-        </Avatar>
+  <!-- User message (left-aligned, same as AI) -->
+  <div v-if="isUser"
+    class="flex gap-2 px-2 hover:bg-accent/40 group animate-fade-in"
+    :class="isGrouped ? '' : 'mt-3'">
+    <!-- Left column: avatar or time-on-hover -->
+    <div class="w-8 shrink-0 flex justify-center pt-1">
+      <Avatar v-if="!isGrouped" class="size-8">
+        <AvatarFallback class="bg-primary text-primary-foreground text-xs">
+          <Icon name="heroicons:user" class="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+      <time v-else :datetime="timestamp"
+        class="text-muted-foreground text-[10px] opacity-0 group-hover:opacity-100 transition-opacity leading-none mt-2">
+        {{ shortTime }}
+      </time>
+    </div>
+    <!-- Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <div v-if="!isGrouped" class="flex items-center gap-2 text-sm mb-0.5">
+        <span class="font-medium">You</span>
+        <time :datetime="timestamp" class="text-xs text-muted-foreground">{{ formattedTimestamp }}</time>
       </div>
+      <div class="text-sm wrap-break-word" v-html="renderedMessage" />
+      <div v-if="images && images.length > 0" :class="message ? 'mt-2' : ''" class="flex flex-wrap gap-2">
+        <img v-for="(img, idx) in images" :key="idx"
+          :src="img.url" :alt="img.name || 'Image'"
+          class="max-w-xs max-h-48 object-contain rounded-lg border border-border cursor-pointer hover:opacity-90 transition-all"
+          @click="openImageModal(img.url)" />
+      </div>
+    </div>
+  </div>
 
-      <!-- Message bubble -->
-      <div class="relative min-w-0 flex-1">
-        <Card class="text-sm sm:text-base" :class="bubbleClasses">
-          <CardContent class="px-3 py-2.5 sm:px-4 sm:py-3">
-            <!-- Message content with markdown support -->
-            <div v-if="message" class="prose prose-sm max-w-none text-inherit" :class="proseClasses">
-              <div v-html="renderedMessage"></div>
-            </div>
-
-            <!-- Images if present -->
-            <div v-if="images && images.length > 0" :class="message ? 'mt-3' : ''" class="flex flex-wrap gap-2">
-              <div v-for="(img, idx) in images" :key="idx" class="relative group">
-                <img :src="img.url" :alt="img.name || 'Image'"
-                  class="max-w-xs max-h-60 object-contain rounded-lg border border-border cursor-pointer hover:opacity-90 hover:scale-105 transition-all"
-                  @click="openImageModal(img.url)" />
-                <div v-if="img.name" class="text-xs text-muted-foreground mt-1">
-                  {{ img.name }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Typing indicator -->
-            <div v-if="isTyping" class="flex items-center space-x-1"
-              :class="message ? 'mt-3 pt-3 border-t border-border' : ''">
-              <div class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing"></div>
-              <div
-                class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.16s]">
-              </div>
-              <div
-                class="typing-dot w-1.5 h-1.5 sm:w-2 sm:h-2 bg-current rounded-full animate-typing [animation-delay:-0.32s]">
-              </div>
-              <span class="text-xs sm:text-sm ml-2 opacity-70">tippt...</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <!-- Timestamp -->
-        <div v-if="timestamp" class="text-xs text-muted-foreground mt-1.5 font-medium"
-          :class="isUser ? 'text-right' : 'text-left'">
-          {{ formattedTimestamp }}
-        </div>
+  <!-- AI message (left-aligned) -->
+  <div v-else
+    class="flex gap-2 px-2 hover:bg-accent/40 group animate-fade-in"
+    :class="isGrouped ? '' : 'mt-3'">
+    <!-- Left column: avatar or time-on-hover -->
+    <div class="w-8 shrink-0 flex justify-center pt-1">
+      <Avatar v-if="!isGrouped" class="size-8">
+        <AvatarFallback class="bg-secondary text-secondary-foreground text-xs">
+          <Icon name="heroicons:cpu-chip" class="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+      <time v-else :datetime="timestamp"
+        class="text-muted-foreground text-[10px] opacity-0 group-hover:opacity-100 transition-opacity leading-none mt-2">
+        {{ shortTime }}
+      </time>
+    </div>
+    <!-- Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <div v-if="!isGrouped" class="flex items-center gap-2 text-sm mb-0.5">
+        <span class="font-medium">AI Assistant</span>
+        <time :datetime="timestamp" class="text-xs text-muted-foreground">{{ formattedTimestamp }}</time>
+      </div>
+      <div v-if="message" class="prose prose-sm max-w-none text-sm" :class="proseClasses">
+        <div v-html="renderedMessage" />
+      </div>
+      <div v-if="images && images.length > 0" :class="message ? 'mt-2' : ''" class="flex flex-wrap gap-2">
+        <img v-for="(img, idx) in images" :key="idx"
+          :src="img.url" :alt="img.name || 'Image'"
+          class="max-w-xs max-h-48 object-contain rounded-lg border border-border cursor-pointer hover:opacity-90 transition-all"
+          @click="openImageModal(img.url)" />
+      </div>
+      <!-- Typing indicator -->
+      <div v-if="isTyping" class="flex items-center gap-1.5 py-1" :class="message ? 'mt-2' : ''">
+        <div class="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-typing" />
+        <div class="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-typing [animation-delay:-0.16s]" />
+        <div class="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-typing [animation-delay:-0.32s]" />
+        <span class="text-xs ml-1 text-muted-foreground">thinking…</span>
       </div>
     </div>
   </div>
@@ -79,6 +95,7 @@ interface Props {
   isAi?: boolean
   isTyping?: boolean
   isStreaming?: boolean
+  isGrouped?: boolean
   timestamp: string
   images?: Array<{
     url: string
@@ -89,7 +106,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   isAi: false,
   isTyping: false,
-  isStreaming: false
+  isStreaming: false,
+  isGrouped: false
 })
 
 const { highlightCode, getLanguageName, configureHighlight, detectLanguage } = useHighlight()
@@ -223,11 +241,18 @@ onMounted(() => {
   })
 })
 
-// Computed properties for styling
-const avatarClasses = computed(() => {
-  if (props.isUser) return 'bg-primary text-primary-foreground'
-  if (props.isAi) return 'bg-secondary text-secondary-foreground'
-  return 'bg-muted text-muted-foreground'
+// Short time (HH:MM) for grouped message hover
+const shortTime = computed(() => {
+  if (!props.timestamp) return ''
+  try {
+    return new Date(props.timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+  } catch {
+    return ''
+  }
 })
 
 // Format timestamp for display
@@ -247,16 +272,6 @@ const formattedTimestamp = computed(() => {
     // If timestamp is already formatted or invalid, return as is
     return props.timestamp
   }
-})
-
-const avatarIcon = computed(() => {
-  if (props.isUser) return 'heroicons:user'
-  if (props.isAi) return 'heroicons:cpu-chip'
-  return 'heroicons:sparkles'
-})
-
-const bubbleClasses = computed(() => {
-  return 'bg-muted/50 border-border'
 })
 
 const proseClasses = computed(() => {
@@ -418,7 +433,7 @@ if (typeof window !== 'undefined') {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
-        Kopiert!
+        Copied!
       `
       setTimeout(() => {
         button.innerHTML = originalText

@@ -1,17 +1,6 @@
 <template>
-  <div>
-    <!-- Main Sidebar -->
-    <div v-bind="$attrs"
-      class="mobile-sidebar sm:w-80 lg:w-80 bg-sidebar-background text-sidebar-foreground border-r border-sidebar-border flex flex-col h-full fixed lg:relative left-0 top-0 transition-transform duration-300 lg:shadow-none"
-      :class="{ 'open': isMobileOpen }">
-      <!-- Mobile Close Button -->
-      <div class="lg:hidden flex justify-end p-4 border-b border-sidebar-border">
-        <Button variant="ghost" size="icon" @click="$emit('closeMobile')">
-          <Icon name="heroicons:x-mark" class="h-5 w-5" />
-        </Button>
-      </div>
-
-      <!-- Header with New Conversation Button -->
+  <div class="flex flex-col h-full bg-sidebar text-sidebar-foreground">
+    <!-- Header with New Conversation Button -->
       <div class="border-b border-sidebar-border p-4 sm:px-6 flex items-center">
         <Button @click="startNewConversationHandler" class="w-full">
           <Icon name="heroicons:plus" class="h-4 w-4 mr-2" />
@@ -22,18 +11,8 @@
       <!-- Conversations List -->
       <ScrollArea class="flex-1 p-3">
         <div class="space-y-2">
-          <!-- Loading State -->
-          <div v-if="chatStore.isLoading" class="text-center text-muted-foreground mt-12">
-            <Card class="mx-4">
-              <CardContent class="p-4 text-center">
-                <div class="w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                  <Icon name="heroicons:arrow-path" class="h-8 w-8 opacity-60 text-muted-foreground animate-spin" />
-                </div>
-                <p class="text-sm font-medium">Loading conversations...</p>
-                <p class="text-xs mt-1 text-muted-foreground">One moment please</p>
-              </CardContent>
-            </Card>
-          </div>
+          <!-- Loading State (invisible placeholder to avoid layout jump) -->
+          <div v-if="chatStore.isLoading" />
 
           <!-- Empty State -->
           <div v-else-if="chatStore.conversations.length === 0" class="text-center text-muted-foreground mt-12">
@@ -95,12 +74,21 @@
                 </div>
 
                 <!-- Delete Button -->
-                <Button variant="ghost" size="icon"
-                  class="opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  @click.stop="confirmDeleteConversation(conversation.id, conversation.title)"
-                  :title="`Delete conversation '${conversation.title}'`" :disabled="isConversationTyping(conversation)">
-                  <Icon name="heroicons:trash" class="h-4 w-4" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button variant="ghost" size="icon"
+                        class="opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        @click.stop="confirmDeleteConversation(conversation.id, conversation.title)"
+                        :disabled="isConversationTyping(conversation)">
+                        <Icon name="heroicons:trash" class="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <p>Delete conversation</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </CardContent>
           </Card>
@@ -109,13 +97,13 @@
 
       <!-- Footer with Settings -->
       <div class="p-4 sm:p-6 border-t border-sidebar-border">
-        <Button variant="outline" class="w-full" @click="$emit('openSettings')">
-          <Icon name="heroicons:cog-6-tooth" class="h-5 w-5 mr-2" />
-          Settings
+        <Button variant="outline" class="w-full" as-child>
+          <NuxtLink to="/settings">
+            <Icon name="heroicons:cog-6-tooth" class="h-5 w-5 mr-2" />
+            Settings
+          </NuxtLink>
         </Button>
       </div>
-    </div>
-
     <!-- Confirmation Dialog -->
     <Dialog :open="showConfirmDialog" @update:open="showConfirmDialog = $event">
       <DialogContent class="max-w-sm">
@@ -146,24 +134,7 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  isMobileOpen?: boolean
-}
-
-defineOptions({
-  inheritAttrs: false
-})
-
-const props = withDefaults(defineProps<Props>(), {
-  isMobileOpen: false
-})
-
 const chatStore = useChatStore()
-
-defineEmits<{
-  openSettings: []
-  closeMobile: []
-}>()
 
 const showConfirmDialog = ref(false)
 const conversationToDelete = ref<{ id: string; title: string } | null>(null)
@@ -256,18 +227,7 @@ const isConversationTyping = (conversation: any): boolean => {
   }
 }
 
-/* Mobile Sidebar Transitions */
-@media (max-width: 1024px) {
-  .mobile-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 50;
-  }
 
-  .mobile-sidebar.open {
-    transform: translateX(0);
-  }
-}
 
 .mobile-transition {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);

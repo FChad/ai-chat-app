@@ -35,24 +35,24 @@
                     <!-- Filter and Search Bar -->
                     <div class="flex gap-2 sm:gap-3">
                         <!-- Family Filter -->
-                        <div class="relative flex-shrink-0 w-32 sm:w-auto">
-                            <select v-model="selectedFamily"
-                                class="w-full pl-3 pr-8 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring appearance-none cursor-pointer text-sm h-9">
-                                <option value="">All families</option>
-                                <option v-for="family in availableFamilies" :key="family" :value="family">
+                        <Select v-model="selectedFamily">
+                            <SelectTrigger class="w-36 flex-shrink-0">
+                                <SelectValue placeholder="All families" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All families</SelectItem>
+                                <SelectItem v-for="family in availableFamilies" :key="family" :value="family">
                                     {{ family }}
-                                </option>
-                            </select>
-                            <Icon name="heroicons:chevron-down"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
                         <!-- Search Bar -->
                         <div class="relative flex-1 min-w-0">
                             <Icon name="heroicons:magnifying-glass"
-                                class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <input v-model="searchQuery" type="text" placeholder="Search models..."
-                                class="w-full h-9 pl-9 pr-4 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm" />
+                                class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                            <Input v-model="searchQuery" type="text" placeholder="Search models..."
+                                class="pl-9 w-full" />
                         </div>
                     </div>
                 </div>
@@ -149,6 +149,8 @@ import type { AIModel } from '../../types/chat'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 
 interface Props {
     models: AIModel[]
@@ -166,7 +168,7 @@ const emit = defineEmits<{
 
 const isOpen = ref(false)
 const searchQuery = ref('')
-const selectedFamily = ref('')
+const selectedFamily = ref('all')
 const selectedModel = ref(props.modelValue || '')
 const tempSelectedModel = ref(props.modelValue || '')
 
@@ -215,7 +217,7 @@ const filteredModels = computed(() => {
     let models = props.models
 
     // Filter by family
-    if (selectedFamily.value) {
+    if (selectedFamily.value && selectedFamily.value !== 'all') {
         models = models.filter(model => model.details.family === selectedFamily.value)
     }
 

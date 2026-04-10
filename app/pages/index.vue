@@ -1,70 +1,51 @@
 <template>
-  <div class="flex h-full relative font-sans">
-    <!-- Mobile Overlay -->
-    <div v-if="isMobileSidebarOpen" @click="closeMobileSidebar"
-      class="fixed inset-0 bg-black/40 z-40 lg:hidden transition-all duration-200">
+  <div class="flex h-full overflow-hidden">
+    <!-- Conversations Panel (desktop) -->
+    <div class="hidden lg:flex w-72 flex-col border-r border-border bg-sidebar shrink-0">
+      <ConversationSidebar />
     </div>
 
-    <!-- Sidebar -->
-    <ConversationSidebar :class="[
-      'transition-all duration-300 ease-out z-50',
-      'lg:relative lg:translate-x-0',
-      isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-    ]" :is-mobile-open="isMobileSidebarOpen" @open-settings="showSettingsDialog = true"
-      @close-mobile="closeMobileSidebar" />
+    <!-- Mobile conversations drawer -->
+    <Sheet :open="isMobileConversationsOpen" @update:open="isMobileConversationsOpen = $event">
+      <SheetContent side="left" class="w-72 p-0 flex flex-col">
+        <ConversationSidebar />
+      </SheetContent>
+    </Sheet>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col min-w-0 bg-card border-l border-border">
-      <!-- Header -->
-      <div class="bg-card border-b border-border p-4 sm:px-6 flex items-center">
-        <div class="flex items-center justify-between w-full">
-          <div class="flex items-center space-x-3 sm:space-x-4">
-            <!-- Mobile Menu Button -->
-            <Button variant="ghost" size="icon" class="lg:hidden" @click="toggleMobileSidebar">
-              <Icon name="heroicons:bars-3" class="h-5 w-5" />
-            </Button>
-
-            <!-- App Icon & Title -->
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 flex items-center justify-center bg-primary text-primary-foreground rounded-lg">
-                <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <h1 class="text-lg sm:text-xl font-semibold">AskChadAI</h1>
-                <p class="text-xs text-muted-foreground hidden sm:block">Intelligent Assistant</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center space-x-3">
-            <!-- Current Model Info -->
-            <Button v-if="chatStore.currentConversation" variant="secondary" size="sm"
-              class="hidden sm:flex items-center space-x-2 rounded-full" @click="showModelInfo">
-              <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary" />
-              <span class="text-sm font-medium">
-                {{ chatStore.currentConversation.model.split(':')[0] }}
-              </span>
-              <Icon name="heroicons:information-circle" class="h-4 w-4 text-muted-foreground" />
-            </Button>
-
-            <!-- Theme Toggle -->
-            <ThemeToggle />
-          </div>
+    <div class="flex flex-1 flex-col min-w-0">
+      <!-- Chat sub-header: mobile conversations toggle + model info -->
+      <div class="flex items-center gap-2 border-b border-border px-4 py-2 bg-background">
+        <Button variant="ghost" size="icon" class="lg:hidden h-8 w-8" @click="isMobileConversationsOpen = true">
+          <Icon name="heroicons:bars-3" class="h-5 w-5" />
+        </Button>
+        <div class="ml-auto flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button v-if="chatStore.currentConversation" variant="secondary" size="sm"
+                  class="flex items-center gap-2 rounded-full" @click="showModelInfo">
+                  <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary" />
+                  <span class="text-sm font-medium">
+                    {{ chatStore.currentConversation.model.split(':')[0] }}
+                  </span>
+                  <Icon name="heroicons:information-circle" class="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View model information</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
-      <!-- Chat container -->
-      <div class="flex-1 flex flex-col min-h-0 bg-transparent">
-        <!-- Messages -->
+      <!-- Messages + Input -->
+      <div class="flex flex-1 flex-col min-h-0">
         <ChatMessages ref="chatMessagesRef" :available-models="availableModels" @focus-input="focusInput" />
-
-        <!-- Input area -->
         <ChatInput ref="chatInputRef" :current-model="currentModelDetails" />
       </div>
     </div>
-
-    <!-- Settings Dialog -->
-    <SettingsDialog :is-open="showSettingsDialog" @close="showSettingsDialog = false" />
 
     <!-- Model Info Dialog -->
     <ModelInfoDialog :is-open="showModelInfoDialog" :model="currentModelDetails" @close="showModelInfoDialog = false" />
@@ -73,8 +54,8 @@
 
 <script setup lang="ts">
 import type { AIModel } from '../../types/chat'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 
-// Set page title
 useHead({
   title: 'AskChadAI - Intelligent Chat Assistant'
 })
@@ -85,85 +66,50 @@ const { loadModels } = useChat()
 
 const chatMessagesRef = ref()
 const chatInputRef = ref()
-const showSettingsDialog = ref(false)
 const showModelInfoDialog = ref(false)
-const isMobileSidebarOpen = ref(false)
+const isMobileConversationsOpen = ref(false)
 const availableModels = ref<AIModel[]>([])
 
-// Load models
 const loadAvailableModels = async () => {
   availableModels.value = await loadModels()
 }
 
-// Method to focus the input from ChatMessages component
 const focusInput = () => {
   if (chatInputRef.value && chatInputRef.value.focusInput) {
     chatInputRef.value.focusInput()
   }
 }
 
-// Mobile sidebar controls
-const toggleMobileSidebar = () => {
-  isMobileSidebarOpen.value = !isMobileSidebarOpen.value
-}
-
-const closeMobileSidebar = () => {
-  isMobileSidebarOpen.value = false
-}
-
-// Get current model details
 const currentModelDetails = computed(() => {
   if (!chatStore.currentConversation) return null
   const modelId = chatStore.currentConversation.model
   return availableModels.value.find((m: AIModel) => m.model === modelId) || null
 })
 
-// Show model info
 const showModelInfo = () => {
   if (currentModelDetails.value) {
     showModelInfoDialog.value = true
   }
 }
 
-// Close mobile sidebar when conversation changes
+// Close mobile conversations panel when switching conversations
 watch(() => chatStore.currentConversationId, () => {
-  closeMobileSidebar()
+  isMobileConversationsOpen.value = false
 })
 
-// Load conversations on mount
 onMounted(async () => {
   try {
-    // Load available models
     await loadAvailableModels()
-
-    // Load conversations from localStorage (this sets loading state)
-    chatStore.loadFromLocalStorage()
+    chatStore.setLoadingComplete()
   } catch (error) {
     console.error('Error during initialization:', error)
-    // Ensure loading is complete even if there's an error
     chatStore.setLoadingComplete()
   }
 })
 
-// Auto-scroll when new messages are added or typing state changes
 watch([() => chatStore.currentMessages, () => chatStore.isTyping], () => {
   if (chatStore.isAtBottom && chatMessagesRef.value?.messagesContainer) {
     scrollToBottom(chatMessagesRef.value.messagesContainer)
   }
 }, { deep: true })
-
-// Close mobile sidebar on window resize to desktop
-onMounted(() => {
-  const handleResize = () => {
-    if (window.innerWidth >= 1024) { // lg breakpoint
-      isMobileSidebarOpen.value = false
-    }
-  }
-
-  window.addEventListener('resize', handleResize)
-
-  onUnmounted(() => {
-    window.removeEventListener('resize', handleResize)
-  })
-})
 </script>

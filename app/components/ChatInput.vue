@@ -1,67 +1,82 @@
 <template>
-  <div class="p-4 sm:p-6 border-t border-border bg-card">
+  <div class="bg-background border-t border-border p-2">
     <!-- Only show input form when there's a conversation -->
-    <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit" class="flex flex-col space-y-3">
+    <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit">
 
-      <!-- Image preview area -->
-      <div v-if="selectedImages.length > 0" class="flex flex-wrap gap-2 pb-2">
+      <!-- Image previews (above toolbar) -->
+      <div v-if="selectedImages.length > 0" class="flex flex-wrap gap-2 px-1 pb-2">
         <div v-for="(img, index) in selectedImages" :key="index" class="relative group">
-          <img :src="img.preview" :alt="img.name" class="h-20 w-20 object-cover rounded-lg border-2 border-border" />
+          <img :src="img.preview" :alt="img.name" class="h-16 w-16 object-cover rounded-md border border-border" />
           <Button type="button" variant="destructive" size="icon"
-            class="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            class="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             @click="removeImage(index)">
             <Icon name="heroicons:x-mark" class="h-3 w-3" />
           </Button>
           <div
-            class="absolute bottom-0 left-0 right-0 bg-foreground/60 text-background text-xs px-1 py-0.5 truncate rounded-b-lg">
+            class="absolute bottom-0 left-0 right-0 bg-foreground/60 text-background text-[10px] px-1 py-0.5 truncate rounded-b-md">
             {{ img.name }}
           </div>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
-        <textarea ref="textareaRef" v-model="message"
-          placeholder="Write a message... (Enter to send, Shift+Enter for new line)"
-          class="flex-1 w-full px-3 py-3 bg-muted border border-input focus:border-ring rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
-          :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" @paste="handlePaste"
-          rows="1" />
-
-        <div class="flex space-x-2 w-full sm:w-auto">
-          <!-- Image upload button -->
-          <label v-if="supportsImages">
-            <Button type="button" variant="secondary" size="icon" as="span" class="cursor-pointer">
-              <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple
-                class="hidden" />
-              <Icon name="heroicons:photo" class="h-5 w-5" />
+      <!-- Toolbar row -->
+      <div class="border rounded-lg py-1.5 px-2 flex flex-wrap items-start gap-x-1">
+        <!-- Left: attachment / plus -->
+        <div class="h-9 flex items-center order-1">
+          <label v-if="supportsImages" class="inline-flex">
+            <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple class="hidden" />
+            <Button type="button" variant="ghost" size="icon" as="span"
+              class="cursor-pointer size-8 text-muted-foreground hover:text-foreground">
+              <Icon name="heroicons:paper-clip" class="h-4 w-4" />
             </Button>
           </label>
-
-          <!-- Cancel button -->
-          <Button v-if="isCurrentConversationTyping" variant="destructive" @click="handleCancel" type="button"
-            class="flex-1 sm:flex-initial">
-            <Icon name="heroicons:x-mark" class="h-4 w-4 mr-2" />
-            Cancel
+          <Button v-else type="button" variant="ghost" size="icon"
+            class="size-8 text-muted-foreground hover:text-foreground" disabled>
+            <Icon name="heroicons:plus" class="h-4 w-4" />
           </Button>
+        </div>
 
-          <!-- Send button -->
-          <Button v-else type="submit" :disabled="!canSend" class="flex-1 sm:flex-initial">
-            <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-            Send
+        <!-- Center: textarea (borderless) -->
+        <div class="flex-1 min-w-0 order-2 grid">
+          <textarea ref="textareaRef" v-model="message"
+            placeholder="Type your message…"
+            class="field-sizing-content w-full bg-transparent py-2 text-sm outline-none border-none shadow-none resize-none min-h-9 max-h-32 px-1 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="chatStore.isTyping || isCurrentConversationTyping"
+            @keydown="handleKeydown"
+            @paste="handlePaste" />
+        </div>
+
+        <!-- Right: cancel / send -->
+        <div class="h-9 flex items-center gap-1 order-3">
+          <Button v-if="isCurrentConversationTyping" type="button" variant="ghost" size="icon"
+            class="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+            @click="handleCancel">
+            <Icon name="heroicons:stop" class="h-4 w-4" />
+          </Button>
+          <Button v-else type="submit" variant="ghost" size="icon"
+            :disabled="!canSend"
+            class="size-8 disabled:opacity-30">
+            <Icon name="heroicons:paper-airplane" class="h-4 w-4" />
           </Button>
         </div>
       </div>
     </form>
 
     <!-- Placeholder when no conversation is selected -->
-    <div v-else class="invisible flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
-      <div
-        class="flex-1 w-full px-3 py-3 bg-muted border border-input rounded-lg text-muted-foreground text-sm leading-5 min-h-[46px] flex items-center cursor-not-allowed">
-        Select a conversation to send a message...
+    <div v-else class="border rounded-lg py-1.5 px-2 flex items-center gap-x-1 opacity-40 pointer-events-none">
+      <div class="h-9 flex items-center order-1">
+        <Button type="button" variant="ghost" size="icon" class="size-8" disabled>
+          <Icon name="heroicons:plus" class="h-4 w-4" />
+        </Button>
       </div>
-      <Button type="button" disabled class="w-full sm:w-auto">
-        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-        Send
-      </Button>
+      <div class="flex-1 order-2 py-2 px-1 text-sm text-muted-foreground">
+        Select a conversation to start chatting…
+      </div>
+      <div class="h-9 flex items-center order-3">
+        <Button type="button" variant="ghost" size="icon" class="size-8" disabled>
+          <Icon name="heroicons:paper-airplane" class="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   </div>
 </template>
@@ -236,11 +251,6 @@ const handleSubmit = async () => {
   selectedImages.value.forEach(img => URL.revokeObjectURL(img.preview))
   selectedImages.value = []
 
-  // Reset textarea height
-  nextTick(() => {
-    autoResize()
-  })
-
   await sendMessage(messageToSend, imagesToSend)
 }
 
@@ -257,25 +267,9 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-const autoResize = () => {
-  if (textareaRef.value) {
-    textareaRef.value.style.height = 'auto'
-    textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px'
-  }
-}
-
-// Watch for changes in message to auto-resize
-watch(message, () => {
-  nextTick(() => {
-    autoResize()
-  })
-})
-
-// Auto-resize on mount and focus management
+// Focus management
 onMounted(() => {
   if (textareaRef.value) {
-    autoResize()
-
     // Focus the textarea when component mounts
     const focusTextarea = () => {
       if (textareaRef.value && chatStore.currentConversation && !chatStore.isLoading) {
@@ -335,73 +329,3 @@ defineExpose({
   focusInput
 })
 </script>
-
-<style scoped>
-/* Modern Scrollbar for textarea */
-.scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.4);
-  border-radius: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(156, 163, 175, 0.6);
-}
-
-/* Dark mode scrollbar */
-.dark .scrollbar-thin {
-  scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
-}
-
-.dark .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(75, 85, 99, 0.4);
-}
-
-.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(75, 85, 99, 0.6);
-}
-
-/* Mobile placeholder text optimization */
-.mobile-placeholder::placeholder {
-  font-size: inherit;
-  line-height: inherit;
-  opacity: 0.7;
-}
-
-/* Responsive placeholder text */
-@media (min-width: 640px) {
-  .mobile-placeholder::placeholder {
-    font-size: inherit;
-    line-height: inherit;
-    opacity: 0.6;
-  }
-}
-
-/* Extra small screens - even smaller placeholder */
-@media (max-width: 375px) {
-  .mobile-placeholder::placeholder {
-    font-size: inherit;
-    line-height: inherit;
-  }
-}
-
-/* Ensure placeholder text wraps nicely on mobile */
-@media (max-width: 640px) {
-  .mobile-placeholder {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-}
-</style>

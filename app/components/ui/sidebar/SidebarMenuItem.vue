@@ -8,10 +8,11 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div
-    data-slot="card-content"
-    :class="cn('p-6 pt-0', props.class)"
+  <li
+    data-slot="sidebar-menu-item"
+    data-sidebar="menu-item"
+    :class="cn('group/menu-item relative', props.class)"
   >
     <slot />
-  </div>
+  </li>
 </template>

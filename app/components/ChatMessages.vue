@@ -1,7 +1,7 @@
 <template>
   <ScrollArea ref="scrollAreaRef" class="flex-1 min-h-0">
     <div ref="messagesContainer" @scroll="handleScrollEvent"
-      class="flex-1 p-4 sm:p-6 overflow-y-auto scrollbar-thin space-y-3 sm:space-y-4 min-h-0">
+      class="flex-1 p-4 overflow-y-auto min-h-0">
       <!-- Loading State -->
       <div v-if="chatStore.isLoading" class="flex items-center justify-center min-h-[50vh]">
         <Card class="max-w-md w-full mx-4 text-center">
@@ -64,13 +64,24 @@
       </div>
 
       <!-- Chat Messages -->
-      <ChatMessage v-for="(message, idx) in chatStore.currentMessages" :key="message.id"
-        :message="typeof message.content === 'string' ? message.content : (Array.isArray(message.content) ? (message.content.find(c => c.type === 'text')?.text || '') : '')"
-        :is-user="message.role === 'user'" :is-ai="message.role === 'assistant'"
-        :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
-        :is-typing="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
-        :timestamp="message.timestamp"
-        :images="Array.isArray(message.content) ? message.content.filter(c => c.type === 'image_url').map(c => ({ url: c.image_url?.url || '', name: undefined })) : []" />
+      <template v-else v-for="(message, idx) in chatStore.currentMessages" :key="message.id">
+        <!-- Date separator between different days -->
+        <div v-if="showDateSeparator(idx)" class="flex px-2 items-center gap-2 my-3">
+          <Separator class="flex-1" />
+          <time class="text-xs text-muted-foreground font-medium min-w-max px-1">
+            {{ getMessageDate(message.timestamp) }}
+          </time>
+          <Separator class="flex-1" />
+        </div>
+        <ChatMessage
+          :message="typeof message.content === 'string' ? message.content : (Array.isArray(message.content) ? (message.content.find(c => c.type === 'text')?.text || '') : '')"
+          :is-user="message.role === 'user'" :is-ai="message.role === 'assistant'"
+          :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
+          :is-typing="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
+          :is-grouped="isMessageGrouped(idx)"
+          :timestamp="message.timestamp"
+          :images="Array.isArray(message.content) ? message.content.filter(c => c.type === 'image_url').map(c => ({ url: c.image_url?.url || '', name: undefined })) : []" />
+      </template>
     </div>
   </ScrollArea>
 </template>
@@ -91,6 +102,29 @@ const { startNewConversation: createConversation } = useChat()
 
 const messagesContainer = ref<HTMLElement>()
 const selectedModel = ref('')
+
+// Grouping logic: a message is grouped if same role as previous AND same calendar day
+const isMessageGrouped = (index: number): boolean => {
+  if (index === 0) return false
+  const curr = chatStore.currentMessages[index]
+  const prev = chatStore.currentMessages[index - 1]
+  if (curr.role !== prev.role) return false
+  return new Date(curr.timestamp).toDateString() === new Date(prev.timestamp).toDateString()
+}
+
+// Date separator: show when the day changes between consecutive messages
+const showDateSeparator = (index: number): boolean => {
+  if (index === 0) return false
+  const curr = new Date(chatStore.currentMessages[index].timestamp)
+  const prev = new Date(chatStore.currentMessages[index - 1].timestamp)
+  return curr.toDateString() !== prev.toDateString()
+}
+
+const getMessageDate = (timestamp: string): string => {
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  })
+}
 
 const handleScrollEvent = () => {
   if (messagesContainer.value) {

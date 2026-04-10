@@ -1,10 +1,7 @@
 <template>
-  <!-- Settings Sheet -->
-  <Sheet :open="isOpen" @update:open="(val: boolean) => { if (!val) closeDialog() }">
-    <SheetContent side="right" class="sm:max-w-lg w-full flex flex-col p-0 gap-0">
-      <!-- Scrollable Content -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <div class="space-y-6">
+  <div class="flex flex-1 flex-col overflow-hidden">
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="max-w-lg space-y-6">
 
           <!-- Preferences Card -->
           <Card>
@@ -37,13 +34,17 @@
                       Responses are streamed in real-time. Disable to receive complete responses all at once.
                     </p>
                   </div>
-                  <Switch :checked="chatStore.isStreamModeEnabled" @update:checked="toggleStreamMode" />
+                  <Switch :checked="chatStore.isStreamModeEnabled" @update:checked="chatStore.updateStreamMode($event)" />
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" @click="closeDialog">Close</Button>
-              <Button class="ml-auto" @click="closeDialog">Save Preferences</Button>
+              <Button variant="outline" as-child>
+                <NuxtLink to="/">Close</NuxtLink>
+              </Button>
+              <Button class="ml-auto" as-child>
+                <NuxtLink to="/">Save Preferences</NuxtLink>
+              </Button>
             </CardFooter>
           </Card>
 
@@ -69,7 +70,7 @@
                   <Icon name="heroicons:arrow-down-tray" class="h-4 w-4 mr-2" />
                   Export
                 </Button>
-                <Button variant="destructive" @click="confirmClearAll" :disabled="chatStore.conversations.length === 0">
+                <Button variant="destructive" @click="showConfirmDialog = true" :disabled="chatStore.conversations.length === 0">
                   <Icon name="heroicons:trash" class="h-4 w-4 mr-2" />
                   Delete All
                 </Button>
@@ -78,71 +79,48 @@
           </Card>
 
         </div>
-      </div>
-    </SheetContent>
-  </Sheet>
+    </div>
 
-  <!-- Confirmation Dialog (stays as Dialog - small confirm prompt is correct use case) -->
-  <Dialog :open="showConfirmDialog" @update:open="showConfirmDialog = $event">
-    <DialogContent class="max-w-sm">
-      <DialogHeader>
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg flex-shrink-0">
-            <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-destructive" />
+    <!-- Confirmation Dialog -->
+    <Dialog :open="showConfirmDialog" @update:open="showConfirmDialog = $event">
+      <DialogContent class="max-w-sm">
+        <DialogHeader>
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg shrink-0">
+              <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-destructive" />
+            </div>
+            <div>
+              <DialogTitle>Confirmation</DialogTitle>
+              <DialogDescription>Irreversible action</DialogDescription>
+            </div>
           </div>
-          <div>
-            <DialogTitle>Confirmation</DialogTitle>
-            <DialogDescription>Irreversible action</DialogDescription>
-          </div>
-        </div>
-      </DialogHeader>
-
-      <p class="text-sm text-muted-foreground leading-relaxed">
-        Do you really want to delete all conversations? This action cannot be undone.
-      </p>
-
-      <DialogFooter class="gap-2 sm:gap-0">
-        <Button variant="outline" @click="showConfirmDialog = false">Cancel</Button>
-        <Button variant="destructive" @click="clearAllConversations">Delete</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+        </DialogHeader>
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Do you really want to delete all conversations? This action cannot be undone.
+        </p>
+        <DialogFooter class="gap-2 sm:gap-0">
+          <Button variant="outline" @click="showConfirmDialog = false">Cancel</Button>
+          <Button variant="destructive" @click="clearAllConversations">Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
-interface Props {
-  isOpen: boolean
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  close: []
-}>()
+useHead({ title: 'Settings — AskChadAI' })
 
 const chatStore = useChatStore()
 const colorMode = useColorMode()
 const showConfirmDialog = ref(false)
 
-const totalMessages = computed(() => {
-  return chatStore.conversations.reduce((total, conv) => total + conv.messages.length, 0)
-})
-
-const closeDialog = () => {
-  emit('close')
-}
-
-const confirmClearAll = () => {
-  showConfirmDialog.value = true
-}
+const totalMessages = computed(() =>
+  chatStore.conversations.reduce((total, conv) => total + conv.messages.length, 0)
+)
 
 const clearAllConversations = () => {
   chatStore.clearAllConversations()
   showConfirmDialog.value = false
-  closeDialog()
-}
-
-const toggleStreamMode = (checked: boolean) => {
-  chatStore.updateStreamMode(checked)
 }
 
 const exportConversations = () => {
@@ -152,36 +130,17 @@ const exportConversations = () => {
       conversations: chatStore.conversations,
       settings: chatStore.settings
     }
-
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-
     const a = document.createElement('a')
     a.href = url
     a.download = `askchadai-conversations-${new Date().toISOString().split('T')[0]}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-
     URL.revokeObjectURL(url)
   } catch (error) {
     console.error('Export failed:', error)
-    alert('Export fehlgeschlagen. Bitte versuche es erneut.')
   }
 }
-
-// Close dialog on Escape key
-onMounted(() => {
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && props.isOpen) {
-      closeDialog()
-    }
-  }
-
-  document.addEventListener('keydown', handleEscape)
-
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleEscape)
-  })
-})
 </script>

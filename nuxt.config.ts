@@ -1,12 +1,27 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-03-25',
   devtools: { enabled: false },
-  modules: ['@nuxtjs/color-mode', '@nuxtjs/tailwindcss', '@nuxt/icon', '@pinia/nuxt'],
+  modules: ['@nuxtjs/color-mode', '@nuxt/icon', '@pinia/nuxt', 'shadcn-nuxt'],
+
+  css: ['~/assets/css/tailwind.css'],
+
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
+
+  shadcn: {
+    prefix: '',
+    componentDir: '@/components/ui',
+  },
 
   colorMode: {
-    preference: 'system', // default theme
-    fallback: 'light', // fallback theme
+    preference: 'system',
+    fallback: 'light',
     globalName: '__NUXT_COLOR_MODE__',
     componentName: 'ColorScheme',
     classPrefix: '',

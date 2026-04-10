@@ -1,6 +1,5 @@
 <template>
-  <div class="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-    <!-- Main content -->
+  <div class="h-screen overflow-hidden bg-background text-foreground transition-colors duration-200">
     <main class="relative h-full overflow-hidden">
       <slot />
     </main>

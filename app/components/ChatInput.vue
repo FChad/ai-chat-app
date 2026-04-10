@@ -1,19 +1,19 @@
 <template>
-  <div class="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+  <div class="p-4 sm:p-6 border-t border-border bg-card">
     <!-- Only show input form when there's a conversation -->
     <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit" class="flex flex-col space-y-3">
 
       <!-- Image preview area -->
       <div v-if="selectedImages.length > 0" class="flex flex-wrap gap-2 pb-2">
         <div v-for="(img, index) in selectedImages" :key="index" class="relative group">
-          <img :src="img.preview" :alt="img.name"
-            class="h-20 w-20 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600" />
-          <button type="button" @click="removeImage(index)"
-            class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <img :src="img.preview" :alt="img.name" class="h-20 w-20 object-cover rounded-lg border-2 border-border" />
+          <Button type="button" variant="destructive" size="icon"
+            class="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            @click="removeImage(index)">
             <Icon name="heroicons:x-mark" class="h-3 w-3" />
-          </button>
+          </Button>
           <div
-            class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 truncate rounded-b-lg">
+            class="absolute bottom-0 left-0 right-0 bg-foreground/60 text-background text-xs px-1 py-0.5 truncate rounded-b-lg">
             {{ img.name }}
           </div>
         </div>
@@ -22,32 +22,32 @@
       <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <textarea ref="textareaRef" v-model="message"
           placeholder="Write a message... (Enter to send, Shift+Enter for new line)"
-          class="flex-1 w-full px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
+          class="flex-1 w-full px-3 py-3 bg-muted border border-input focus:border-ring rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 resize-none min-h-[46px] max-h-32 overflow-y-auto scrollbar-thin text-sm leading-5 transition-colors duration-200"
           :disabled="chatStore.isTyping || isCurrentConversationTyping" @keydown="handleKeydown" @paste="handlePaste"
           rows="1" />
 
         <div class="flex space-x-2 w-full sm:w-auto">
-          <!-- Image upload button - only show if model supports images -->
-          <label v-if="supportsImages"
-            class="px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer flex-shrink-0"
-            title="Upload image">
-            <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple class="hidden" />
-            <Icon name="heroicons:photo" class="h-5 w-5" />
+          <!-- Image upload button -->
+          <label v-if="supportsImages">
+            <Button type="button" variant="secondary" size="icon" as="span" class="cursor-pointer">
+              <input type="file" ref="fileInputRef" @change="handleFileSelect" accept="image/*" multiple
+                class="hidden" />
+              <Icon name="heroicons:photo" class="h-5 w-5" />
+            </Button>
           </label>
 
-          <!-- Cancel button when conversation is typing -->
-          <button v-if="isCurrentConversationTyping" @click="handleCancel" type="button"
-            class="flex-1 sm:flex-initial px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
-            <Icon name="heroicons:x-mark" class="h-4 w-4" />
-            <span>Cancel</span>
-          </button>
+          <!-- Cancel button -->
+          <Button v-if="isCurrentConversationTyping" variant="destructive" @click="handleCancel" type="button"
+            class="flex-1 sm:flex-initial">
+            <Icon name="heroicons:x-mark" class="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
 
           <!-- Send button -->
-          <button v-else type="submit" :disabled="!canSend"
-            class="flex-1 sm:flex-initial px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 flex-shrink-0 text-sm font-semibold">
-            <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>Send</span>
-          </button>
+          <Button v-else type="submit" :disabled="!canSend" class="flex-1 sm:flex-initial">
+            <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+            Send
+          </Button>
         </div>
       </div>
     </form>
@@ -55,14 +55,13 @@
     <!-- Placeholder when no conversation is selected -->
     <div v-else class="invisible flex flex-col sm:flex-row items-end space-y-3 sm:space-y-0 sm:space-x-4">
       <div
-        class="flex-1 w-full px-3 py-3 bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-500 text-sm leading-5 min-h-[46px] flex items-center cursor-not-allowed">
+        class="flex-1 w-full px-3 py-3 bg-muted border border-input rounded-lg text-muted-foreground text-sm leading-5 min-h-[46px] flex items-center cursor-not-allowed">
         Select a conversation to send a message...
       </div>
-      <button type="button" disabled
-        class="w-full sm:w-auto px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed flex items-center justify-center space-x-2 flex-shrink-0 self-stretch sm:self-start text-sm font-semibold">
-        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5" />
-        <span>Send</span>
-      </button>
+      <Button type="button" disabled class="w-full sm:w-auto">
+        <Icon name="heroicons:paper-airplane" class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+        Send
+      </Button>
     </div>
   </div>
 </template>

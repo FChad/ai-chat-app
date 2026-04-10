@@ -17,7 +17,7 @@
                 <!-- Theme -->
                 <div class="py-4 first:pt-0 last:pb-0">
                   <label class="text-sm font-medium mb-1.5 block" for="theme-select">Theme</label>
-                  <Select :model-value="colorMode.preference" @update:model-value="colorMode.preference = $event">
+                  <Select :model-value="colorMode.preference" @update:model-value="(val) => colorMode.preference = val as string">
                     <SelectTrigger id="theme-select" class="w-full">
                       <SelectValue />
                     </SelectTrigger>

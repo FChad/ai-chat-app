@@ -1,115 +1,139 @@
 <template>
-  <div class="flex h-full overflow-hidden">
-    <!-- Conversations Panel (desktop) -->
-    <div class="hidden lg:flex w-72 flex-col border-r border-border bg-sidebar shrink-0">
-      <ConversationSidebar />
-    </div>
+  <div class="flex-1 overflow-y-auto p-6">
+    <div class="max-w-2xl mx-auto space-y-8">
 
-    <!-- Mobile conversations drawer -->
-    <Sheet :open="isMobileConversationsOpen" @update:open="isMobileConversationsOpen = $event">
-      <SheetContent side="left" class="w-72 p-0 flex flex-col">
-        <ConversationSidebar />
-      </SheetContent>
-    </Sheet>
-
-    <!-- Main Chat Area -->
-    <div class="flex flex-1 flex-col min-w-0">
-      <!-- Chat sub-header: mobile conversations toggle + model info -->
-      <div class="flex items-center gap-2 border-b border-border px-4 py-2 bg-background">
-        <Button variant="ghost" size="icon" class="lg:hidden h-8 w-8" @click="isMobileConversationsOpen = true">
-          <Icon name="heroicons:bars-3" class="h-5 w-5" />
-        </Button>
-        <div class="ml-auto flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button v-if="chatStore.currentConversation" variant="secondary" size="sm"
-                  class="flex items-center gap-2 rounded-full" @click="showModelInfo">
-                  <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary" />
-                  <span class="text-sm font-medium">
-                    {{ chatStore.currentConversation.model.split(':')[0] }}
-                  </span>
-                  <Icon name="heroicons:information-circle" class="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>View model information</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+      <!-- Hero -->
+      <div class="text-center space-y-3 pt-4">
+        <div class="w-16 h-16 flex items-center justify-center bg-primary text-primary-foreground rounded-2xl mx-auto">
+          <Icon name="heroicons:chat-bubble-left-right" class="h-8 w-8" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">AskChadAI</h1>
+        <p class="text-muted-foreground text-base leading-relaxed max-w-md mx-auto">
+          A free, open-source AI chat assistant powered by OpenRouter. Chat with state-of-the-art language models — no account required.
+        </p>
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <Button as-child size="lg">
+            <NuxtLink to="/chat">
+              <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4 mr-2" />
+              Start Chatting
+            </NuxtLink>
+          </Button>
+          <Button variant="outline" as-child size="lg">
+            <NuxtLink to="/models">
+              <Icon name="heroicons:cpu-chip" class="h-4 w-4 mr-2" />
+              Browse Models
+            </NuxtLink>
+          </Button>
         </div>
       </div>
 
-      <!-- Messages + Input -->
-      <div class="flex flex-1 flex-col min-h-0">
-        <ChatMessages ref="chatMessagesRef" :available-models="availableModels" @focus-input="focusInput" />
-        <ChatInput ref="chatInputRef" :current-model="currentModelDetails" />
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-4">
+        <Card>
+          <CardContent class="p-5 text-center">
+            <div class="text-3xl font-bold text-primary">{{ chatStore.conversations.length }}</div>
+            <div class="text-sm text-muted-foreground mt-1 font-medium">Saved Conversations</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent class="p-5 text-center">
+            <div class="text-3xl font-bold text-primary">{{ totalMessages }}</div>
+            <div class="text-sm text-muted-foreground mt-1 font-medium">Total Messages</div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
 
-    <!-- Model Info Dialog -->
-    <ModelInfoDialog :is-open="showModelInfoDialog" :model="currentModelDetails" @close="showModelInfoDialog = false" />
+      <!-- Features -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Features</CardTitle>
+          <CardDescription>Everything included, nothing to pay.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div v-for="feature in features" :key="feature.title" class="flex items-start gap-3">
+              <div class="w-9 h-9 flex items-center justify-center bg-primary/10 rounded-lg shrink-0 mt-0.5">
+                <Icon :name="feature.icon" class="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold">{{ feature.title }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5 leading-relaxed">{{ feature.description }}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Quick Links -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Links</CardTitle>
+        </CardHeader>
+        <CardContent class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Button variant="outline" class="justify-start h-auto py-3 px-4" as-child>
+            <NuxtLink to="/chat">
+              <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4 mr-2 shrink-0" />
+              <span class="text-sm font-medium">Open Chat</span>
+            </NuxtLink>
+          </Button>
+          <Button variant="outline" class="justify-start h-auto py-3 px-4" as-child>
+            <NuxtLink to="/models">
+              <Icon name="heroicons:cpu-chip" class="h-4 w-4 mr-2 shrink-0" />
+              <span class="text-sm font-medium">Browse Models</span>
+            </NuxtLink>
+          </Button>
+          <Button variant="outline" class="justify-start h-auto py-3 px-4" as-child>
+            <NuxtLink to="/settings">
+              <Icon name="heroicons:cog-6-tooth" class="h-4 w-4 mr-2 shrink-0" />
+              <span class="text-sm font-medium">Settings</span>
+            </NuxtLink>
+          </Button>
+        </CardContent>
+      </Card>
+
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { AIModel } from '../../types/chat'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
-
-useHead({
-  title: 'AskChadAI - Intelligent Chat Assistant'
-})
+useHead({ title: 'Home — AskChadAI' })
 
 const chatStore = useChatStore()
-const { scrollToBottom } = useScrolling()
-const { loadModels } = useChat()
 
-const chatMessagesRef = ref()
-const chatInputRef = ref()
-const showModelInfoDialog = ref(false)
-const isMobileConversationsOpen = ref(false)
-const availableModels = ref<AIModel[]>([])
+const totalMessages = computed(() =>
+  chatStore.conversations.reduce((sum, c) => sum + c.messages.length, 0)
+)
 
-const loadAvailableModels = async () => {
-  availableModels.value = await loadModels()
-}
-
-const focusInput = () => {
-  if (chatInputRef.value && chatInputRef.value.focusInput) {
-    chatInputRef.value.focusInput()
+const features = [
+  {
+    icon: 'heroicons:cpu-chip',
+    title: 'Free AI Models',
+    description: 'Access a curated list of free, state-of-the-art language models via OpenRouter — no API costs.'
+  },
+  {
+    icon: 'heroicons:bolt',
+    title: 'Streaming Responses',
+    description: 'Responses stream in real-time so you see the answer as it generates, not all at once.'
+  },
+  {
+    icon: 'heroicons:archive-box',
+    title: 'Conversation History',
+    description: 'All your conversations are saved locally in the browser — no account or server storage needed.'
+  },
+  {
+    icon: 'heroicons:arrow-down-tray',
+    title: 'Export Conversations',
+    description: 'Export all your conversations to a JSON file for backup or offline use at any time.'
+  },
+  {
+    icon: 'heroicons:photo',
+    title: 'Image Support',
+    description: 'Attach images to your messages for models that support vision input.'
+  },
+  {
+    icon: 'heroicons:moon',
+    title: 'Dark Mode',
+    description: 'Full light and dark mode support that respects your system preference.'
   }
-}
-
-const currentModelDetails = computed(() => {
-  if (!chatStore.currentConversation) return null
-  const modelId = chatStore.currentConversation.model
-  return availableModels.value.find((m: AIModel) => m.model === modelId) || null
-})
-
-const showModelInfo = () => {
-  if (currentModelDetails.value) {
-    showModelInfoDialog.value = true
-  }
-}
-
-// Close mobile conversations panel when switching conversations
-watch(() => chatStore.currentConversationId, () => {
-  isMobileConversationsOpen.value = false
-})
-
-onMounted(async () => {
-  try {
-    await loadAvailableModels()
-    chatStore.setLoadingComplete()
-  } catch (error) {
-    console.error('Error during initialization:', error)
-    chatStore.setLoadingComplete()
-  }
-})
-
-watch([() => chatStore.currentMessages, () => chatStore.isTyping], () => {
-  if (chatStore.isAtBottom && chatMessagesRef.value?.messagesContainer) {
-    scrollToBottom(chatMessagesRef.value.messagesContainer)
-  }
-}, { deep: true })
+]
 </script>

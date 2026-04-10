@@ -26,7 +26,9 @@ import { Separator } from '@/components/ui/separator'
 const route = useRoute()
 
 const pageTitle = computed(() => {
-  if (route.path === '/') return 'Chat'
+  if (route.path === '/') return 'Home'
+  if (route.path === '/chat') return 'Chat'
+  if (route.path === '/models') return 'Models'
   if (route.path.startsWith('/settings')) return 'Settings'
   return ''
 })

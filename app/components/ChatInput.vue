@@ -1,5 +1,18 @@
 <template>
   <div class="bg-background border-t border-border p-2">
+    <!-- Error Alert -->
+    <Alert v-if="errorTitle" variant="destructive" class="mb-2 relative">
+      <Icon name="heroicons:exclamation-circle" class="h-4 w-4" />
+      <AlertTitle>{{ errorTitle }}</AlertTitle>
+      <AlertDescription>{{ errorDetail }}</AlertDescription>
+      <Button
+        type="button" variant="ghost" size="icon"
+        class="absolute top-1.5 right-1.5 h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+        @click="clearError">
+        <Icon name="heroicons:x-mark" class="h-3.5 w-3.5" />
+      </Button>
+    </Alert>
+
     <!-- Only show input form when there's a conversation -->
     <form v-if="chatStore.currentConversation" @submit.prevent="handleSubmit">
 
@@ -83,6 +96,7 @@
 
 <script setup lang="ts">
 import type { AIModel } from '../../types/chat'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 
 interface Props {
   currentModel?: AIModel | null
@@ -96,6 +110,13 @@ const { sendMessage, cancelMessage } = useChat()
 const message = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 const fileInputRef = ref<HTMLInputElement>()
+
+const errorTitle = computed(() => chatStore.apiError?.title ?? null)
+const errorDetail = computed(() => chatStore.apiError?.detail ?? null)
+
+const clearError = () => {
+  chatStore.clearApiError()
+}
 
 interface ImageFile {
   file: File
@@ -242,6 +263,8 @@ const handlePaste = async (event: ClipboardEvent) => {
 const handleSubmit = async () => {
   if (!canSend.value) return
 
+  clearError()
+
   const messageToSend = message.value
   const imagesToSend = [...selectedImages.value]
 
@@ -251,7 +274,7 @@ const handleSubmit = async () => {
   selectedImages.value.forEach(img => URL.revokeObjectURL(img.preview))
   selectedImages.value = []
 
-  await sendMessage(messageToSend, imagesToSend)
+  const result = await sendMessage(messageToSend, imagesToSend)
 }
 
 const handleCancel = () => {

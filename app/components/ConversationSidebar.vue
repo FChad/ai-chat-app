@@ -1,14 +1,14 @@
 <template>
-  <div class="flex flex-col h-full bg-sidebar text-sidebar-foreground">
+  <div class="flex flex-col h-full bg-background text-foreground">
     <!-- Header with New Conversation Button -->
-      <div class="border-b border-sidebar-border p-4 sm:px-6 flex items-center">
-        <Button @click="startNewConversationHandler" class="w-full">
-          <Icon name="heroicons:plus" class="h-4 w-4 mr-2" />
-          New Conversation
-        </Button>
-      </div>
+    <div class="border-b border-border p-4 sm:px-6 flex items-center">
+      <Button @click="startNewConversationHandler" class="w-full">
+        <Icon name="heroicons:plus" class="h-4 w-4 mr-2" />
+        New Conversation
+      </Button>
+    </div>
 
-      <!-- Conversations List -->
+    <!-- Conversations List -->
       <ScrollArea class="flex-1 p-3">
         <div class="space-y-2">
           <!-- Loading State (invisible placeholder to avoid layout jump) -->
@@ -43,9 +43,9 @@
                   </div>
 
                   <div class="flex items-center space-x-2 mt-2">
-                    <Badge variant="secondary" class="text-xs">
-                      <Icon name="heroicons:cpu-chip" class="h-3 w-3 mr-1" />
-                      {{ conversation.model.split(':')[0] }}
+                    <Badge variant="secondary" class="text-xs max-w-full overflow-hidden">
+                      <Icon name="heroicons:cpu-chip" class="h-3 w-3 mr-1 shrink-0" />
+                      <span class="truncate">{{ conversation.model.split(':')[0] }}</span>
                     </Badge>
                   </div>
 
@@ -95,15 +95,6 @@
         </div>
       </ScrollArea>
 
-      <!-- Footer with Settings -->
-      <div class="p-4 sm:p-6 border-t border-sidebar-border">
-        <Button variant="outline" class="w-full" as-child>
-          <NuxtLink to="/settings">
-            <Icon name="heroicons:cog-6-tooth" class="h-5 w-5 mr-2" />
-            Settings
-          </NuxtLink>
-        </Button>
-      </div>
     <!-- Confirmation Dialog -->
     <Dialog :open="showConfirmDialog" @update:open="showConfirmDialog = $event">
       <DialogContent class="max-w-sm">
@@ -157,7 +148,6 @@ const deleteConversation = () => {
 }
 
 const startNewConversationHandler = () => {
-  // Clear current conversation to show model selection
   chatStore.selectConversation('')
 }
 

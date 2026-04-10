@@ -97,6 +97,7 @@ export interface ChatResponse {
 
 export interface AppSettings {
   streamMode: boolean
+  timeFormat: '12h' | '24h'
 }
 
 export interface Conversation {

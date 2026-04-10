@@ -11,7 +11,7 @@ interface ImageFile {
 export const useChat = () => {
   const chatStore = useChatStore()
 
-  const sendMessage = async (message: string, images?: ImageFile[], model?: string) => {
+  const sendMessage = async (message: string, images?: ImageFile[], model?: string): Promise<void> => {
     if (!message.trim() && (!images || images.length === 0)) return
 
     const userMessage = message.trim()
@@ -243,47 +243,44 @@ export const useChat = () => {
 
       if (error.name !== 'AbortError') {
         // Determine user-friendly error message
-        let userMessage = 'Sorry, there was an error sending the message. Please try again.'
+        let errorTitle = 'Something went wrong'
+        let errorDetail = 'Sorry, there was an error sending the message. Please try again.'
 
         const errorMsg = error.message || ''
 
         if (errorMsg === 'RATE_LIMIT_ERROR' || errorMsg.includes('HTTP_ERROR:429')) {
-          userMessage = '⚠️ The model is temporarily busy.\n\n' +
-            'The free model has reached a rate limit. Please try again in a few minutes or select another model.'
+          errorTitle = 'Rate limit reached'
+          errorDetail = 'The free model is temporarily busy. Please try again in a few minutes or select another model.'
         } else if (errorMsg.includes(':429:') || errorMsg.includes('rate limit')) {
-          userMessage = '⚠️ Too many requests.\n\n' +
-            'The service is temporarily overloaded. Please wait a moment and try again.'
+          errorTitle = 'Too many requests'
+          errorDetail = 'The service is temporarily overloaded. Please wait a moment and try again.'
         } else if (errorMsg.includes(':503:') || errorMsg.includes('HTTP_ERROR:503')) {
-          userMessage = '⚠️ The service is temporarily unavailable.\n\n' +
-            'Please try again in a few minutes.'
+          errorTitle = 'Service unavailable'
+          errorDetail = 'The service is temporarily unavailable. Please try again in a few minutes.'
         } else if (errorMsg.includes(':401:') || errorMsg.includes('HTTP_ERROR:401')) {
-          userMessage = '⚠️ Authentication error.\n\n' +
-            'There was a problem with API authentication. Please contact the administrator.'
+          errorTitle = 'Authentication error'
+          errorDetail = 'There was a problem with API authentication. Please contact the administrator.'
         } else if (errorMsg.startsWith('STREAM_ERROR:')) {
-          // Error from within the SSE stream (model-specific)
           const parts = errorMsg.split(':')
-          const streamMsg = parts.slice(2).join(':') || 'Unknown model error'
-          userMessage = `⚠️ Model error:\n\n${streamMsg}`
+          errorTitle = 'Model error'
+          errorDetail = parts.slice(2).join(':') || 'Unknown model error'
         } else if (errorMsg.startsWith('HTTP_ERROR:')) {
-          // Extract the detail from HTTP_ERROR:status:message
           const parts = errorMsg.split(':')
           const statusCode = parts[1] || '?'
-          const detail = parts.slice(2).join(':') || 'Unknown error'
-          userMessage = `⚠️ Error (${statusCode}):\n\n${detail}`
+          errorTitle = `Error (${statusCode})`
+          errorDetail = parts.slice(2).join(':') || 'Unknown error'
         }
 
-        // Show error to user
-        chatStore.addMessage({
-          role: 'assistant',
-          content: userMessage,
-          timestamp: new Date().toISOString()
-        })
+        chatStore.setApiError(errorTitle, errorDetail)
       }
+
+      return
     } finally {
       // Always end the session and stop typing
       chatStore.endChatSession(sessionId)
       chatStore.setTyping(false)
     }
+
   }
 
   const cancelMessage = (conversationId: string) => {

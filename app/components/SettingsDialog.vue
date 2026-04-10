@@ -37,14 +37,11 @@
                       Responses are streamed in real-time. Disable to receive complete responses all at once.
                     </p>
                   </div>
-                  <Switch :checked="chatStore.isStreamModeEnabled" @update:checked="toggleStreamMode" />
+                  <Switch :model-value="chatStore.isStreamModeEnabled" @update:model-value="toggleStreamMode" />
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" @click="closeDialog">Close</Button>
-              <Button class="ml-auto" @click="closeDialog">Save Preferences</Button>
-            </CardFooter>
+
           </Card>
 
           <!-- Conversations Card -->

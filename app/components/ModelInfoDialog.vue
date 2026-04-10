@@ -2,7 +2,7 @@
     <Sheet :open="isOpen" @update:open="(val: boolean) => { if (!val) closeDialog() }">
         <SheetContent side="right" class="sm:max-w-2xl w-full flex flex-col p-0 gap-0">
             <!-- Fixed Header -->
-            <div class="p-6 border-b border-border flex-shrink-0">
+            <div class="p-6 border-b border-border shrink-0">
                 <h2 class="text-xl font-semibold">Model Information</h2>
                 <p class="text-sm text-muted-foreground mt-0.5">Details about the current AI model</p>
             </div>
@@ -10,215 +10,138 @@
             <!-- Scrollable Content -->
             <div class="flex-1 overflow-y-auto p-6">
                 <div v-if="model" class="space-y-6">
+
                     <!-- Model Header -->
-                    <Card class="border-2 border-primary/20 bg-primary/5">
-                        <CardContent class="p-5">
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex-1">
-                                    <h3 class="text-2xl font-bold mb-2">{{ model.name }}</h3>
-                                    <code
-                                        class="text-xs px-3 py-1.5 bg-card text-muted-foreground rounded-md border font-mono inline-block break-all">
-                                        {{ model.model }}
-                                    </code>
-                                </div>
-                                <div class="flex flex-col gap-2 items-end ml-4 flex-shrink-0">
-                                    <Badge>{{ model.details.family }}</Badge>
-                                    <Badge variant="secondary">
-                                        <Icon name="heroicons:cpu-chip" class="h-4 w-4 mr-1.5" />
-                                        {{ model.details.parameter_size }}
-                                    </Badge>
-                                </div>
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-2">
+                            <h3 class="text-base font-semibold leading-snug">{{ model.name }}</h3>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <Badge>{{ model.details.family }}</Badge>
+                                <Badge variant="secondary" class="gap-1">
+                                    <Icon name="heroicons:cpu-chip" class="h-3 w-3" />
+                                    {{ model.details.parameter_size }}
+                                </Badge>
                             </div>
-
-                            <div v-if="model.details.description" class="mt-4 pt-4 border-t border-primary/20">
-                                <p class="text-sm text-muted-foreground leading-relaxed">{{ model.details.description }}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Technical Details -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <Card>
-                            <CardContent class="p-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                                        <Icon name="heroicons:document-text" class="h-4 w-4 text-primary" />
-                                    </div>
-                                    <h4 class="text-sm font-semibold text-muted-foreground">Context Length</h4>
-                                </div>
-                                <p class="text-2xl font-bold">{{ formatContextLength(model.details.context_length) }}
-                                </p>
-                                <p class="text-xs text-muted-foreground mt-1">Maximum token count</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card v-if="model.details.top_provider?.max_completion_tokens">
-                            <CardContent class="p-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                                        <Icon name="heroicons:arrow-up-tray" class="h-4 w-4 text-primary" />
-                                    </div>
-                                    <h4 class="text-sm font-semibold text-muted-foreground">Maximum Output</h4>
-                                </div>
-                                <p class="text-2xl font-bold">{{
-                                    formatNumber(model.details.top_provider.max_completion_tokens) }}</p>
-                                <p class="text-xs text-muted-foreground mt-1">Max completion tokens</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent class="p-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                                        <Icon name="heroicons:cube" class="h-4 w-4 text-primary" />
-                                    </div>
-                                    <h4 class="text-sm font-semibold text-muted-foreground">Format</h4>
-                                </div>
-                                <p class="text-lg font-bold">{{ model.details.format }}</p>
-                                <p class="text-xs text-muted-foreground mt-1">Model format</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent class="p-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 flex items-center justify-center bg-primary/10 rounded-lg">
-                                        <Icon name="heroicons:chart-bar" class="h-4 w-4 text-primary" />
-                                    </div>
-                                    <h4 class="text-sm font-semibold text-muted-foreground">Quantization</h4>
-                                </div>
-                                <p class="text-lg font-bold">{{ model.details.quantization_level }}</p>
-                                <p class="text-xs text-muted-foreground mt-1">Quantization level</p>
-                            </CardContent>
-                        </Card>
+                        </div>
+                        <code class="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-md border font-mono inline-block break-all">{{ model.model }}</code>
+                        <p v-if="model.details.description" class="text-sm text-muted-foreground leading-relaxed mt-3">{{ model.details.description }}</p>
                     </div>
 
-                    <!-- Architecture Details -->
-                    <Card v-if="model.details.architecture">
-                        <CardContent class="p-5">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <Icon name="heroicons:cog-6-tooth" class="h-5 w-5 text-primary" />
-                                Architecture
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-xs font-semibold text-muted-foreground mb-2">Input Modalities</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <Badge v-for="modality in model.details.architecture.input_modalities"
-                                            :key="modality" variant="secondary">{{ modality }}</Badge>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-semibold text-muted-foreground mb-2">Output Modalities</p>
-                                    <div class="flex flex-wrap gap-2">
-                                        <Badge v-for="modality in model.details.architecture.output_modalities"
-                                            :key="modality" variant="outline">{{ modality }}</Badge>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-semibold text-muted-foreground mb-2">Tokenizer</p>
-                                    <p class="text-sm font-mono">{{ model.details.architecture.tokenizer }}</p>
-                                </div>
-                                <div v-if="model.details.architecture.instruct_type">
-                                    <p class="text-xs font-semibold text-muted-foreground mb-2">Instruction Type</p>
-                                    <p class="text-sm font-mono">{{ model.details.architecture.instruct_type }}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <Separator />
 
-                    <!-- Pricing Information -->
-                    <Card v-if="model.details.pricing && hasPricing" class="border-yellow-500/20 bg-yellow-500/5">
-                        <CardContent class="p-5">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <Icon name="heroicons:currency-dollar" class="h-5 w-5 text-yellow-600" />
-                                Pricing
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div v-if="model.details.pricing.prompt !== '0'"
-                                    class="flex items-center justify-between p-3 bg-card rounded-lg">
-                                    <span class="text-xs font-medium text-muted-foreground">Input (per token)</span>
-                                    <span class="text-sm font-bold">${{ model.details.pricing.prompt }}</span>
-                                </div>
-                                <div v-if="model.details.pricing.completion !== '0'"
-                                    class="flex items-center justify-between p-3 bg-card rounded-lg">
-                                    <span class="text-xs font-medium text-muted-foreground">Output (per token)</span>
-                                    <span class="text-sm font-bold">${{ model.details.pricing.completion }}</span>
-                                </div>
-                                <div v-if="model.details.pricing.request !== '0'"
-                                    class="flex items-center justify-between p-3 bg-card rounded-lg">
-                                    <span class="text-xs font-medium text-muted-foreground">Per request</span>
-                                    <span class="text-sm font-bold">${{ model.details.pricing.request }}</span>
-                                </div>
-                                <div v-if="model.details.pricing.image !== '0'"
-                                    class="flex items-center justify-between p-3 bg-card rounded-lg">
-                                    <span class="text-xs font-medium text-muted-foreground">Per image</span>
-                                    <span class="text-sm font-bold">${{ model.details.pricing.image }}</span>
+                    <!-- Stats grid -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-lg border bg-card p-3">
+                            <p class="text-xs text-muted-foreground mb-1">Context Length</p>
+                            <p class="text-xl font-semibold tabular-nums">{{ formatContextLength(model.details.context_length) }}</p>
+                            <p class="text-xs text-muted-foreground mt-0.5">max tokens</p>
+                        </div>
+                        <div v-if="model.details.top_provider?.max_completion_tokens" class="rounded-lg border bg-card p-3">
+                            <p class="text-xs text-muted-foreground mb-1">Max Output</p>
+                            <p class="text-xl font-semibold tabular-nums">{{ formatNumber(model.details.top_provider.max_completion_tokens) }}</p>
+                            <p class="text-xs text-muted-foreground mt-0.5">completion tokens</p>
+                        </div>
+                        <div class="rounded-lg border bg-card p-3">
+                            <p class="text-xs text-muted-foreground mb-1">Format</p>
+                            <p class="text-sm font-semibold font-mono">{{ model.details.format }}</p>
+                        </div>
+                        <div class="rounded-lg border bg-card p-3">
+                            <p class="text-xs text-muted-foreground mb-1">Quantization</p>
+                            <p class="text-sm font-semibold font-mono">{{ model.details.quantization_level }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Architecture -->
+                    <div v-if="model.details.architecture">
+                        <Separator class="mb-4" />
+                        <h4 class="text-sm font-medium mb-3">Architecture</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-xs text-muted-foreground mb-1.5">Input Modalities</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <Badge v-for="m in model.details.architecture.input_modalities" :key="m" variant="secondary">{{ m }}</Badge>
                                 </div>
                             </div>
-                            <p class="text-xs text-yellow-600 mt-3 italic">
-                                💡 All displayed models are free to use
-                            </p>
-                        </CardContent>
-                    </Card>
+                            <div>
+                                <p class="text-xs text-muted-foreground mb-1.5">Output Modalities</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <Badge v-for="m in model.details.architecture.output_modalities" :key="m" variant="outline">{{ m }}</Badge>
+                                </div>
+                            </div>
+                            <div class="rounded-lg border overflow-hidden">
+                                <div class="flex items-center justify-between px-3 py-2 text-xs">
+                                    <span class="text-muted-foreground">Tokenizer</span>
+                                    <span class="font-mono font-medium">{{ model.details.architecture.tokenizer }}</span>
+                                </div>
+                                <div v-if="model.details.architecture.instruct_type" class="flex items-center justify-between px-3 py-2 text-xs border-t">
+                                    <span class="text-muted-foreground">Instruction Type</span>
+                                    <span class="font-mono font-medium">{{ model.details.architecture.instruct_type }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pricing -->
+                    <div v-if="model.details.pricing && hasPricing">
+                        <Separator class="mb-4" />
+                        <h4 class="text-sm font-medium mb-3">Pricing</h4>
+                        <div class="rounded-lg border overflow-hidden">
+                            <div v-if="model.details.pricing.prompt !== '0'" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                                <span class="text-muted-foreground">Input (per token)</span>
+                                <span class="font-mono font-medium">${{ model.details.pricing.prompt }}</span>
+                            </div>
+                            <div v-if="model.details.pricing.completion !== '0'" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                                <span class="text-muted-foreground">Output (per token)</span>
+                                <span class="font-mono font-medium">${{ model.details.pricing.completion }}</span>
+                            </div>
+                            <div v-if="model.details.pricing.request !== '0'" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                                <span class="text-muted-foreground">Per request</span>
+                                <span class="font-mono font-medium">${{ model.details.pricing.request }}</span>
+                            </div>
+                            <div v-if="model.details.pricing.image !== '0'" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                                <span class="text-muted-foreground">Per image</span>
+                                <span class="font-mono font-medium">${{ model.details.pricing.image }}</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Supported Parameters -->
-                    <Card v-if="model.details.supported_parameters && model.details.supported_parameters.length > 0"
-                        class="border-primary/20 bg-primary/5">
-                        <CardContent class="p-5">
-                            <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <Icon name="heroicons:adjustments-horizontal" class="h-5 w-5 text-primary" />
-                                Supported Parameters
-                            </h4>
-                            <div class="flex flex-wrap gap-2">
-                                <Badge v-for="param in model.details.supported_parameters" :key="param"
-                                    variant="secondary" :title="getParameterDescription(param)">{{ param }}</Badge>
-                            </div>
-                            <p class="text-xs text-primary mt-3">
-                                These parameters can be used in API requests
-                            </p>
-                        </CardContent>
-                    </Card>
+                    <div v-if="model.details.supported_parameters && model.details.supported_parameters.length > 0">
+                        <Separator class="mb-4" />
+                        <h4 class="text-sm font-medium mb-3">Supported Parameters</h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            <Badge v-for="param in model.details.supported_parameters" :key="param"
+                                variant="secondary" :title="getParameterDescription(param)">{{ param }}</Badge>
+                        </div>
+                    </div>
 
                     <!-- Metadata -->
-                    <Card>
-                        <CardContent class="p-4">
-                            <h4 class="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                                <Icon name="heroicons:information-circle" class="h-4 w-4 text-primary" />
-                                Additional Information
-                            </h4>
-                            <div class="space-y-2 text-xs">
-                                <div v-if="model.details.canonical_slug" class="flex items-center justify-between">
-                                    <span class="text-muted-foreground">Canonical Slug</span>
-                                    <span class="font-mono">{{ model.details.canonical_slug }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-muted-foreground">Last updated</span>
-                                    <span class="font-medium">{{ formatDate(model.modified_at) }}</span>
-                                </div>
-                                <div v-if="model.details.top_provider?.is_moderated !== undefined"
-                                    class="flex items-center justify-between">
-                                    <span class="text-muted-foreground">Content Moderation</span>
-                                    <span
-                                        :class="model.details.top_provider.is_moderated ? 'text-primary' : 'text-muted-foreground'"
-                                        class="font-semibold">
-                                        {{ model.details.top_provider.is_moderated ? 'Enabled' : 'Disabled' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <Separator class="mb-4" />
+                    <div class="rounded-lg border overflow-hidden">
+                        <div v-if="model.details.canonical_slug" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                            <span class="text-muted-foreground">Canonical Slug</span>
+                            <span class="font-mono font-medium">{{ model.details.canonical_slug }}</span>
+                        </div>
+                        <div class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                            <span class="text-muted-foreground">Last updated</span>
+                            <span class="font-medium">{{ formatDate(model.modified_at) }}</span>
+                        </div>
+                        <div v-if="model.details.top_provider?.is_moderated !== undefined" class="flex items-center justify-between px-3 py-2.5 text-xs odd:bg-muted/40">
+                            <span class="text-muted-foreground">Content Moderation</span>
+                            <span class="font-medium">{{ model.details.top_provider.is_moderated ? 'Enabled' : 'Disabled' }}</span>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div v-else class="flex flex-col items-center justify-center py-20">
-                    <Icon name="heroicons:exclamation-triangle" class="h-16 w-16 text-muted-foreground/40 mb-4" />
-                    <p class="text-muted-foreground">Model information could not be loaded</p>
+                    <Icon name="heroicons:exclamation-triangle" class="h-12 w-12 text-muted-foreground/40 mb-4" />
+                    <p class="text-sm text-muted-foreground">Model information could not be loaded</p>
                 </div>
             </div>
 
             <!-- Fixed Footer -->
-            <div class="p-4 border-t border-border flex-shrink-0">
+            <div class="p-4 border-t border-border shrink-0">
                 <Button variant="outline" @click="closeDialog" class="w-full">Close</Button>
             </div>
         </SheetContent>
@@ -227,6 +150,7 @@
 
 <script setup lang="ts">
 import type { AIModel } from '../../types/chat'
+import { Separator } from '@/components/ui/separator'
 
 interface Props {
     isOpen: boolean

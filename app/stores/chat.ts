@@ -44,10 +44,12 @@ export const useChatStore = defineStore('chat', () => {
   const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
   const isLoading = ref(true)
+  const apiError = ref<{ title: string; detail: string } | null>(null)
 
   // App Settings with defaults
   const settings = ref<AppSettings>({
-    streamMode: true // Default to streaming enabled for better user experience
+    streamMode: true, // Default to streaming enabled for better user experience
+    timeFormat: '24h'
   })
 
   // Getters
@@ -70,6 +72,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // Settings getters
   const isStreamModeEnabled = computed(() => settings.value.streamMode)
+  const isTimeFormat12h = computed(() => settings.value.timeFormat === '12h')
 
   // Actions
   const generateConversationTitle = (messageContent: MessageContent): string => {
@@ -393,6 +396,14 @@ export const useChatStore = defineStore('chat', () => {
     isLoading.value = false
   }
 
+  const setApiError = (title: string, detail: string) => {
+    apiError.value = { title, detail }
+  }
+
+  const clearApiError = () => {
+    apiError.value = null
+  }
+
   return {
     // State
     conversations,
@@ -402,6 +413,7 @@ export const useChatStore = defineStore('chat', () => {
     activeSessions,
     settings,
     isLoading,
+    apiError,
 
     // Getters
     currentConversation,
@@ -411,6 +423,7 @@ export const useChatStore = defineStore('chat', () => {
     currentModel,
     isConversationTyping,
     isStreamModeEnabled,
+    isTimeFormat12h,
 
     // Actions
     createNewConversation,
@@ -424,6 +437,8 @@ export const useChatStore = defineStore('chat', () => {
     setIsAtBottom,
     loadFromLocalStorage,
     setLoadingComplete,
+    setApiError,
+    clearApiError,
 
     // Settings Actions
     updateStreamMode,

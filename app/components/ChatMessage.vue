@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import { marked } from 'marked'
+import { useChatStore } from '@/stores/chat'
 
 interface Props {
   message: string
@@ -102,6 +103,8 @@ interface Props {
     name?: string
   }>
 }
+
+const chatStore = useChatStore()
 
 const props = withDefaults(defineProps<Props>(), {
   isAi: false,
@@ -248,7 +251,7 @@ const shortTime = computed(() => {
     return new Date(props.timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: chatStore.isTimeFormat12h
     })
   } catch {
     return ''
@@ -266,7 +269,8 @@ const formattedTimestamp = computed(() => {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: chatStore.isTimeFormat12h
     })
   } catch (error) {
     // If timestamp is already formatted or invalid, return as is
@@ -275,7 +279,7 @@ const formattedTimestamp = computed(() => {
 })
 
 const proseClasses = computed(() => {
-  return 'prose-headings:text-foreground prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/10 prose-pre:bg-primary/10 prose-pre:text-foreground prose-a:text-primary'
+  return 'prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary'
 })
 
 // Post-process HTML to add copy buttons and improve code blocks
@@ -298,17 +302,15 @@ const postProcessHTML = (html: string): string => {
       const languageName = getLanguageName(language)
 
       return `
-        <div class="code-block-container my-3 rounded-lg overflow-hidden border border-border bg-muted">
-          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-muted border-b border-border text-xs">
-            <span class="code-block-language text-muted-foreground font-semibold uppercase tracking-wider">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg text-primary text-xs font-medium cursor-pointer transition-colors duration-200 hover:bg-primary/20 hover:border-primary/30" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
+        <div class="code-block-container">
+          <div class="code-block-header">
+            <span class="code-block-language">${languageName}</span>
+            <button class="code-block-copy" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               Copy
             </button>
           </div>
-          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin"><code class="hljs language-${language}">${highlightedCode}</code></pre>
+          <pre class="code-block-content scrollbar-thin"><code class="hljs language-${language}">${highlightedCode}</code></pre>
         </div>
       `
     }
@@ -338,17 +340,15 @@ const postProcessHTML = (html: string): string => {
       const languageName = getLanguageName(detectedLanguage)
 
       return `
-        <div class="code-block-container my-3 rounded-lg overflow-hidden border border-border bg-muted">
-          <div class="code-block-header flex justify-between items-center px-4 py-3 bg-muted border-b border-border text-xs">
-            <span class="code-block-language text-muted-foreground font-semibold uppercase tracking-wider">${languageName}</span>
-            <button class="code-block-copy flex items-center gap-1 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg text-primary text-xs font-medium cursor-pointer transition-colors duration-200 hover:bg-primary/20 hover:border-primary/30" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
+        <div class="code-block-container">
+          <div class="code-block-header">
+            <span class="code-block-language">${languageName}</span>
+            <button class="code-block-copy" onclick="copyToClipboard(this)" data-code="${encodeURIComponent(decodedCode)}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               Copy
             </button>
           </div>
-          <pre class="code-block-content m-0 p-4 bg-transparent overflow-x-auto font-mono text-sm leading-relaxed max-w-full overscroll-none scrollbar-thin"><code class="hljs language-${detectedLanguage}">${highlightedCode}</code></pre>
+          <pre class="code-block-content scrollbar-thin"><code class="hljs language-${detectedLanguage}">${highlightedCode}</code></pre>
         </div>
       `
     }
@@ -430,9 +430,7 @@ if (typeof window !== 'undefined') {
     navigator.clipboard.writeText(code).then(() => {
       const originalText = button.innerHTML
       button.innerHTML = `
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         Copied!
       `
       setTimeout(() => {
@@ -448,6 +446,12 @@ if (typeof window !== 'undefined') {
 <style scoped>
 /* Import highlight.js themes for light and dark modes */
 @import 'highlight.js/styles/github.css';
+
+/* Always reset hljs background — the code-block-content bg takes over */
+:deep(.hljs) {
+  background: transparent !important;
+  padding: 0;
+}
 
 /* Dark mode highlight.js theme */
 @media (prefers-color-scheme: dark) {
@@ -694,46 +698,90 @@ if (typeof window !== 'undefined') {
 
 /* Inline code styling */
 :deep(.prose code:not(.code-block-content code)) {
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: 0.2em 0.4em;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 0.875em;
+  font-weight: 500;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   word-break: break-word;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
 }
 
-:deep(.prose code:not(.code-block-content code)) {
-  background-color: rgb(219 234 254);
-  border: 1px solid rgb(191 219 254);
-  color: rgb(29 78 216);
-}
-
-:deep(.dark .prose code:not(.code-block-content code)) {
-  background-color: rgb(29 78 216 / 0.3);
-  color: rgb(147 197 253);
-  border-color: rgb(29 78 216 / 0.5);
+:deep(.prose code:not(.code-block-content code)::before),
+:deep(.prose code:not(.code-block-content code)::after) {
+  content: none;
 }
 
 /* Links */
 :deep(.prose a) {
-  color: rgb(37 99 235);
+  color: var(--primary);
   text-decoration: underline;
   font-weight: 500;
-  transition-property: color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition: color 0.15s, opacity 0.15s;
 }
 
 :deep(.prose a:hover) {
-  color: rgb(29 78 216);
+  opacity: 0.8;
 }
 
-:deep(.dark .prose a) {
-  color: rgb(96 165 250);
+/* Code block chrome */
+:deep(.code-block-container) {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
 }
 
-:deep(.dark .prose a:hover) {
-  color: rgb(147 197 253);
+:deep(.code-block-header) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+:deep(.code-block-language) {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:deep(.code-block-copy) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+:deep(.code-block-copy:hover) {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+:deep(.code-block-content) {
+  margin: 0;
+  padding: 1rem;
+  background-color: var(--card);
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  tab-size: 2;
 }
 
 /* Mobile responsive code blocks */

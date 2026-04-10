@@ -9,19 +9,19 @@
             <span v-else class="text-muted-foreground">
                 Select model...
             </span>
-            <Icon name="heroicons:chevron-down" class="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <Icon name="heroicons:chevron-down" class="h-5 w-5 text-muted-foreground shrink-0" />
         </Button>
 
         <!-- Model Selection Sheet (bottom drawer) -->
         <Sheet :open="isOpen" @update:open="(val: boolean) => { if (!val) closeDialog() }">
             <SheetContent side="bottom" class="h-[92vh] flex flex-col p-0 gap-0 rounded-t-2xl">
                 <!-- Drag handle -->
-                <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+                <div class="flex justify-center pt-3 pb-1 shrink-0">
                     <div class="w-10 h-1.5 rounded-full bg-muted-foreground/25"></div>
                 </div>
 
                 <!-- Fixed Header -->
-                <div class="px-6 pt-2 pb-4 border-b border-border flex-shrink-0">
+                <div class="px-6 pt-2 pb-4 border-b border-border shrink-0">
                     <div class="flex items-start justify-between mb-4">
                         <div>
                             <h2 class="text-xl font-semibold">Select AI Model</h2>
@@ -36,7 +36,7 @@
                     <div class="flex gap-2 sm:gap-3">
                         <!-- Family Filter -->
                         <Select v-model="selectedFamily">
-                            <SelectTrigger class="w-36 flex-shrink-0">
+                            <SelectTrigger class="w-36 shrink-0">
                                 <SelectValue placeholder="All families" />
                             </SelectTrigger>
                             <SelectContent>
@@ -125,13 +125,13 @@
 
                 <!-- Fixed Footer -->
                 <div
-                    class="p-4 border-t border-border bg-muted/30 flex-shrink-0 flex items-center justify-between gap-3">
+                    class="p-4 border-t border-border bg-muted/30 shrink-0 flex items-center justify-between gap-3">
                     <p v-if="tempSelectedModel" class="text-sm text-muted-foreground truncate flex-1">
                         <span class="font-medium text-foreground">Selected:</span>
                         {{ getModelName(tempSelectedModel) }}
                     </p>
                     <p v-else class="text-sm text-muted-foreground flex-1">No model selected</p>
-                    <div class="flex gap-2 flex-shrink-0">
+                    <div class="flex gap-2 shrink-0">
                         <Button @click="closeDialog" variant="outline" size="sm">Cancel</Button>
                         <Button @click="confirmSelection" :disabled="!tempSelectedModel" size="sm">
                             <Icon name="heroicons:check" class="h-4 w-4 mr-1.5" />

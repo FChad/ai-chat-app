@@ -84,7 +84,7 @@
     <DialogContent class="max-w-sm">
       <DialogHeader>
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg flex-shrink-0">
+          <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg shrink-0">
             <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-destructive" />
           </div>
           <div>

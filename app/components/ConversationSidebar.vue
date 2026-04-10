@@ -78,7 +78,7 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <Button variant="ghost" size="icon"
-                        class="opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        class="opacity-0 group-hover:opacity-100 ml-2 shrink-0 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         @click.stop="confirmDeleteConversation(conversation.id, conversation.title)"
                         :disabled="isConversationTyping(conversation)">
                         <Icon name="heroicons:trash" class="h-4 w-4" />
@@ -100,7 +100,7 @@
       <DialogContent class="max-w-sm">
         <DialogHeader>
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg flex-shrink-0">
+            <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg shrink-0">
               <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-destructive" />
             </div>
             <div>

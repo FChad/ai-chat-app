@@ -147,7 +147,7 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import ModelInfoDialog from '@/components/ModelInfoDialog.vue'
 
-useHead({ title: 'Models — AskChadAI' })
+useHead({ title: 'AskChadAI - Models' })
 
 const { loadModels } = useChat()
 

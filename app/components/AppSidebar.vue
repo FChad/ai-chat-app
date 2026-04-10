@@ -11,7 +11,7 @@
               </div>
               <div class="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span class="truncate font-semibold">AskChadAI</span>
-                <span class="truncate text-xs text-muted-foreground">Intelligent Assistant</span>
+                <span class="truncate text-xs text-muted-foreground">Demo Page</span>
               </div>
             </NuxtLink>
           </SidebarMenuButton>

@@ -56,9 +56,7 @@
 import type { AIModel } from '../../types/chat'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
-useHead({
-  title: 'Chat — AskChadAI'
-})
+useHead({ title: 'AskChadAI - Chat' })
 
 const chatStore = useChatStore()
 const { scrollToBottom } = useScrolling()

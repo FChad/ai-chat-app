@@ -21,10 +21,6 @@
       <div v-else-if="!chatStore.currentConversation" class="flex items-center justify-center min-h-[50vh]">
         <Card class="max-w-md w-full mx-4 text-center">
           <CardContent class="p-8">
-            <div
-              class="w-20 h-20 flex items-center justify-center bg-primary text-primary-foreground rounded-lg mx-auto mb-6">
-              <Icon name="heroicons:chat-bubble-left-right" class="h-12 w-12 sm:h-16 sm:w-16" />
-            </div>
             <h3 class="text-lg sm:text-xl font-semibold mb-2">Welcome to AskChadAI</h3>
             <p class="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6">
               Select an AI model and start an intelligent conversation!

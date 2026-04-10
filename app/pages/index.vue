@@ -1,46 +1,35 @@
 <template>
-  <div class="flex-1 overflow-y-auto p-6">
-    <div class="max-w-2xl mx-auto space-y-8">
+  <div class="flex-1 overflow-y-auto px-4 py-6 sm:p-6">
+    <div class="max-w-2xl mx-auto space-y-6 sm:space-y-8">
 
       <!-- Hero -->
-      <div class="text-center space-y-3 pt-4">
-        <div class="w-16 h-16 flex items-center justify-center bg-primary text-primary-foreground rounded-2xl mx-auto">
-          <Icon name="heroicons:chat-bubble-left-right" class="h-8 w-8" />
+      <div class="text-center space-y-3 pt-2 sm:pt-4">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-primary text-primary-foreground rounded-2xl mx-auto">
+          <Icon name="heroicons:chat-bubble-left-right" class="h-7 w-7 sm:h-8 sm:w-8" />
         </div>
-        <h1 class="text-3xl font-bold tracking-tight">AskChadAI</h1>
-        <p class="text-muted-foreground text-base leading-relaxed max-w-md mx-auto">
-          A free, open-source AI chat assistant powered by OpenRouter. Chat with state-of-the-art language models — no account required.
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">AskChadAI</h1>
+        <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Demo Page</p>
+        <p class="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-md mx-auto">
+          A free, open-source AI chat assistant powered by OpenRouter. Chat with state-of-the-art language models, no account required.
         </p>
-        <div class="flex items-center justify-center gap-3 pt-2">
-          <Button as-child size="lg">
+        <div class="inline-flex items-center gap-2 rounded-lg border border-yellow-400/50 bg-yellow-400/10 px-3 py-2 text-xs sm:text-sm text-yellow-600 dark:text-yellow-400">
+          <Icon name="heroicons:information-circle" class="h-4 w-4 shrink-0" />
+          This is a demo page for demonstration purposes only.
+        </div>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <Button as-child size="lg" class="w-full sm:w-auto">
             <NuxtLink to="/chat">
               <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4 mr-2" />
               Start Chatting
             </NuxtLink>
           </Button>
-          <Button variant="outline" as-child size="lg">
+          <Button variant="outline" as-child size="lg" class="w-full sm:w-auto">
             <NuxtLink to="/models">
               <Icon name="heroicons:cpu-chip" class="h-4 w-4 mr-2" />
               Browse Models
             </NuxtLink>
           </Button>
         </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent class="p-5 text-center">
-            <div class="text-3xl font-bold text-primary">{{ chatStore.conversations.length }}</div>
-            <div class="text-sm text-muted-foreground mt-1 font-medium">Saved Conversations</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent class="p-5 text-center">
-            <div class="text-3xl font-bold text-primary">{{ totalMessages }}</div>
-            <div class="text-sm text-muted-foreground mt-1 font-medium">Total Messages</div>
-          </CardContent>
-        </Card>
       </div>
 
       <!-- Features -->
@@ -96,19 +85,15 @@
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'Home — AskChadAI' })
+useHead({ title: 'AskChadAI - Home' })
 
-const chatStore = useChatStore()
 
-const totalMessages = computed(() =>
-  chatStore.conversations.reduce((sum, c) => sum + c.messages.length, 0)
-)
 
 const features = [
   {
     icon: 'heroicons:cpu-chip',
     title: 'Free AI Models',
-    description: 'Access a curated list of free, state-of-the-art language models via OpenRouter — no API costs.'
+    description: 'Access a curated list of free, state-of-the-art language models via OpenRouter, no API costs.'
   },
   {
     icon: 'heroicons:bolt',
@@ -118,7 +103,7 @@ const features = [
   {
     icon: 'heroicons:archive-box',
     title: 'Conversation History',
-    description: 'All your conversations are saved locally in the browser — no account or server storage needed.'
+    description: 'All your conversations are saved locally in the browser, no account or server storage needed.'
   },
   {
     icon: 'heroicons:arrow-down-tray',

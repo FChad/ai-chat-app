@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'Settings — AskChadAI' })
+useHead({ title: 'AskChadAI - Settings' })
 
 const chatStore = useChatStore()
 const colorMode = useColorMode()

@@ -33,7 +33,7 @@
               class="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0 font-medium">
               {{ crumb.label }}
             </NuxtLink>
-            <span v-else class="text-sm font-semibold truncate max-w-[240px]"
+            <span v-else class="text-sm font-semibold truncate max-w-60"
               :class="breadcrumbs.length > 1 ? 'text-foreground' : 'text-foreground'">
               {{ crumb.label }}
             </span>

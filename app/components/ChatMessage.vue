@@ -92,7 +92,6 @@ interface Props {
   message: string
   isUser: boolean
   isTyping?: boolean
-  isStreaming?: boolean
   isGrouped?: boolean
   timestamp: string
   images?: Array<{
@@ -105,44 +104,14 @@ const chatStore = useChatStore()
 
 const props = withDefaults(defineProps<Props>(), {
   isTyping: false,
-  isStreaming: false,
   isGrouped: false
 })
 
 const { highlightCode, getLanguageName, configureHighlight, detectLanguage } = useHighlight()
+const { formatShortTime, formatFullTimestamp } = useTimeFormat()
 
 const showImageModal = ref(false)
 const selectedImageUrl = ref('')
-
-// Memoization cache for rendered markdown
-// Using a Map with message content as key to avoid re-parsing unchanged content
-const renderCache = new Map<string, { html: string; timestamp: number }>()
-const CACHE_MAX_SIZE = 50 // Limit cache size to prevent memory issues
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes TTL
-
-// Generate cache key from message content and streaming state
-const getCacheKey = (content: string, isStreaming: boolean): string => {
-  // Don't cache streaming messages as they change frequently
-  if (isStreaming) return ''
-  return content
-}
-
-// Clean old cache entries
-const cleanCache = () => {
-  const now = Date.now()
-  for (const [key, value] of renderCache.entries()) {
-    if (now - value.timestamp > CACHE_TTL) {
-      renderCache.delete(key)
-    }
-  }
-  // If still over limit, remove oldest entries
-  if (renderCache.size > CACHE_MAX_SIZE) {
-    const entries = Array.from(renderCache.entries())
-    entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
-    const toRemove = entries.slice(0, entries.length - CACHE_MAX_SIZE)
-    toRemove.forEach(([key]) => renderCache.delete(key))
-  }
-}
 
 const openImageModal = (url: string) => {
   selectedImageUrl.value = url
@@ -226,39 +195,8 @@ onMounted(() => {
   })
 })
 
-// Short time (HH:MM) for grouped message hover
-const shortTime = computed(() => {
-  if (!props.timestamp) return ''
-  try {
-    return new Date(props.timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: chatStore.isTimeFormat12h
-    })
-  } catch {
-    return ''
-  }
-})
-
-// Format timestamp for display
-const formattedTimestamp = computed(() => {
-  if (!props.timestamp) return ''
-
-  try {
-    const date = new Date(props.timestamp)
-    return date.toLocaleString('en-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: chatStore.isTimeFormat12h
-    })
-  } catch {
-    // If timestamp is already formatted or invalid, return as is
-    return props.timestamp
-  }
-})
+const shortTime = computed(() => formatShortTime(props.timestamp))
+const formattedTimestamp = computed(() => formatFullTimestamp(props.timestamp))
 
 // Post-process HTML to add copy buttons and improve code blocks
 const postProcessHTML = (html: string): string => {
@@ -335,7 +273,7 @@ const postProcessHTML = (html: string): string => {
   return result
 }
 
-// Compute rendered markdown with memoization
+// Compute rendered markdown
 const renderedMessage = computed(() => {
   if (!props.message) return ''
 
@@ -346,55 +284,18 @@ const renderedMessage = computed(() => {
 
   try {
     // For AI messages, split into stable and streaming tail to avoid flicker during streaming
-    const shouldSplit = !props.isUser && props.isStreaming
-    const { safe, tail } = shouldSplit ? splitStreamingSafe(props.message) : { safe: props.message, tail: '' }
+    const { safe, tail } = props.isTyping ? splitStreamingSafe(props.message) : { safe: props.message, tail: '' }
 
-    // Check cache for non-streaming, stable content
-    const cacheKey = getCacheKey(safe, props.isStreaming || false)
-    if (cacheKey && renderCache.has(cacheKey)) {
-      const cached = renderCache.get(cacheKey)!
-      // For streaming with tail, append the tail
-      if (tail) {
-        return cached.html + `<span class="streaming-tail">${escapeHtml(tail)}</span>`
-      }
-      return cached.html
-    }
-
-    // Process markdown with syntax highlighting (synchronous) for stable part only
     const result = marked(safe)
-
-    // Handle both string and Promise returns
-    let htmlResult = ''
-    if (typeof result === 'string') {
-      htmlResult = result
-    } else if (result && typeof result.then === 'function') {
-      // If it's a Promise, return the original message for now
-      console.warn('Marked returned a Promise, falling back to plain text')
-      return props.message
-    } else {
-      htmlResult = String(result)
-    }
-
-    // Post-process to add copy buttons and enhance code blocks
+    const htmlResult = typeof result === 'string' ? result : String(result)
     const enhanced = postProcessHTML(htmlResult)
 
-    // Cache the result for non-streaming content
-    if (cacheKey) {
-      renderCache.set(cacheKey, { html: enhanced, timestamp: Date.now() })
-      // Periodically clean cache
-      if (renderCache.size > CACHE_MAX_SIZE * 0.8) {
-        cleanCache()
-      }
-    }
-
-    // Append the unparsed tail as escaped plaintext to prevent transient formatting
     if (tail) {
       return enhanced + `<span class="streaming-tail">${escapeHtml(tail)}</span>`
     }
     return enhanced
   } catch (error) {
     console.error('Markdown parsing error:', error)
-    // Fallback to escaped HTML
     const div = document.createElement('div')
     div.textContent = props.message
     return div.innerHTML

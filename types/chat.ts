@@ -80,17 +80,7 @@ export interface ChatRequest {
   sessionId: string
 }
 
-export interface ChatResponse {
-  message?: {
-    role: string
-    content: string
-  }
-  done?: boolean
-  sessionId?: string
-}
-
 export interface AppSettings {
-  streamMode: boolean
   timeFormat: '12h' | '24h'
 }
 

@@ -21,7 +21,7 @@
 
     <!-- Messages + Input -->
     <div class="flex flex-1 flex-col min-h-0">
-      <ChatMessages ref="chatMessagesRef" :available-models="availableModels" @focus-input="focusInput" />
+      <ChatMessages ref="chatMessagesRef" @focus-input="focusInput" />
       <ChatInput ref="chatInputRef" :current-model="currentModelDetails" />
     </div>
   </div>
@@ -41,7 +41,6 @@ const { loadModels } = useChat()
 const chatMessagesRef = ref()
 const chatInputRef = ref()
 const showModelInfoDialog = ref(false)
-const availableModels = ref<AIModel[]>([])
 
 useHead({
   title: computed(() => {
@@ -51,7 +50,7 @@ useHead({
 })
 
 const loadAvailableModels = async () => {
-  availableModels.value = await loadModels()
+  await loadModels()
 }
 
 const focusInput = () => {
@@ -63,7 +62,7 @@ const focusInput = () => {
 const currentModelDetails = computed(() => {
   if (!chatStore.currentConversation) return null
   const modelId = chatStore.currentConversation.model
-  return availableModels.value.find((m: AIModel) => m.model === modelId) || null
+  return chatStore.availableModels.find((m: AIModel) => m.model === modelId) || null
 })
 
 const showModelInfo = () => {

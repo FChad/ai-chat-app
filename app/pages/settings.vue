@@ -32,18 +32,6 @@
                 <option value="12h">12-hour (2:30 PM)</option>
               </select>
             </div>
-
-            <!-- Streaming Mode -->
-            <div class="py-4 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
-              <div class="flex-1">
-                <p class="text-sm font-medium">Streaming Mode</p>
-                <p class="text-xs text-muted-foreground mt-0.5">
-                  Responses are streamed in real-time. Disable to receive complete responses all at once.
-                </p>
-              </div>
-              <USwitch :model-value="chatStore.isStreamModeEnabled"
-                @update:model-value="chatStore.updateStreamMode($event)" />
-            </div>
           </div>
         </UCardContent>
       </UCard>

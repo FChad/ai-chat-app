@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { generateUUID } from '~/utils/uuid'
+import { SAVE_DEBOUNCE_MS } from '~/config/constants'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
 
 // Debounce utility function
@@ -46,10 +47,10 @@ export const useChatStore = defineStore('chat', () => {
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
   const isLoading = ref(true)
   const apiError = ref<{ title: string; detail: string } | null>(null)
+  const availableModels = ref<AIModel[]>([])
 
   // App Settings with defaults
   const settings = ref<AppSettings>({
-    streamMode: true, // Default to streaming enabled for better user experience
     timeFormat: '24h'
   })
 
@@ -66,7 +67,6 @@ export const useChatStore = defineStore('chat', () => {
   })
 
   // Settings getters
-  const isStreamModeEnabled = computed(() => settings.value.streamMode)
   const isTimeFormat12h = computed(() => settings.value.timeFormat === '12h')
 
   // Actions
@@ -246,10 +246,8 @@ export const useChatStore = defineStore('chat', () => {
     isAtBottom.value = atBottom
   }
 
-  // Settings Actions
-  const updateStreamMode = (enabled: boolean) => {
-    settings.value.streamMode = enabled
-    saveToLocalStorage(true) // Immediate save for user action
+  const setAvailableModels = (models: AIModel[]) => {
+    availableModels.value = models
   }
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
@@ -317,9 +315,7 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // Debounced version for frequent updates (e.g., during streaming)
-  // 500ms delay balances responsiveness with performance
-  const saveToLocalStorageDebounced = debounce(saveToLocalStorageImmediate, 500)
+  const saveToLocalStorageDebounced = debounce(saveToLocalStorageImmediate, SAVE_DEBOUNCE_MS)
 
   // Smart save function: uses debounced save for streaming updates, immediate for user actions
   const saveToLocalStorage = (immediate = false) => {
@@ -392,12 +388,12 @@ export const useChatStore = defineStore('chat', () => {
     settings,
     isLoading,
     apiError,
+    availableModels,
 
     // Getters
     currentConversation,
     currentMessages,
     isConversationTyping,
-    isStreamModeEnabled,
     isTimeFormat12h,
 
     // Actions
@@ -410,13 +406,13 @@ export const useChatStore = defineStore('chat', () => {
     clearAllConversations,
     setTyping,
     setIsAtBottom,
+    setAvailableModels,
     loadFromLocalStorage,
     setLoadingComplete,
     setApiError,
     clearApiError,
 
     // Settings Actions
-    updateStreamMode,
     updateSettings,
 
     // Session Management

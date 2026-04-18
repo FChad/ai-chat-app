@@ -81,7 +81,7 @@ export const useChat = () => {
       const requestBody: ChatRequest = {
         model: chatStore.currentConversation.model,
         messages: messages,
-        stream: chatStore.isStreamModeEnabled, // Use the streaming setting from store
+        stream: true,
         sessionId: sessionId
       }
 
@@ -131,90 +131,74 @@ export const useChat = () => {
 
       let assistantMessage = ''
 
-      if (chatStore.isStreamModeEnabled) {
-        // Handle streaming response using NDJSON line parsing
-        const reader = response.body?.getReader()
-        if (!reader) {
-          throw new Error('No response body for streaming')
-        }
+      // Handle streaming response using NDJSON line parsing
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('No response body for streaming')
+      }
 
-        const decoder = new TextDecoder()
-        let buffer = ''
+      const decoder = new TextDecoder()
+      let buffer = ''
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              // Process any remaining line
-              const line = buffer.trim()
-              if (line) {
-                try {
-                  const data = JSON.parse(line)
-                  const effectiveSessionId = data.sessionId ?? sessionId
-                  if (effectiveSessionId === sessionId) {
-                    const content = data.message?.content
-                    if (content) {
-                      assistantMessage += content
-                      chatStore.updateLastMessage(assistantMessage, sessionId)
-                    }
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            // Process any remaining line
+            const line = buffer.trim()
+            if (line) {
+              try {
+                const data = JSON.parse(line)
+                const effectiveSessionId = data.sessionId ?? sessionId
+                if (effectiveSessionId === sessionId) {
+                  const content = data.message?.content
+                  if (content) {
+                    assistantMessage += content
+                    chatStore.updateLastMessage(assistantMessage, sessionId)
                   }
-                } catch (e) {
-                  // Ignore parsing errors
                 }
+              } catch (e) {
+                // Ignore parsing errors
               }
-              break
             }
-
-            buffer += decoder.decode(value, { stream: true })
-
-            // Consume complete lines
-            let newlineIndex = buffer.indexOf('\n')
-            while (newlineIndex !== -1) {
-              const line = buffer.slice(0, newlineIndex).trim()
-              buffer = buffer.slice(newlineIndex + 1)
-              if (line) {
-                try {
-                  const data = JSON.parse(line)
-
-                  // Check if the server forwarded an error from OpenRouter
-                  if (data.error) {
-                    throw new Error(`STREAM_ERROR:${data.code || 0}:${data.message || 'Model returned an error'}`)
-                  }
-
-                  const effectiveSessionId = data.sessionId ?? sessionId
-                  if (effectiveSessionId === sessionId) {
-                    const content = data.message?.content
-                    if (content) {
-                      assistantMessage += content
-                      chatStore.updateLastMessage(assistantMessage, sessionId)
-                    }
-                  }
-                } catch (e: any) {
-                  if (e.message?.startsWith('STREAM_ERROR:')) throw e
-                  // Ignore JSON parsing errors for malformed lines
-                }
-              }
-              newlineIndex = buffer.indexOf('\n')
-            }
+            break
           }
-        } catch (streamError: any) {
-          if (streamError.name !== 'AbortError') {
-            throw streamError
+
+          buffer += decoder.decode(value, { stream: true })
+
+          // Consume complete lines
+          let newlineIndex = buffer.indexOf('\n')
+          while (newlineIndex !== -1) {
+            const line = buffer.slice(0, newlineIndex).trim()
+            buffer = buffer.slice(newlineIndex + 1)
+            if (line) {
+              try {
+                const data = JSON.parse(line)
+
+                // Check if the server forwarded an error from OpenRouter
+                if (data.error) {
+                  throw new Error(`STREAM_ERROR:${data.code || 0}:${data.message || 'Model returned an error'}`)
+                }
+
+                const effectiveSessionId = data.sessionId ?? sessionId
+                if (effectiveSessionId === sessionId) {
+                  const content = data.message?.content
+                  if (content) {
+                    assistantMessage += content
+                    chatStore.updateLastMessage(assistantMessage, sessionId)
+                  }
+                }
+              } catch (e: any) {
+                if (e.message?.startsWith('STREAM_ERROR:')) throw e
+                // Ignore JSON parsing errors for malformed lines
+              }
+            }
+            newlineIndex = buffer.indexOf('\n')
           }
         }
-      } else {
-        // Handle non-streaming response
-        try {
-          const data = await response.json()
-
-          if (data.message?.content) {
-            assistantMessage = data.message.content
-            chatStore.updateLastMessage(assistantMessage, sessionId)
-          }
-        } catch (jsonError: any) {
-          if (jsonError.name !== 'AbortError') {
-            throw jsonError
-          }
+      } catch (streamError: any) {
+        if (streamError.name !== 'AbortError') {
+          throw streamError
         }
       }
 
@@ -294,9 +278,10 @@ export const useChat = () => {
       }
 
       const data = await response.json()
-      return data.models || []
+      const models = data.models || []
+      chatStore.setAvailableModels(models)
+      return models
     } catch (error) {
-      // Silently fail - return empty array
       return []
     }
   }

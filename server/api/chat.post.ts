@@ -1,20 +1,11 @@
 import type { ChatRequest } from '../../types/chat'
 
 export default defineEventHandler(async (event) => {
-  // Handle CORS preflight requests
-  if (getMethod(event) === 'OPTIONS') {
-    setHeader(event, 'Access-Control-Allow-Origin', '*')
-    setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
-    setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    setHeader(event, 'Access-Control-Max-Age', 86400)
-    return {}
-  }
-
   const runtimeConfig = useRuntimeConfig()
 
   try {
     const body = await readBody<ChatRequest>(event)
-    const { model = 'meta-llama/llama-3.3-8b-instruct:free', messages, stream = true, sessionId } = body
+    const { model = 'meta-llama/llama-3.3-8b-instruct:free', messages, sessionId } = body
 
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -31,10 +22,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (!sessionId || typeof sessionId !== 'string') {
+    if (!sessionId || typeof sessionId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Valid sessionId is required'
+        statusMessage: 'Valid sessionId (UUID) is required'
+      })
+    }
+
+    // Limit messages array size to prevent abuse
+    if (messages.length > 200) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Too many messages (max 200)'
       })
     }
 
@@ -82,7 +81,7 @@ export default defineEventHandler(async (event) => {
         role: msg.role,
         content: typeof msg.content === 'string' ? msg.content.trim() : msg.content
       })),
-      stream: stream
+      stream: true
     }
 
     const response = await fetch(apiUrl, {
@@ -123,181 +122,129 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (stream) {
-      // Handle streaming response - OpenRouter uses OpenAI format (SSE with "data:" prefix)
-      // Enhanced headers for better compatibility (reduce proxy buffering and disable compression)
-      setHeader(event, 'Content-Type', 'application/x-ndjson; charset=utf-8')
-      setHeader(event, 'Cache-Control', 'no-transform, no-cache, no-store, must-revalidate, proxy-revalidate')
-      setHeader(event, 'Pragma', 'no-cache')
-      setHeader(event, 'Expires', '0')
-      setHeader(event, 'Connection', 'keep-alive')
-      setHeader(event, 'X-Accel-Buffering', 'no') // for nginx
-      setHeader(event, 'Content-Encoding', 'identity') // disable gzip to avoid buffering
-      setHeader(event, 'Vary', 'Accept-Encoding')
-      setHeader(event, 'Access-Control-Allow-Origin', '*')
-      setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
-      setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      setHeader(event, 'Access-Control-Expose-Headers', 'X-Session-ID')
-      setHeader(event, 'X-Session-ID', sessionId)
+    // Streaming response headers optimized for Cloudflare Pages
+    setHeader(event, 'Content-Type', 'application/x-ndjson; charset=utf-8')
+    setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+    setHeader(event, 'Connection', 'keep-alive')
+    setHeader(event, 'Content-Encoding', 'identity')
+    setHeader(event, 'X-Session-ID', sessionId)
 
-      // Create a transform stream to convert OpenAI SSE format to our format
-      const transformedStream = new ReadableStream({
-        start(controller) {
-          const reader = response.body!.getReader()
-          const decoder = new TextDecoder()
-          let buffer = ''
-          const encoder = new TextEncoder()
+    // Create a transform stream to convert OpenAI SSE format to our format
+    const transformedStream = new ReadableStream({
+      start(controller) {
+        const reader = response.body!.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        const encoder = new TextEncoder()
 
-          // Periodic heartbeat to nudge proxies/browsers to flush
-          const keepAlive = setInterval(() => {
-            try {
-              controller.enqueue(encoder.encode('\n'))
-            } catch (_) {
-              // ignore if stream already closed
-            }
-          }, 15000)
+        // Periodic heartbeat to nudge proxies/browsers to flush
+        const keepAlive = setInterval(() => {
+          try {
+            controller.enqueue(encoder.encode('\n'))
+          } catch (_) {
+            // ignore if stream already closed
+          }
+        }, 15000)
 
-          const pump = async () => {
-            try {
-              while (true) {
-                const { done, value } = await reader.read()
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
 
-                if (done) {
-                  clearInterval(keepAlive)
-                  controller.close()
-                  break
-                }
-
-                const chunk = decoder.decode(value, { stream: true })
-                buffer += chunk
-
-                // Process complete lines (SSE format: "data: {...}\n\n")
-                const lines = buffer.split('\n')
-                buffer = lines.pop() || '' // Keep incomplete line in buffer
-
-                for (const line of lines) {
-                  const trimmedLine = line.trim()
-
-                  // Skip empty lines and comments
-                  if (!trimmedLine || trimmedLine.startsWith(':')) {
-                    continue
-                  }
-
-                  // Check for [DONE] message
-                  if (trimmedLine === 'data: [DONE]') {
-                    // Send final done message in our format
-                    const doneMessage = JSON.stringify({
-                      done: true,
-                      sessionId: sessionId
-                    }) + '\n'
-                    controller.enqueue(encoder.encode(doneMessage))
-                    continue
-                  }
-
-                  // Parse SSE data lines
-                  if (trimmedLine.startsWith('data: ')) {
-                    try {
-                      const jsonStr = trimmedLine.substring(6) // Remove "data: " prefix
-                      const data = JSON.parse(jsonStr)
-
-                      // Check for errors in the response (OpenRouter can return errors within choices)
-                      const choice = data.choices?.[0]
-                      if (choice?.error) {
-                        const errorData = {
-                          error: true,
-                          message: choice.error.message || 'Model returned an error',
-                          code: choice.error.code,
-                          done: true,
-                          sessionId: sessionId
-                        }
-                        controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
-                        continue
-                      }
-
-                      // Also check for top-level error field
-                      if (data.error) {
-                        const errorData = {
-                          error: true,
-                          message: data.error.message || data.error || 'API returned an error',
-                          code: data.error.code,
-                          done: true,
-                          sessionId: sessionId
-                        }
-                        controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
-                        continue
-                      }
-
-                      // Transform OpenAI format to our format
-                      if (choice?.delta?.content) {
-                        const transformedData = {
-                          message: {
-                            role: 'assistant',
-                            content: choice.delta.content
-                          },
-                          done: false,
-                          sessionId: sessionId
-                        }
-
-                        const modifiedLine = JSON.stringify(transformedData) + '\n'
-                        controller.enqueue(encoder.encode(modifiedLine))
-                      }
-                    } catch (e) {
-                      // Ignore parsing errors for malformed lines
-                    }
-                  }
-                }
-              }
-            } catch (error: any) {
-              clearInterval(keepAlive)
-              // Ignore aborted errors (client disconnected)
-              if (error?.code === 'ABORT_ERR' || error?.message?.includes('aborted')) {
+              if (done) {
+                clearInterval(keepAlive)
                 controller.close()
-              } else {
-                controller.error(error)
+                break
               }
+
+              const chunk = decoder.decode(value, { stream: true })
+              buffer += chunk
+
+              // Process complete lines (SSE format: "data: {...}\n\n")
+              const lines = buffer.split('\n')
+              buffer = lines.pop() || '' // Keep incomplete line in buffer
+
+              for (const line of lines) {
+                const trimmedLine = line.trim()
+
+                // Skip empty lines and comments
+                if (!trimmedLine || trimmedLine.startsWith(':')) {
+                  continue
+                }
+
+                // Check for [DONE] message
+                if (trimmedLine === 'data: [DONE]') {
+                  const doneMessage = JSON.stringify({
+                    done: true,
+                    sessionId: sessionId
+                  }) + '\n'
+                  controller.enqueue(encoder.encode(doneMessage))
+                  continue
+                }
+
+                // Parse SSE data lines
+                if (trimmedLine.startsWith('data: ')) {
+                  try {
+                    const jsonStr = trimmedLine.substring(6)
+                    const data = JSON.parse(jsonStr)
+
+                    const choice = data.choices?.[0]
+                    if (choice?.error) {
+                      const errorData = {
+                        error: true,
+                        message: choice.error.message || 'Model returned an error',
+                        code: choice.error.code,
+                        done: true,
+                        sessionId: sessionId
+                      }
+                      controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
+                      continue
+                    }
+
+                    if (data.error) {
+                      const errorData = {
+                        error: true,
+                        message: data.error.message || data.error || 'API returned an error',
+                        code: data.error.code,
+                        done: true,
+                        sessionId: sessionId
+                      }
+                      controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
+                      continue
+                    }
+
+                    if (choice?.delta?.content) {
+                      const transformedData = {
+                        message: {
+                          role: 'assistant',
+                          content: choice.delta.content
+                        },
+                        done: false,
+                        sessionId: sessionId
+                      }
+                      controller.enqueue(encoder.encode(JSON.stringify(transformedData) + '\n'))
+                    }
+                  } catch (e) {
+                    // Ignore parsing errors for malformed lines
+                  }
+                }
+              }
+            }
+          } catch (error: any) {
+            clearInterval(keepAlive)
+            if (error?.code === 'ABORT_ERR' || error?.message?.includes('aborted')) {
+              controller.close()
+            } else {
+              controller.error(error)
             }
           }
-
-          pump()
         }
-      })
 
-      // Return the transformed stream (newline-delimited JSON)
-      return sendStream(event, transformedStream)
-    } else {
-      // Handle non-streaming response
-      setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
-      setHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate')
-      setHeader(event, 'Pragma', 'no-cache')
-      setHeader(event, 'Access-Control-Allow-Origin', '*')
-      setHeader(event, 'Access-Control-Allow-Methods', 'POST, OPTIONS')
-      setHeader(event, 'Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      setHeader(event, 'Access-Control-Expose-Headers', 'X-Session-ID')
-      setHeader(event, 'X-Session-ID', sessionId)
-
-      const data = await response.json()
-
-      // Check for errors in the non-streaming response (OpenRouter can return errors within choices)
-      const choice = data.choices?.[0]
-      if (choice?.error) {
-        throw createError({
-          statusCode: choice.error.code || 500,
-          statusMessage: choice.error.message || 'Model returned an error'
-        })
+        pump()
       }
+    })
 
-      // Transform OpenAI format to our format
-      const transformedData = {
-        message: {
-          role: 'assistant',
-          content: choice?.message?.content || ''
-        },
-        done: true,
-        sessionId: sessionId
-      }
-
-      return transformedData
-    }
+    return sendStream(event, transformedStream)
 
   } catch (error: any) {
     // Ignore aborted/cancelled requests (client disconnected)

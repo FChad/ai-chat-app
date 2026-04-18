@@ -96,6 +96,7 @@
 
 <script setup lang="ts">
 import type { AIModel } from '../../types/chat'
+import { MAX_IMAGE_SIZE } from '~/config/constants'
 
 interface Props {
   currentModel?: AIModel | null
@@ -166,7 +167,7 @@ const handleFileSelect = async (event: Event) => {
     }
 
     // Check file size (max 20MB)
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > MAX_IMAGE_SIZE) {
       console.warn('Image too large (max 20MB)')
       continue
     }
@@ -229,7 +230,7 @@ const handlePaste = async (event: ClipboardEvent) => {
       if (!file) continue
 
       // Check file size (max 20MB)
-      if (file.size > 20 * 1024 * 1024) {
+      if (file.size > MAX_IMAGE_SIZE) {
         console.warn('Image too large (max 20MB)')
         continue
       }

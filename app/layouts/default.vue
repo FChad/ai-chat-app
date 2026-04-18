@@ -40,9 +40,7 @@
           </template>
         </nav>
 
-        <div class="ml-auto flex items-center gap-2 shrink-0">
-          <slot name="header-actions" />
-        </div>
+        <div class="ml-auto flex items-center gap-2 shrink-0" />
       </header>
       <!-- Page content -->
       <div class="flex flex-1 flex-col overflow-hidden">

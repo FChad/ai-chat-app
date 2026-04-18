@@ -1,3 +1,5 @@
+import { SCROLL_BOTTOM_THRESHOLD } from '~/config/constants'
+
 export const useScrolling = () => {
   const chatStore = useChatStore()
 
@@ -12,8 +14,7 @@ export const useScrolling = () => {
 
   const handleScroll = (container: HTMLElement) => {
     const { scrollTop, scrollHeight, clientHeight } = container
-    // Check if user is at bottom (with small threshold)
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - SCROLL_BOTTOM_THRESHOLD
     chatStore.setIsAtBottom(isAtBottom)
   }
 

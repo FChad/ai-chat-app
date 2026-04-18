@@ -44,7 +44,7 @@
               <label class="block text-sm font-semibold mb-3">
                 Select AI Model
               </label>
-              <ModelSelectionDialog v-model="selectedModel" :models="props.availableModels"
+              <ModelSelectionDialog v-model="selectedModel" :models="chatStore.availableModels"
                 :disabled="chatStore.isTyping" />
             </div>
 
@@ -86,7 +86,6 @@
         <ChatMessage
           :message="typeof message.content === 'string' ? message.content : (Array.isArray(message.content) ? (message.content.find(c => c.type === 'text')?.text || '') : '')"
           :is-user="message.role === 'user'"
-          :is-streaming="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
           :is-typing="chatStore.isConversationTyping && idx === chatStore.currentMessages.length - 1 && message.role === 'assistant'"
           :is-grouped="isMessageGrouped(idx)" :timestamp="message.timestamp"
           :images="Array.isArray(message.content) ? message.content.filter(c => c.type === 'image_url').map(c => ({ url: c.image_url?.url || '', name: undefined })) : []" />
@@ -97,18 +96,11 @@
 </template>
 
 <script setup lang="ts">
-import type { AIModel } from '../../types/chat'
-
-// Define props
-interface Props {
-  availableModels: AIModel[]
-}
-
-const props = defineProps<Props>()
 
 const chatStore = useChatStore()
 const { handleScroll, scrollToBottom } = useScrolling()
 const { startNewConversation: createConversation } = useChat()
+const { formatDate } = useTimeFormat()
 
 const messagesContainer = ref<HTMLElement>()
 const selectedModel = ref('openrouter/free')
@@ -131,9 +123,7 @@ const showDateSeparator = (index: number): boolean => {
 }
 
 const getMessageDate = (timestamp: string): string => {
-  return new Date(timestamp).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  })
+  return formatDate(timestamp)
 }
 
 const handleScrollEvent = () => {

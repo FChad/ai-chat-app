@@ -33,44 +33,8 @@
 
       <!-- Conversation Grid -->
       <div v-else class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <UCard v-for="conversation in chatStore.conversations" :key="conversation.id"
-          @click="navigateTo(`/chat/${conversation.id}`)"
-          class="group cursor-pointer transition-colors hover:bg-accent">
-          <UCardContent class="p-4 pt-4">
-            <div class="flex items-start justify-between gap-2 mb-2">
-              <h3 class="text-sm font-semibold line-clamp-2 flex-1 leading-snug">{{ conversation.title }}</h3>
-              <UTooltip side="left">
-                <template #trigger>
-                  <button
-                    class="opacity-0 group-hover:opacity-100 shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-md text-destructive hover:bg-destructive/10 transition-all"
-                    @click.stop="confirmDeleteConversation(conversation.id, conversation.title)"
-                    :disabled="isConversationTyping(conversation.id)">
-                    <Icon name="heroicons:trash" class="h-3.5 w-3.5" />
-                  </button>
-                </template>
-                Delete conversation
-              </UTooltip>
-            </div>
-            <UBadge variant="secondary" class="text-xs mb-3 max-w-full overflow-hidden">
-              <Icon name="heroicons:cpu-chip" class="h-3 w-3 mr-1 shrink-0" />
-              <span class="truncate">{{ conversation.model.split(':')[0] }}</span>
-            </UBadge>
-            <div class="flex items-center justify-between text-xs text-muted-foreground">
-              <span class="flex items-center gap-1">
-                <Icon name="heroicons:chat-bubble-left" class="h-3 w-3" />
-                {{ conversation.messages.length }} messages
-              </span>
-              <template v-if="isConversationTyping(conversation.id)">
-                <div class="flex space-x-0.5">
-                  <div class="typing-dot"></div>
-                  <div class="typing-dot" style="animation-delay: 0.2s"></div>
-                  <div class="typing-dot" style="animation-delay: 0.4s"></div>
-                </div>
-              </template>
-              <span v-else>{{ formatRelativeTime(conversation.updatedAt) }}</span>
-            </div>
-          </UCardContent>
-        </UCard>
+        <ConversationCard v-for="conversation in chatStore.conversations" :key="conversation.id"
+          :conversation="conversation" @delete="confirmDeleteConversation" />
       </div>
     </div>
 
@@ -103,8 +67,6 @@
 useHead({ title: 'AskChadAI - Chats' })
 
 const chatStore = useChatStore()
-const router = useRouter()
-const { formatRelativeTime } = useTimeFormat()
 
 const showConfirmDialog = ref(false)
 const conversationToDelete = ref<{ id: string; title: string } | null>(null)
@@ -113,14 +75,8 @@ const startNewChat = () => {
   navigateTo('/chat/new')
 }
 
-const isConversationTyping = (id: string) => {
-  const conversation = chatStore.conversations.find(c => c.id === id)
-  if (!conversation?.sessionId) return false
-  return chatStore.isSessionActive(conversation.sessionId)
-}
-
-const confirmDeleteConversation = (id: string, title: string) => {
-  conversationToDelete.value = { id, title }
+const confirmDeleteConversation = (payload: { id: string; title: string }) => {
+  conversationToDelete.value = payload
   showConfirmDialog.value = true
 }
 
@@ -136,18 +92,3 @@ onMounted(() => {
   // Data is already loaded by app.vue on startup
 })
 </script>
-
-<style scoped>
-.typing-dot {
-  width: 4px;
-  height: 4px;
-  background-color: currentColor;
-  border-radius: 50%;
-  animation: typing-bounce 1s infinite;
-}
-
-@keyframes typing-bounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-4px); }
-}
-</style>

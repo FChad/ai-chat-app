@@ -45,6 +45,7 @@ export default defineNuxtConfig({
       ],
       meta: [
         { name: 'robots', content: 'noindex, nofollow' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: '#0f172a', media: '(prefers-color-scheme: dark)' },

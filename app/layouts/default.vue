@@ -55,6 +55,10 @@ const sidebar = useSidebar()
 const route = useRoute()
 const chatStore = useChatStore()
 
+watch(() => route.path, () => {
+  sidebar.isMobileOpen.value = false
+})
+
 const breadcrumbs = computed(() => {
   const path = route.path
 

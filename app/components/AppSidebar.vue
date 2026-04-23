@@ -34,13 +34,15 @@
       </NuxtLink>
 
       <!-- Toggle sidebar (desktop only) -->
-      <button v-if="!sidebar.isMobile.value" @click="sidebar.toggle()"
-        class="flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors text-sidebar-foreground hover:bg-sidebar-accent"
-        :class="collapsed ? 'justify-center gap-0' : 'gap-3'" :title="collapsed ? 'Expand sidebar' : undefined">
-        <Icon :name="collapsed ? 'heroicons:chevron-double-right' : 'heroicons:chevron-double-left'" size="20"
-          class="shrink-0" />
-        <span v-if="!collapsed">Collapse</span>
-      </button>
+      <ClientOnly>
+        <button v-if="!sidebar.isMobile.value" @click="sidebar.toggle()"
+          class="flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors text-sidebar-foreground hover:bg-sidebar-accent"
+          :class="collapsed ? 'justify-center gap-0' : 'gap-3'" :title="collapsed ? 'Expand sidebar' : undefined">
+          <Icon :name="collapsed ? 'heroicons:chevron-double-right' : 'heroicons:chevron-double-left'" size="20"
+            class="shrink-0" />
+          <span v-if="!collapsed">Collapse</span>
+        </button>
+      </ClientOnly>
     </div>
   </div>
 </template>

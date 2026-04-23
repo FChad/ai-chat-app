@@ -1,14 +1,14 @@
 <template>
   <div class="bg-background border-t border-border p-2">
     <!-- Error Alert -->
-    <UAlert v-if="errorTitle" variant="destructive" class="mb-2 relative">
-      <Icon name="heroicons:exclamation-circle" class="h-4 w-4" />
-      <h5 class="col-start-2 min-h-4 font-medium tracking-tight">{{ errorTitle }}</h5>
-      <p class="text-sm col-start-2">{{ errorDetail }}</p>
-      <button type="button"
-        class="absolute top-1.5 right-1.5 h-6 w-6 inline-flex items-center justify-center rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+    <UAlert v-if="errorTitle" variant="destructive" class="mb-2 relative pr-10">
+      <Icon name="heroicons:exclamation-circle" class="h-4 w-4 shrink-0" />
+      <h5 class="col-start-2 min-h-4 font-semibold tracking-tight">{{ errorTitle }}</h5>
+      <p class="col-start-2 text-sm text-destructive/90">{{ errorDetail }}</p>
+      <button type="button" aria-label="Dismiss error"
+        class="absolute top-2 right-2 h-7 w-7 inline-flex items-center justify-center rounded-md text-destructive bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:outline-none transition-colors"
         @click="clearError">
-        <Icon name="heroicons:x-mark" class="h-3.5 w-3.5" />
+        <Icon name="heroicons:x-mark" class="h-4 w-4" />
       </button>
     </UAlert>
 
@@ -290,59 +290,23 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
-// Focus management
-onMounted(() => {
-  if (textareaRef.value) {
-    // Focus the textarea when component mounts
-    const focusTextarea = () => {
-      if (textareaRef.value && chatStore.currentConversation && !chatStore.isLoading) {
-        textareaRef.value.focus()
-      }
-    }
-
-    // Immediate focus if conditions are met
-    setTimeout(focusTextarea, 100)
-
-    // Also try again after a bit longer delay to handle slow loading
-    setTimeout(focusTextarea, 500)
-  }
+// Focus the textarea whenever it becomes usable (conversation exists, loading
+// done, not currently streaming). watchEffect re-runs on every dep change, so
+// this covers mount, conversation switch, loading finish, and stream finish
+// in one place — no setTimeout delays needed, nextTick waits for the DOM.
+watchEffect(async () => {
+  const canFocus = chatStore.currentConversation
+    && !chatStore.isLoading
+    && !chatStore.isTyping
+    && !isCurrentConversationTyping.value
+  if (!canFocus) return
+  await nextTick()
+  textareaRef.value?.focus()
 })
 
-// Focus textarea when conversation changes
-watch(() => chatStore.currentConversation, (newConversation) => {
-  if (newConversation && textareaRef.value) {
-    // Add a small delay to ensure the component is fully rendered
-    setTimeout(() => {
-      textareaRef.value?.focus()
-    }, 100)
-  }
-})
-
-// Focus textarea when chat loading is complete
-watch(() => chatStore.isLoading, (isLoading) => {
-  if (!isLoading && textareaRef.value && chatStore.currentConversation) {
-    // Chat has finished loading and there's an active conversation
-    setTimeout(() => {
-      textareaRef.value?.focus()
-    }, 200)
-  }
-})
-
-// Focus textarea when AI finishes typing
-watch(() => isCurrentConversationTyping.value, (isTyping, wasTyping) => {
-  if (wasTyping && !isTyping && textareaRef.value && chatStore.currentConversation) {
-    // AI has finished typing, refocus the input field
-    setTimeout(() => {
-      textareaRef.value?.focus()
-    }, 100)
-  }
-})
-
-// Method to focus the textarea from external components
+// Exposed for the parent page to refocus after creating a new conversation.
 const focusInput = () => {
-  if (textareaRef.value) {
-    textareaRef.value.focus()
-  }
+  textareaRef.value?.focus()
 }
 
 // Expose the focus method for parent components

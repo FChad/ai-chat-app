@@ -1,4 +1,5 @@
 import type { ChatRequest, Conversation, Message, AIModel, MessageContent } from '../../types/chat'
+import type { OpenRouterStreamChunk } from '../../types/openrouter'
 import { generateUUID } from '~/utils/uuid'
 
 interface ImageFile {
@@ -144,21 +145,17 @@ export const useChat = () => {
         const payload = trimmed.slice(5).trim()
         if (payload === '[DONE]') return
 
-        let data: any
+        let data: OpenRouterStreamChunk
         try {
-          data = JSON.parse(payload)
+          data = JSON.parse(payload) as OpenRouterStreamChunk
         } catch {
           return
         }
 
-        // OpenRouter can report errors at the top level or inside choices[0]
-        const choiceError = data.choices?.[0]?.error
-        if (choiceError) {
-          throw new Error(`STREAM_ERROR:${choiceError.code || 0}:${choiceError.message || 'Model returned an error'}`)
-        }
+        // OpenRouter reports stream errors at the top level (NOT inside choices[0]).
+        // See https://openrouter.ai/docs/api/reference/errors-and-debugging
         if (data.error) {
-          const msg = typeof data.error === 'string' ? data.error : (data.error.message || 'API returned an error')
-          throw new Error(`STREAM_ERROR:${data.error.code || 0}:${msg}`)
+          throw new Error(`STREAM_ERROR:${data.error.code ?? 0}:${data.error.message || 'API returned an error'}`)
         }
 
         const content = data.choices?.[0]?.delta?.content

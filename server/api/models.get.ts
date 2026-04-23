@@ -1,4 +1,5 @@
 import type { AIModel } from '../../types/chat'
+import type { OpenRouterModel, OpenRouterModelsResponse } from '../../types/openrouter'
 import { DEFAULT_MODEL } from '../../app/config/constants'
 
 export default defineEventHandler(async (event) => {
@@ -39,19 +40,19 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const data = await response.json() as { data: any[] }
+    const data = await response.json() as OpenRouterModelsResponse
 
     // Filter free models (prompt/completion price = 0), sort with DEFAULT_MODEL pinned first,
     // then by popularity (max_completion_tokens) descending.
     const freeModels: AIModel[] = data.data
-      .filter((model) => {
+      .filter((model: OpenRouterModel) => {
         const promptPrice = parseFloat(model.pricing?.prompt || '1')
         const completionPrice = parseFloat(model.pricing?.completion || '1')
         return promptPrice === 0 && completionPrice === 0
       })
-      .map((model): { model: AIModel; popularity: number } => {
+      .map((model: OpenRouterModel): { model: AIModel; popularity: number } => {
         const sizeMatch = model.id.match(/(\d+\.?\d*[bmk])/i)
-        const parameterSize = sizeMatch ? sizeMatch[1].toUpperCase() : 'Unknown'
+        const parameterSize = sizeMatch?.[1] ? sizeMatch[1].toUpperCase() : 'Unknown'
         const family = model.id.split('/')[0] || 'unknown'
         const popularity = model.top_provider?.max_completion_tokens || 0
 

@@ -94,30 +94,11 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  const addMessage = (message: Omit<Message, 'id'>) => {
-    if (!currentConversation.value) return
-
-    const messageWithId = {
-      ...message,
-      id: generateUUID()
-    }
-
-    currentConversation.value.messages.push(messageWithId)
-    currentConversation.value.updatedAt = new Date().toISOString()
-
-    // Update title if this is the first user message
-    if (message.role === 'user' && currentConversation.value.messages.length === 1) {
-      currentConversation.value.title = generateConversationTitle(message.content)
-    }
-
-    saveToLocalStorage()
-  }
-
-  const addMessageToConversation = (conversationId: string, message: Omit<Message, 'id'>) => {
-    const conversation = conversations.value.find(c => c.id === conversationId)
-    if (!conversation) {
-      return
-    }
+  const addMessage = (message: Omit<Message, 'id'>, conversationId?: string) => {
+    const conversation = conversationId
+      ? conversations.value.find(c => c.id === conversationId)
+      : currentConversation.value
+    if (!conversation) return
 
     const messageWithId = {
       ...message,
@@ -366,7 +347,6 @@ export const useChatStore = defineStore('chat', () => {
     createNewConversation,
     selectConversation,
     addMessage,
-    addMessageToConversation,
     updateLastMessage,
     deleteConversation,
     clearAllConversations,

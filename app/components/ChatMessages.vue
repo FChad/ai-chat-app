@@ -96,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { DEFAULT_MODEL } from '~/config/constants'
 
 const chatStore = useChatStore()
 const { handleScroll, scrollToBottom } = useScrolling()
@@ -103,7 +104,7 @@ const { startNewConversation: createConversation } = useChat()
 const { formatDate } = useTimeFormat()
 
 const messagesContainer = ref<HTMLElement>()
-const selectedModel = ref('openrouter/free')
+const selectedModel = ref(DEFAULT_MODEL)
 
 // Grouping logic: a message is grouped if same role as previous AND same calendar day
 const isMessageGrouped = (index: number): boolean => {

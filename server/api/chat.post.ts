@@ -1,11 +1,12 @@
 import type { ChatRequest } from '../../types/chat'
+import { DEFAULT_MODEL } from '../../app/config/constants'
 
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
   try {
     const body = await readBody<ChatRequest>(event)
-    const { model = 'meta-llama/llama-3.3-8b-instruct:free', messages, sessionId } = body
+    const { model = DEFAULT_MODEL, messages, sessionId } = body
 
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {

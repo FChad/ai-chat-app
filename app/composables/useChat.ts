@@ -118,14 +118,11 @@ export const useChat = () => {
       }
 
       // Add empty assistant message to the conversation associated with this session
-      const targetConversation = chatStore.conversations.find((c: Conversation) => c.id === conversationId)
-      if (targetConversation) {
-        chatStore.addMessageToConversation(conversationId, {
-          role: 'assistant',
-          content: '',
-          timestamp: new Date().toISOString()
-        })
-      }
+      chatStore.addMessage({
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString()
+      }, conversationId)
 
       chatStore.setTyping(false)
 

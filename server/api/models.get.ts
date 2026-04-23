@@ -4,9 +4,6 @@ export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
   try {
-    // Disable caching to avoid stale lists over changing networks
-    setHeader(event, 'Cache-Control', 'no-store, no-cache, must-revalidate')
-    setHeader(event, 'Pragma', 'no-cache')
     setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
 
     // Get environment variables

@@ -18,6 +18,9 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'cloudflare-pages',
+    routeRules: {
+      '/api/models': { cache: { maxAge: 300 } },
+    },
   },
 
   icon: {

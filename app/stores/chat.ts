@@ -1,42 +1,8 @@
 import { defineStore } from 'pinia'
+import { debounce } from 'perfect-debounce'
 import { generateUUID } from '~/utils/uuid'
 import { SAVE_DEBOUNCE_MS } from '~/config/constants'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
-
-// Debounce utility function
-function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T & { flush: () => void; cancel: () => void } {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null
-  let lastArgs: Parameters<T> | null = null
-
-  const debounced = ((...args: Parameters<T>) => {
-    lastArgs = args
-    if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => {
-      fn(...args)
-      timeoutId = null
-      lastArgs = null
-    }, delay)
-  }) as T & { flush: () => void; cancel: () => void }
-
-  debounced.flush = () => {
-    if (timeoutId && lastArgs) {
-      clearTimeout(timeoutId)
-      fn(...lastArgs)
-      timeoutId = null
-      lastArgs = null
-    }
-  }
-
-  debounced.cancel = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-      timeoutId = null
-      lastArgs = null
-    }
-  }
-
-  return debounced
-}
 
 export const useChatStore = defineStore('chat', () => {
   // State

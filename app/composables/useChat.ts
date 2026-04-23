@@ -89,7 +89,7 @@ export const useChat = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/x-ndjson'
+          'Accept': 'text/event-stream'
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal, // Add abort signal
@@ -131,7 +131,7 @@ export const useChat = () => {
 
       let assistantMessage = ''
 
-      // Handle streaming response using NDJSON line parsing
+      // Handle streaming response using SSE line parsing
       const reader = response.body?.getReader()
       if (!reader) {
         throw new Error('No response body for streaming')
@@ -140,59 +140,52 @@ export const useChat = () => {
       const decoder = new TextDecoder()
       let buffer = ''
 
+      const handleSseLine = (line: string) => {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith(':')) return
+        if (!trimmed.startsWith('data:')) return
+        const payload = trimmed.slice(5).trim()
+        if (payload === '[DONE]') return
+
+        let data: any
+        try {
+          data = JSON.parse(payload)
+        } catch {
+          return
+        }
+
+        // OpenRouter can report errors at the top level or inside choices[0]
+        const choiceError = data.choices?.[0]?.error
+        if (choiceError) {
+          throw new Error(`STREAM_ERROR:${choiceError.code || 0}:${choiceError.message || 'Model returned an error'}`)
+        }
+        if (data.error) {
+          const msg = typeof data.error === 'string' ? data.error : (data.error.message || 'API returned an error')
+          throw new Error(`STREAM_ERROR:${data.error.code || 0}:${msg}`)
+        }
+
+        const content = data.choices?.[0]?.delta?.content
+        if (content) {
+          assistantMessage += content
+          chatStore.updateLastMessage(assistantMessage, sessionId)
+        }
+      }
+
       try {
         while (true) {
           const { done, value } = await reader.read()
           if (done) {
-            // Process any remaining line
-            const line = buffer.trim()
-            if (line) {
-              try {
-                const data = JSON.parse(line)
-                const effectiveSessionId = data.sessionId ?? sessionId
-                if (effectiveSessionId === sessionId) {
-                  const content = data.message?.content
-                  if (content) {
-                    assistantMessage += content
-                    chatStore.updateLastMessage(assistantMessage, sessionId)
-                  }
-                }
-              } catch (e) {
-                // Ignore parsing errors
-              }
-            }
+            if (buffer.trim()) handleSseLine(buffer)
             break
           }
 
           buffer += decoder.decode(value, { stream: true })
 
-          // Consume complete lines
           let newlineIndex = buffer.indexOf('\n')
           while (newlineIndex !== -1) {
-            const line = buffer.slice(0, newlineIndex).trim()
+            const line = buffer.slice(0, newlineIndex)
             buffer = buffer.slice(newlineIndex + 1)
-            if (line) {
-              try {
-                const data = JSON.parse(line)
-
-                // Check if the server forwarded an error from OpenRouter
-                if (data.error) {
-                  throw new Error(`STREAM_ERROR:${data.code || 0}:${data.message || 'Model returned an error'}`)
-                }
-
-                const effectiveSessionId = data.sessionId ?? sessionId
-                if (effectiveSessionId === sessionId) {
-                  const content = data.message?.content
-                  if (content) {
-                    assistantMessage += content
-                    chatStore.updateLastMessage(assistantMessage, sessionId)
-                  }
-                }
-              } catch (e: any) {
-                if (e.message?.startsWith('STREAM_ERROR:')) throw e
-                // Ignore JSON parsing errors for malformed lines
-              }
-            }
+            handleSseLine(line)
             newlineIndex = buffer.indexOf('\n')
           }
         }
@@ -272,7 +265,7 @@ export const useChat = () => {
 
   const loadModels = async (): Promise<AIModel[]> => {
     try {
-      const response = await fetch('/api/models', { cache: 'no-store' })
+      const response = await fetch('/api/models')
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

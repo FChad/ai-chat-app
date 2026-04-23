@@ -122,129 +122,14 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Streaming response headers optimized for Cloudflare Pages
-    setHeader(event, 'Content-Type', 'application/x-ndjson; charset=utf-8')
+    // Stream the upstream SSE response directly to the client
+    setHeader(event, 'Content-Type', 'text/event-stream; charset=utf-8')
     setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
     setHeader(event, 'Connection', 'keep-alive')
     setHeader(event, 'Content-Encoding', 'identity')
     setHeader(event, 'X-Session-ID', sessionId)
 
-    // Create a transform stream to convert OpenAI SSE format to our format
-    const transformedStream = new ReadableStream({
-      start(controller) {
-        const reader = response.body!.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-        const encoder = new TextEncoder()
-
-        // Periodic heartbeat to nudge proxies/browsers to flush
-        const keepAlive = setInterval(() => {
-          try {
-            controller.enqueue(encoder.encode('\n'))
-          } catch (_) {
-            // ignore if stream already closed
-          }
-        }, 15000)
-
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-
-              if (done) {
-                clearInterval(keepAlive)
-                controller.close()
-                break
-              }
-
-              const chunk = decoder.decode(value, { stream: true })
-              buffer += chunk
-
-              // Process complete lines (SSE format: "data: {...}\n\n")
-              const lines = buffer.split('\n')
-              buffer = lines.pop() || '' // Keep incomplete line in buffer
-
-              for (const line of lines) {
-                const trimmedLine = line.trim()
-
-                // Skip empty lines and comments
-                if (!trimmedLine || trimmedLine.startsWith(':')) {
-                  continue
-                }
-
-                // Check for [DONE] message
-                if (trimmedLine === 'data: [DONE]') {
-                  const doneMessage = JSON.stringify({
-                    done: true,
-                    sessionId: sessionId
-                  }) + '\n'
-                  controller.enqueue(encoder.encode(doneMessage))
-                  continue
-                }
-
-                // Parse SSE data lines
-                if (trimmedLine.startsWith('data: ')) {
-                  try {
-                    const jsonStr = trimmedLine.substring(6)
-                    const data = JSON.parse(jsonStr)
-
-                    const choice = data.choices?.[0]
-                    if (choice?.error) {
-                      const errorData = {
-                        error: true,
-                        message: choice.error.message || 'Model returned an error',
-                        code: choice.error.code,
-                        done: true,
-                        sessionId: sessionId
-                      }
-                      controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
-                      continue
-                    }
-
-                    if (data.error) {
-                      const errorData = {
-                        error: true,
-                        message: data.error.message || data.error || 'API returned an error',
-                        code: data.error.code,
-                        done: true,
-                        sessionId: sessionId
-                      }
-                      controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'))
-                      continue
-                    }
-
-                    if (choice?.delta?.content) {
-                      const transformedData = {
-                        message: {
-                          role: 'assistant',
-                          content: choice.delta.content
-                        },
-                        done: false,
-                        sessionId: sessionId
-                      }
-                      controller.enqueue(encoder.encode(JSON.stringify(transformedData) + '\n'))
-                    }
-                  } catch (e) {
-                    // Ignore parsing errors for malformed lines
-                  }
-                }
-              }
-            }
-          } catch (error: any) {
-            clearInterval(keepAlive)
-            if (error?.code === 'ABORT_ERR' || error?.message?.includes('aborted')) {
-              controller.close()
-            } else {
-              controller.error(error)
-            }
-          }
-        }
-
-        pump()
-      }
-    })
-
-    return sendStream(event, transformedStream)
+    return sendStream(event, response.body)
 
   } catch (error: any) {
     // Ignore aborted/cancelled requests (client disconnected)

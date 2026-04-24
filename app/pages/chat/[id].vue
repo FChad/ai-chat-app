@@ -14,7 +14,7 @@
           trailing-icon="i-lucide-info"
           @click="showInfo = true"
         >
-          <span class="truncate max-w-[200px]">{{ currentModelDetails.name }}</span>
+          <span class="truncate max-w-50">{{ currentModelDetails.name }}</span>
         </UButton>
       </Navbar>
     </template>

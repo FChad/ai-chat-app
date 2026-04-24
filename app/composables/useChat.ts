@@ -11,15 +11,17 @@ interface ImageFile {
 
 export const useChat = () => {
   const chatStore = useChatStore()
+  const toast = useToast()
 
   const sendMessage = async (message: string, images?: ImageFile[], model?: string): Promise<void> => {
     if (!message.trim() && (!images || images.length === 0)) return
 
     const userMessage = message.trim()
 
-    // If no current conversation and model is provided, create new conversation
-    if (!chatStore.currentConversation && model) {
-      chatStore.createNewConversation(model, userMessage)
+    // If no current conversation, create one (use provided model or persisted selection)
+    if (!chatStore.currentConversation) {
+      const selectedModel = useSelectedModel()
+      chatStore.createNewConversation(model || selectedModel.value, userMessage)
     }
 
     if (!chatStore.currentConversation) {
@@ -237,7 +239,13 @@ export const useChat = () => {
           errorDetail = parts.slice(2).join(':') || 'Unknown error'
         }
 
-        chatStore.setApiError(errorTitle, errorDetail)
+        toast.add({
+          color: 'error',
+          title: errorTitle,
+          description: errorDetail,
+          icon: 'i-lucide-circle-alert',
+          duration: 0
+        })
       }
 
       return
@@ -273,14 +281,9 @@ export const useChat = () => {
     }
   }
 
-  const startNewConversation = (model: string) => {
-    chatStore.createNewConversation(model)
-  }
-
   return {
     sendMessage,
     cancelMessage,
-    loadModels,
-    startNewConversation
+    loadModels
   }
 } 

@@ -3,14 +3,13 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: '2026-03-25',
   devtools: { enabled: false },
-  modules: ['@nuxtjs/color-mode', '@nuxt/icon', '@pinia/nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt'],
 
-  components: [
-    { path: '~/components/ui', pathPrefix: false },
-    '~/components',
-  ],
+  css: ['~/assets/css/main.css'],
 
-  css: ['~/assets/css/tailwind.css'],
+  experimental: {
+    viewTransition: true
+  },
 
   vite: {
     plugins: [tailwindcss()],
@@ -47,8 +46,6 @@ export default defineNuxtConfig({
         { name: 'robots', content: 'noindex, nofollow' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
-        { name: 'theme-color', content: '#0f172a', media: '(prefers-color-scheme: dark)' },
       ],
     },
   },

@@ -1,66 +1,81 @@
 <template>
-  <div class="flex flex-col h-full p-2 gap-1">
-    <!-- Header: App branding -->
-    <NuxtLink to="/" class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-sidebar-accent transition-colors"
-      :class="collapsed ? 'justify-center' : ''">
-      <div class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
-        <Icon name="heroicons:chat-bubble-left-right" size="20" />
-      </div>
-      <div v-if="!collapsed" class="text-left leading-tight h-8 flex flex-col justify-center">
-        <span class="font-semibold block truncate">AskChadAI</span>
-      </div>
-    </NuxtLink>
-
-    <!-- Navigation -->
-    <nav class="flex-1 space-y-1">
-      <NuxtLink v-for="item in navItems" :key="item.label" :to="item.href"
-        class="flex items-center rounded-lg px-2 py-2 text-sm transition-colors" :class="[
-          isActive(item.href) ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-sidebar-foreground hover:bg-sidebar-accent',
-          collapsed ? 'justify-center gap-0' : 'gap-3'
-        ]" :title="collapsed ? item.label : undefined">
-        <Icon :name="item.icon" size="20" class="shrink-0" />
-        <span v-if="!collapsed">{{ item.label }}</span>
-      </NuxtLink>
-    </nav>
-
-    <!-- Footer: Settings + Toggle -->
-    <div class="space-y-1">
-      <NuxtLink to="/settings" class="flex items-center rounded-lg px-2 py-2 text-sm transition-colors" :class="[
-        isActive('/settings') ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' : 'text-sidebar-foreground hover:bg-sidebar-accent',
-        collapsed ? 'justify-center gap-0' : 'gap-3'
-      ]" :title="collapsed ? 'Settings' : undefined">
-        <Icon name="heroicons:cog-6-tooth" size="20" class="shrink-0" />
-        <span v-if="!collapsed">Settings</span>
-      </NuxtLink>
-
-      <!-- Toggle sidebar (desktop only) -->
-      <ClientOnly>
-        <button v-if="!sidebar.isMobile.value" @click="sidebar.toggle()"
-          class="flex items-center w-full rounded-lg px-2 py-2 text-sm transition-colors text-sidebar-foreground hover:bg-sidebar-accent"
-          :class="collapsed ? 'justify-center gap-0' : 'gap-3'" :title="collapsed ? 'Expand sidebar' : undefined">
-          <Icon :name="collapsed ? 'heroicons:chevron-double-right' : 'heroicons:chevron-double-left'" size="20"
-            class="shrink-0" />
-          <span v-if="!collapsed">Collapse</span>
-        </button>
-      </ClientOnly>
+  <div class="flex flex-col gap-0.5 flex-1 min-h-0 overflow-y-auto -mx-2 px-2 scrollbar-thin">
+    <div v-if="chatStore.conversations.length === 0" class="px-2 py-8 text-center text-xs text-muted">
+      No conversations yet.
     </div>
+
+    <NuxtLink
+      v-for="conv in sortedConversations"
+      :key="conv.id"
+      :to="`/chat/${conv.id}`"
+      class="group flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted hover:text-default hover:bg-elevated/50 data-[active=true]:bg-elevated data-[active=true]:text-highlighted transition-colors min-w-0"
+      :data-active="conv.id === currentId"
+    >
+      <UIcon
+        v-if="isSessionTyping(conv)"
+        name="i-lucide-loader-2"
+        class="size-3.5 shrink-0 animate-spin text-primary"
+      />
+      <UIcon
+        v-else
+        name="i-lucide-message-circle"
+        class="size-3.5 shrink-0"
+      />
+      <span class="truncate flex-1">{{ conv.title || 'New Conversation' }}</span>
+      <UButton
+        icon="i-lucide-x"
+        size="xs"
+        color="neutral"
+        variant="ghost"
+        class="opacity-0 group-hover:opacity-100 -mr-1"
+        aria-label="Delete conversation"
+        @click.stop.prevent="confirmDelete(conv)"
+      />
+    </NuxtLink>
   </div>
 </template>
 
 <script setup lang="ts">
-const sidebar = useSidebar()
+import type { Conversation } from '../../types/chat'
+import ModalConfirm from './ModalConfirm.vue'
+
+const chatStore = useChatStore()
 const route = useRoute()
+const overlay = useOverlay()
 
-const collapsed = computed(() => !sidebar.isOpen.value && !sidebar.isMobile.value)
+const currentId = computed(() => route.params.id as string | undefined)
 
-const navItems = [
-  { label: 'Home', href: '/', icon: 'heroicons:home' },
-  { label: 'Chat', href: '/chat', icon: 'heroicons:chat-bubble-left-right' },
-  { label: 'Models', href: '/models', icon: 'heroicons:cpu-chip' },
-]
+const sortedConversations = computed(() =>
+  [...chatStore.conversations].sort((a, b) =>
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  )
+)
 
-const isActive = (href: string) => {
-  if (href === '/chat') return route.path === '/chat' || route.path.startsWith('/chat/')
-  return route.path === href
+const isSessionTyping = (conv: Conversation) =>
+  !!conv.sessionId && chatStore.isSessionActive(conv.sessionId)
+
+const modal = overlay.create(ModalConfirm, {
+  props: {
+    title: 'Delete conversation',
+    description: '',
+    confirmLabel: 'Delete',
+    destructive: true
+  }
+})
+
+const confirmDelete = async (conv: Conversation) => {
+  const instance = modal.open({
+    title: 'Delete conversation',
+    description: `Are you sure you want to delete "${conv.title || 'this conversation'}"? This action cannot be undone.`,
+    confirmLabel: 'Delete',
+    destructive: true
+  })
+  const confirmed = await instance.result
+  if (confirmed) {
+    chatStore.deleteConversation(conv.id)
+    if (currentId.value === conv.id) {
+      await navigateTo('/chat/new')
+    }
+  }
 }
 </script>

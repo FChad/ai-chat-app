@@ -1,71 +1,76 @@
 <template>
-  <div class="flex-1 overflow-y-auto p-6">
-    <div class="max-w-5xl mx-auto space-y-6">
+  <UDashboardPanel id="models">
+    <template #header>
+      <Navbar>
+        <span class="font-medium">Models</span>
+      </Navbar>
+    </template>
 
-      <!-- Search + Filters -->
-      <div class="space-y-3">
-        <!-- Search row -->
-        <div class="flex items-center gap-3">
-          <div class="relative flex-1 max-w-sm">
-            <Icon name="heroicons:magnifying-glass"
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <UInput v-model="search" placeholder="Search models..." class="pl-9" />
+    <template #body>
+      <UContainer class="py-6 flex flex-col gap-6">
+        <!-- Search + Filters -->
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3 flex-wrap">
+            <UInput
+              v-model="search"
+              icon="i-lucide-search"
+              placeholder="Search models..."
+              class="flex-1 max-w-sm"
+              size="md"
+            />
+            <UBadge color="neutral" variant="subtle" class="shrink-0">
+              {{ filteredModels.length }} model{{ filteredModels.length !== 1 ? 's' : '' }}
+            </UBadge>
+            <UButton
+              v-if="hasActiveFilters"
+              variant="ghost"
+              size="sm"
+              color="neutral"
+              icon="i-lucide-x"
+              label="Clear"
+              @click="clearFilters"
+            />
           </div>
-          <UBadge variant="secondary" class="text-xs shrink-0">
-            {{ filteredModels.length }} model{{ filteredModels.length !== 1 ? 's' : '' }}
-          </UBadge>
-          <UButton v-if="hasActiveFilters" variant="ghost" size="sm" class="text-xs h-8 px-2 text-muted-foreground"
-            @click="clearFilters">
-            <Icon name="heroicons:x-mark" class="h-3.5 w-3.5 mr-1" />
-            Clear
-          </UButton>
+
+          <div class="flex flex-wrap gap-2 items-center">
+            <USelectMenu
+              v-model="selectedFamily"
+              :items="familyItems"
+              size="sm"
+              value-key="value"
+              class="min-w-40"
+            />
+
+            <USelectMenu
+              v-model="minContext"
+              :items="contextItems"
+              size="sm"
+              value-key="value"
+              class="min-w-40"
+            />
+
+            <UButton
+              :color="capabilities.includes('vision') ? 'primary' : 'neutral'"
+              :variant="capabilities.includes('vision') ? 'soft' : 'outline'"
+              size="sm"
+              icon="i-lucide-eye"
+              label="Vision"
+              @click="toggleCapability('vision')"
+            />
+            <UButton
+              :color="capabilities.includes('tools') ? 'primary' : 'neutral'"
+              :variant="capabilities.includes('tools') ? 'soft' : 'outline'"
+              size="sm"
+              icon="i-lucide-wrench"
+              label="Tools"
+              @click="toggleCapability('tools')"
+            />
+          </div>
         </div>
 
-        <!-- Filter chips row -->
-        <div class="flex flex-wrap gap-2 items-center">
-          <!-- Family select -->
-          <select v-model="selectedFamily"
-            class="h-7 text-xs w-auto gap-1.5 px-2.5 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring">
-            <option value="any">All families</option>
-            <option v-for="fam in availableFamilies" :key="fam" :value="fam">{{ fam }}</option>
-          </select>
-
-          <!-- Context size -->
-          <select v-model="minContext"
-            class="h-7 text-xs w-auto gap-1.5 px-2.5 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring">
-            <option value="any">Any context</option>
-            <option value="32k">32K+</option>
-            <option value="128k">128K+</option>
-            <option value="200k">200K+</option>
-            <option value="1m">1M+</option>
-          </select>
-
-          <!-- Capability toggles -->
-          <button
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium transition-colors"
-            :class="capabilities.includes('vision')
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground'"
-            @click="toggleCapability('vision')">
-            <Icon name="heroicons:eye" class="h-3 w-3" />
-            Vision
-          </button>
-          <button
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium transition-colors"
-            :class="capabilities.includes('tools')
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-transparent text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground'"
-            @click="toggleCapability('tools')">
-            <Icon name="heroicons:wrench-screwdriver" class="h-3 w-3" />
-            Tools
-          </button>
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <UCard v-for="n in 6" :key="n">
-          <UCardContent class="p-5 space-y-3">
+        <!-- Loading -->
+        <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="n in 6" :key="n" class="ring ring-default rounded-lg bg-default p-5 flex flex-col gap-3">
             <USkeleton class="h-5 w-3/4" />
             <USkeleton class="h-3 w-1/2" />
             <USkeleton class="h-12 w-full" />
@@ -73,61 +78,58 @@
               <USkeleton class="h-5 w-16 rounded-full" />
               <USkeleton class="h-5 w-16 rounded-full" />
             </div>
-          </UCardContent>
-        </UCard>
-      </div>
+          </div>
+        </div>
 
-      <!-- Error -->
-      <UCard v-else-if="loadError" class="border-destructive/50">
-        <UCardContent class="p-6 text-center">
-          <Icon name="heroicons:exclamation-triangle" class="h-8 w-8 text-destructive mx-auto mb-3" />
-          <p class="text-sm font-medium">Failed to load models</p>
-          <p class="text-xs text-muted-foreground mt-1 mb-4">{{ loadError }}</p>
-          <UButton variant="outline" size="sm" @click="fetchModels">
-            <Icon name="heroicons:arrow-path" class="h-4 w-4 mr-2" />
-            Retry
-          </UButton>
-        </UCardContent>
-      </UCard>
+        <!-- Error -->
+        <UAlert
+          v-else-if="loadError"
+          color="error"
+          variant="subtle"
+          icon="i-lucide-circle-alert"
+          title="Failed to load models"
+          :description="loadError"
+          :actions="[{ label: 'Retry', color: 'error', variant: 'solid', onClick: fetchModels }]"
+        />
 
-      <!-- Empty search result -->
-      <div v-else-if="filteredModels.length === 0" class="text-center py-16 text-muted-foreground">
-        <Icon name="heroicons:funnel" class="h-10 w-10 mx-auto mb-3 opacity-40" />
-        <p class="text-sm font-medium">No models match the current filters</p>
-        <UButton variant="ghost" size="sm" class="mt-3" @click="clearFilters">Clear filters</UButton>
-      </div>
+        <!-- Empty -->
+        <div v-else-if="filteredModels.length === 0" class="text-center py-16 text-muted">
+          <UIcon name="i-lucide-filter" class="size-10 mx-auto mb-3 opacity-40" />
+          <p class="text-sm font-medium">No models match the current filters</p>
+          <UButton variant="ghost" size="sm" color="neutral" class="mt-3" label="Clear filters" @click="clearFilters" />
+        </div>
 
-      <!-- Models grid -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <UCard v-for="model in filteredModels" :key="model.model"
-          class="flex flex-col cursor-pointer transition-colors hover:bg-accent/50" @click="openModel(model)">
-          <UCardHeader class="pb-3">
+        <!-- Models grid -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <button
+            v-for="model in filteredModels"
+            :key="model.model"
+            class="text-left ring ring-default rounded-lg bg-default p-5 flex flex-col gap-3 transition-colors hover:bg-elevated/50 hover:ring-accented cursor-pointer"
+            @click="openModel(model)"
+          >
             <div class="flex items-start justify-between gap-2">
-              <UCardTitle class="text-sm font-semibold leading-tight line-clamp-2 flex-1">{{ model.name }}</UCardTitle>
-              <UBadge class="shrink-0 text-xs capitalize">{{ model.details.family }}</UBadge>
+              <h3 class="text-sm font-semibold leading-tight line-clamp-2 flex-1 text-highlighted">
+                {{ model.name }}
+              </h3>
+              <UBadge color="primary" variant="soft" class="shrink-0 text-xs capitalize">{{ model.details.family }}</UBadge>
             </div>
-            <code class="text-xs text-muted-foreground font-mono truncate block mt-1">{{ model.model }}</code>
-          </UCardHeader>
-          <UCardContent class="flex-1 pt-0 pb-4 space-y-3">
-            <p v-if="model.details.description" class="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+            <code class="text-xs text-muted font-mono truncate block">{{ model.model }}</code>
+            <p v-if="model.details.description" class="text-xs text-muted leading-relaxed line-clamp-3">
               {{ model.details.description }}
             </p>
-            <div class="flex flex-wrap gap-1.5">
-              <UBadge variant="secondary" class="text-xs gap-1">
-                <Icon name="heroicons:cpu-chip" class="h-3 w-3" />
+            <div class="flex flex-wrap gap-1.5 mt-auto">
+              <UBadge color="neutral" variant="soft" icon="i-lucide-cpu">
                 {{ model.details.parameter_size }}
               </UBadge>
-              <UBadge variant="outline" class="text-xs gap-1" v-if="model.details.context_length">
-                <Icon name="heroicons:document-text" class="h-3 w-3" />
+              <UBadge v-if="model.details.context_length" color="neutral" variant="outline" icon="i-lucide-file-text">
                 {{ formatContext(model.details.context_length) }} ctx
               </UBadge>
             </div>
-          </UCardContent>
-        </UCard>
-      </div>
-
-    </div>
-  </div>
+          </button>
+        </div>
+      </UContainer>
+    </template>
+  </UDashboardPanel>
 
   <ModelInfoDialog :is-open="showDialog" :model="selectedModel" @close="showDialog = false" />
 </template>
@@ -145,28 +147,39 @@ const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const selectedModel = ref<AIModel | null>(null)
 const showDialog = ref(false)
-const selectedFamily = ref('any')
-const minContext = ref('any')
+const selectedFamily = ref<string>('any')
+const minContext = ref<string>('any')
 const capabilities = ref<string[]>([])
 
-const openModel = (model: AIModel) => {
-  selectedModel.value = model
+const openModel = (m: AIModel) => {
+  selectedModel.value = m
   showDialog.value = true
 }
 
 const availableFamilies = computed(() => {
   const seen = new Set<string>()
-  for (const m of models.value) {
-    if (m.details.family) seen.add(m.details.family)
-  }
+  for (const m of models.value) if (m.details.family) seen.add(m.details.family)
   return [...seen].sort()
 })
 
+const familyItems = computed(() => [
+  { label: 'All families', value: 'any' },
+  ...availableFamilies.value.map(f => ({ label: f, value: f }))
+])
+
+const contextItems = [
+  { label: 'Any context', value: 'any' },
+  { label: '32K+', value: '32k' },
+  { label: '128K+', value: '128k' },
+  { label: '200K+', value: '200k' },
+  { label: '1M+', value: '1m' }
+]
+
 const hasActiveFilters = computed(() =>
-  search.value.trim() !== '' ||
-  selectedFamily.value !== 'any' ||
-  minContext.value !== 'any' ||
-  capabilities.value.length > 0
+  search.value.trim() !== ''
+  || selectedFamily.value !== 'any'
+  || minContext.value !== 'any'
+  || capabilities.value.length > 0
 )
 
 const clearFilters = () => {
@@ -186,7 +199,7 @@ const contextThresholds: Record<string, number> = {
   '32k': 32_000,
   '128k': 128_000,
   '200k': 200_000,
-  '1m': 1_000_000,
+  '1m': 1_000_000
 }
 
 const filteredModels = computed(() => {
@@ -195,10 +208,10 @@ const filteredModels = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (q) {
     result = result.filter(m =>
-      m.name.toLowerCase().includes(q) ||
-      m.model.toLowerCase().includes(q) ||
-      m.details.family.toLowerCase().includes(q) ||
-      m.details.description?.toLowerCase().includes(q)
+      m.name.toLowerCase().includes(q)
+      || m.model.toLowerCase().includes(q)
+      || m.details.family.toLowerCase().includes(q)
+      || m.details.description?.toLowerCase().includes(q)
     )
   }
 
@@ -207,14 +220,13 @@ const filteredModels = computed(() => {
   }
 
   if (minContext.value !== 'any') {
-    const threshold = contextThresholds[minContext.value]
+    const threshold = contextThresholds[minContext.value] ?? 0
     result = result.filter(m => (m.details.context_length ?? 0) >= threshold)
   }
 
   if (capabilities.value.includes('vision')) {
     result = result.filter(m => m.details.architecture?.input_modalities?.includes('image'))
   }
-
   if (capabilities.value.includes('tools')) {
     result = result.filter(m => m.details.supported_parameters?.includes('tools'))
   }

@@ -1,112 +1,140 @@
 <template>
-  <div class="flex-1 overflow-y-auto p-6">
-    <div class="max-w-lg mx-auto space-y-6">
+  <UDashboardPanel id="settings">
+    <template #header>
+      <Navbar>
+        <span class="font-medium">Settings</span>
+      </Navbar>
+    </template>
 
-      <!-- Preferences Card -->
-      <UCard>
-        <UCardHeader>
-          <UCardTitle>Preferences</UCardTitle>
-          <UCardDescription>Manage your account settings and notifications.</UCardDescription>
-        </UCardHeader>
-        <UCardContent class="pt-0">
-          <div class="flex flex-col divide-y divide-border">
-            <!-- Theme -->
-            <div class="py-4 first:pt-0 last:pb-0">
-              <label class="text-sm font-medium mb-1.5 block" for="theme-select">Theme</label>
-              <select id="theme-select" :value="colorMode.preference"
-                @change="colorMode.preference = ($event.target as HTMLSelectElement).value"
-                class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-                <option value="system">Default (System)</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
+    <template #body>
+      <UContainer class="py-6 flex flex-col gap-6 max-w-2xl">
+        <!-- Preferences -->
+        <section class="ring ring-default rounded-lg bg-default p-6 flex flex-col gap-4">
+          <header>
+            <h2 class="text-base font-semibold text-highlighted">Preferences</h2>
+            <p class="text-sm text-muted">Customize the app to your liking.</p>
+          </header>
 
-            <!-- Time Format -->
-            <div class="py-4 first:pt-0 last:pb-0">
-              <label class="text-sm font-medium mb-1.5 block" for="time-format-select">Time Format</label>
-              <select id="time-format-select" :value="chatStore.settings.timeFormat"
-                @change="chatStore.updateSettings({ timeFormat: ($event.target as HTMLSelectElement).value as '12h' | '24h' })"
-                class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-                <option value="24h">24-hour (14:30)</option>
-                <option value="12h">12-hour (2:30 PM)</option>
-              </select>
+          <USeparator />
+
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium text-highlighted">Theme</p>
+              <p class="text-xs text-muted">Light, dark, or match your system.</p>
             </div>
+            <USelectMenu
+              :model-value="colorMode.preference"
+              :items="themeItems"
+              value-key="value"
+              size="sm"
+              class="w-40"
+              @update:model-value="colorMode.preference = $event"
+            />
           </div>
-        </UCardContent>
-      </UCard>
 
-      <!-- Conversations Card -->
-      <UCard>
-        <UCardHeader>
-          <UCardTitle>Conversations</UCardTitle>
-          <UCardDescription>Export or delete your saved conversations.</UCardDescription>
-        </UCardHeader>
-        <UCardContent class="pt-0">
-          <div class="grid grid-cols-2 gap-4 mb-4">
+          <USeparator />
+
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium text-highlighted">Time Format</p>
+              <p class="text-xs text-muted">Display of timestamps across the app.</p>
+            </div>
+            <USelectMenu
+              :model-value="chatStore.settings.timeFormat"
+              :items="timeFormatItems"
+              value-key="value"
+              size="sm"
+              class="w-40"
+              @update:model-value="chatStore.updateSettings({ timeFormat: $event as '12h' | '24h' })"
+            />
+          </div>
+        </section>
+
+        <!-- Conversations -->
+        <section class="ring ring-default rounded-lg bg-default p-6 flex flex-col gap-4">
+          <header>
+            <h2 class="text-base font-semibold text-highlighted">Conversations</h2>
+            <p class="text-sm text-muted">Export or delete your saved conversations.</p>
+          </header>
+
+          <USeparator />
+
+          <div class="grid grid-cols-2 gap-4">
             <div class="text-center">
               <div class="text-2xl font-bold text-primary">{{ chatStore.conversations.length }}</div>
-              <div class="text-xs text-muted-foreground font-medium">Saved Conversations</div>
+              <div class="text-xs text-muted font-medium">Saved Conversations</div>
             </div>
             <div class="text-center">
               <div class="text-2xl font-bold text-primary">{{ totalMessages }}</div>
-              <div class="text-xs text-muted-foreground font-medium">Total Messages</div>
+              <div class="text-xs text-muted font-medium">Total Messages</div>
             </div>
           </div>
+
           <div class="grid grid-cols-2 gap-3">
-            <UButton variant="outline" @click="exportConversations">
-              <Icon name="heroicons:arrow-down-tray" class="h-4 w-4 mr-2" />
-              Export
-            </UButton>
-            <UButton variant="destructive" @click="showConfirmDialog = true"
-              :disabled="chatStore.conversations.length === 0">
-              <Icon name="heroicons:trash" class="h-4 w-4 mr-2" />
-              Delete All
-            </UButton>
+            <UButton
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-download"
+              label="Export"
+              block
+              @click="exportConversations"
+            />
+            <UButton
+              color="error"
+              variant="soft"
+              icon="i-lucide-trash-2"
+              label="Delete All"
+              :disabled="chatStore.conversations.length === 0"
+              block
+              @click="confirmDeleteAll"
+            />
           </div>
-        </UCardContent>
-      </UCard>
-
-    </div>
-
-    <!-- Confirmation Dialog -->
-    <UDialog :open="showConfirmDialog" @update:open="showConfirmDialog = $event" class="max-w-sm">
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 flex items-center justify-center bg-destructive/10 rounded-lg shrink-0">
-            <Icon name="heroicons:exclamation-triangle" class="h-6 w-6 text-destructive" />
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold">Confirmation</h3>
-            <p class="text-sm text-muted-foreground">Irreversible action</p>
-          </div>
-        </div>
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Do you really want to delete all conversations? This action cannot be undone.
-        </p>
-        <div class="flex justify-end gap-2">
-          <UButton variant="outline" @click="showConfirmDialog = false">Cancel</UButton>
-          <UButton variant="destructive" @click="clearAllConversations">Delete</UButton>
-        </div>
-      </div>
-    </UDialog>
-  </div>
+        </section>
+      </UContainer>
+    </template>
+  </UDashboardPanel>
 </template>
 
 <script setup lang="ts">
+import ModalConfirm from '~/components/ModalConfirm.vue'
+
 useHead({ title: 'AskChadAI - Settings' })
 
 const chatStore = useChatStore()
 const colorMode = useColorMode()
-const showConfirmDialog = ref(false)
+const toast = useToast()
+const overlay = useOverlay()
+
+const themeItems = [
+  { label: 'System', value: 'system' },
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' }
+]
+
+const timeFormatItems = [
+  { label: '24-hour (14:30)', value: '24h' },
+  { label: '12-hour (2:30 PM)', value: '12h' }
+]
 
 const totalMessages = computed(() =>
-  chatStore.conversations.reduce((total, conv) => total + conv.messages.length, 0)
+  chatStore.conversations.reduce((total, c) => total + c.messages.length, 0)
 )
 
-const clearAllConversations = () => {
-  chatStore.clearAllConversations()
-  showConfirmDialog.value = false
+const confirmDeleteAll = async () => {
+  const modal = overlay.create(ModalConfirm, {
+    props: {
+      title: 'Delete all conversations?',
+      description: 'This action cannot be undone. All saved conversations will be permanently removed.',
+      confirmLabel: 'Delete all',
+      destructive: true
+    }
+  })
+  const instance = modal.open()
+  const confirmed = await instance.result
+  if (confirmed) {
+    chatStore.clearAllConversations()
+    toast.add({ color: 'success', title: 'All conversations deleted' })
+  }
 }
 
 const exportConversations = () => {
@@ -125,8 +153,9 @@ const exportConversations = () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error('Export failed:', error)
+    toast.add({ color: 'success', title: 'Export complete' })
+  } catch (error: any) {
+    toast.add({ color: 'error', title: 'Export failed', description: error?.message })
   }
 }
 </script>

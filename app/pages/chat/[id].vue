@@ -1,131 +1,296 @@
 <template>
-  <div class="flex h-full flex-col min-w-0">
-    <!-- Chat sub-header: model info -->
-    <div class="flex items-center gap-2 border-b border-border px-4 py-2 bg-background shrink-0">
-      <div class="ml-auto flex items-center gap-2">
-        <UTooltip v-if="chatStore.currentConversation">
-          <template #trigger>
-            <UButton variant="secondary" size="sm" class="flex items-center gap-2 rounded-full"
-              @click="showModelInfo">
-              <Icon name="heroicons:cpu-chip" class="h-4 w-4 text-primary" />
-              <span class="text-sm font-medium">
-                {{ chatStore.currentConversation.model.split(':')[0] }}
-              </span>
-              <Icon name="heroicons:information-circle" class="h-4 w-4 text-muted-foreground" />
-            </UButton>
-          </template>
-          View model information
-        </UTooltip>
+  <UDashboardPanel id="chat-view">
+    <template #header>
+      <Navbar>
+        <UButton
+          v-if="currentModelDetails"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          trailing-icon="i-lucide-info"
+          @click="showInfo = true"
+        >
+          <span class="truncate max-w-[200px]">{{ currentModelDetails.name }}</span>
+        </UButton>
+      </Navbar>
+    </template>
+
+    <template #body>
+      <div class="flex flex-1 min-h-0 relative">
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 min-h-0">
+          <div
+            ref="scrollEl"
+            class="flex-1 overflow-y-auto pt-(--ui-header-height) pb-4 sm:pb-6 scrollbar-thin"
+            @scroll="onScroll"
+          >
+            <div v-if="!currentConv && !chatStore.isLoading" class="flex-1 flex items-center justify-center h-full">
+              <UEmpty
+                icon="i-lucide-message-circle-off"
+                title="Chat not found"
+                description="This conversation no longer exists."
+              >
+                <template #actions>
+                  <UButton to="/chat/new" label="Start a new chat" />
+                </template>
+              </UEmpty>
+            </div>
+
+            <div v-else-if="currentMessages.length === 0" class="h-full flex items-center justify-center">
+              <div class="text-center">
+                <UIcon name="i-lucide-sparkles" class="size-10 text-primary mx-auto mb-3" />
+                <p class="text-sm text-muted">Ask anything to get started.</p>
+              </div>
+            </div>
+
+            <div v-else class="flex flex-col gap-6 py-4">
+              <UChatMessage
+                v-for="(msg, i) in currentMessages"
+                :id="msg.id || String(i)"
+                :key="msg.id"
+                :role="msg.role"
+                :parts="[]"
+                :side="msg.role === 'user' ? 'right' : 'left'"
+                :variant="msg.role === 'user' ? 'soft' : 'naked'"
+                :icon="msg.role === 'assistant' ? 'i-lucide-sparkles' : undefined"
+                :avatar="msg.role === 'user' ? { icon: 'i-lucide-user' } : undefined"
+              >
+                <template #content>
+                  <ChatMessageContent
+                    :message="msg"
+                    :streaming="isStreamingMessage(i)"
+                  />
+                </template>
+
+                <template v-if="msg.role === 'assistant' && !isStreamingMessage(i) && msg.content" #actions>
+                  <ChatMessageActions
+                    :message="msg"
+                    :can-regenerate="i === currentMessages.length - 1"
+                    @regenerate="handleRegenerate"
+                  />
+                </template>
+              </UChatMessage>
+
+              <div v-if="showThinking" class="flex items-center gap-2 text-muted pl-2">
+                <ChatIndicator />
+                <UChatShimmer text="Thinking..." class="text-sm" />
+              </div>
+            </div>
+          </div>
+
+          <UChatPrompt
+            v-model="input"
+            :status="status"
+            variant="subtle"
+            class="sticky bottom-0 rounded-b-none z-10 [view-transition-name:chat-prompt]"
+            :ui="{ base: 'px-1.5' }"
+            placeholder="Send a message..."
+            @submit="handleSubmit"
+            @paste.capture="handlePaste"
+          >
+            <template v-if="images.length" #header>
+              <div class="flex flex-wrap gap-2">
+                <ChatFilePreview
+                  v-for="(img, i) in images"
+                  :key="i"
+                  :src="img.preview"
+                  :name="img.name"
+                  removable
+                  @remove="removeImage(i)"
+                />
+              </div>
+            </template>
+
+            <template #footer>
+              <div class="flex items-center gap-1.5">
+                <UButton
+                  icon="i-lucide-paperclip"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :disabled="!supportsImages"
+                  @click="fileInput?.click()"
+                />
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="hidden"
+                  @change="onFileChange"
+                />
+                <ModelSelect />
+              </div>
+
+              <div class="ml-auto flex items-center gap-1.5">
+                <UChatPromptSubmit
+                  color="neutral"
+                  size="sm"
+                  @stop="cancel"
+                />
+              </div>
+            </template>
+          </UChatPrompt>
+        </UContainer>
       </div>
-    </div>
+    </template>
+  </UDashboardPanel>
 
-    <!-- Messages + Input -->
-    <div class="flex flex-1 flex-col min-h-0">
-      <ChatMessages ref="chatMessagesRef" @focus-input="focusInput" />
-      <ChatInput ref="chatInputRef" :current-model="currentModelDetails" />
-    </div>
-  </div>
-
-  <!-- Model Info Dialog -->
-  <ModelInfoDialog :is-open="showModelInfoDialog" :model="currentModelDetails" @close="showModelInfoDialog = false" />
+  <ModelInfoDialog
+    v-if="currentModelDetails"
+    :is-open="showInfo"
+    :model="currentModelDetails"
+    @close="showInfo = false"
+  />
 </template>
 
 <script setup lang="ts">
-import type { AIModel } from '../../../types/chat'
-
 const route = useRoute()
+const router = useRouter()
 const chatStore = useChatStore()
-const { scrollToBottom } = useScrolling()
-const { loadModels } = useChat()
+const { loadModels, sendMessage } = useChat()
 
-const chatMessagesRef = ref()
-const chatInputRef = ref()
-const showModelInfoDialog = ref(false)
+const {
+  input,
+  images,
+  status,
+  supportsImages,
+  currentModelDetails,
+  addFiles,
+  removeImage,
+  handlePaste,
+  submit,
+  cancel
+} = useChatInput()
+
+const scrollEl = ref<HTMLElement>()
+const fileInput = ref<HTMLInputElement>()
+const showInfo = ref(false)
+const isAtBottom = ref(true)
+
+const currentConv = computed(() => chatStore.currentConversation)
+const currentMessages = computed(() => chatStore.currentMessages)
+const isTyping = computed(() => chatStore.isConversationTyping)
+
+const showThinking = computed(() => {
+  if (!isTyping.value) return false
+  const last = currentMessages.value[currentMessages.value.length - 1]
+  return !last || last.role !== 'assistant' || !last.content
+})
+
+const isStreamingMessage = (i: number) =>
+  isTyping.value
+  && i === currentMessages.value.length - 1
+  && currentMessages.value[i]?.role === 'assistant'
 
 useHead({
   title: computed(() => {
-    const title = chatStore.currentConversation?.title
+    const title = currentConv.value?.title
     return title ? `AskChadAI - ${title}` : 'AskChadAI - Chat'
   })
 })
 
-const loadAvailableModels = async () => {
-  await loadModels()
-}
-
-const focusInput = () => {
-  if (chatInputRef.value && chatInputRef.value.focusInput) {
-    chatInputRef.value.focusInput()
-  }
-}
-
-const currentModelDetails = computed(() => {
-  if (!chatStore.currentConversation) return null
-  const modelId = chatStore.currentConversation.model
-  return chatStore.availableModels.find((m: AIModel) => m.model === modelId) || null
-})
-
-const showModelInfo = () => {
-  if (currentModelDetails.value) {
-    showModelInfoDialog.value = true
-  }
-}
-
-// Sync URL param → store selection
 const syncConversation = () => {
   const id = route.params.id as string
-  if (id === 'new') {
-    chatStore.selectConversation('')
-  } else {
-    const exists = chatStore.conversations.find(c => c.id === id)
-    if (exists) {
-      chatStore.selectConversation(id)
-    } else if (!chatStore.isLoading) {
-      navigateTo('/chat')
-    }
+  const exists = chatStore.conversations.find(c => c.id === id)
+  if (exists) {
+    chatStore.selectConversation(id)
+  } else if (!chatStore.isLoading) {
+    router.replace('/chat/new')
   }
 }
 
-// As soon as localStorage is loaded, sync the conversation so the welcome screen never flashes
 watch(() => chatStore.isLoading, (loading) => {
-  if (!loading) {
-    syncConversation()
-  }
+  if (!loading) syncConversation()
 })
 
-// After a new conversation is created on /chat/new, navigate to its URL
-watch(() => chatStore.currentConversationId, (newId) => {
-  if (newId && route.params.id === 'new') {
-    navigateTo(`/chat/${newId}`, { replace: true })
-  }
+watch(() => route.params.id, () => {
+  if (!chatStore.isLoading) syncConversation()
 })
 
-// Redirect if conversation is deleted while viewing it
-watch(() => chatStore.conversations, (conversations) => {
+watch(() => chatStore.conversations, (list) => {
   const id = route.params.id as string
-  if (id !== 'new' && !conversations.find(c => c.id === id)) {
-    navigateTo('/chat')
+  if (!list.find(c => c.id === id) && !chatStore.isLoading) {
+    router.replace('/chat/new')
   }
 }, { deep: true })
 
-watch([() => chatStore.currentMessages, () => chatStore.isTyping], () => {
-  if (chatStore.isAtBottom && chatMessagesRef.value?.messagesContainer) {
-    scrollToBottom(chatMessagesRef.value.messagesContainer)
+const scrollToBottom = (smooth = false) => {
+  nextTick(() => {
+    const el = scrollEl.value
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' })
+    isAtBottom.value = true
+  })
+}
+
+const onScroll = () => {
+  const el = scrollEl.value
+  if (!el) return
+  isAtBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+}
+
+watch(() => currentMessages.value.length, () => {
+  if (isAtBottom.value) scrollToBottom()
+})
+
+watch(
+  () => currentMessages.value[currentMessages.value.length - 1]?.content,
+  () => {
+    if (isAtBottom.value) scrollToBottom()
   }
-}, { deep: true })
+)
+
+watch(() => route.params.id, () => {
+  isAtBottom.value = true
+  scrollToBottom()
+})
+
+const handleSubmit = async () => {
+  await submit()
+  scrollToBottom(true)
+}
+
+const onFileChange = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    await addFiles(target.files)
+  }
+  if (target) target.value = ''
+}
+
+const handleRegenerate = async () => {
+  if (!currentConv.value) return
+  const messages = currentConv.value.messages
+  if (messages.length < 2) return
+  const last = messages[messages.length - 1]
+  if (last?.role !== 'assistant') return
+  const userMsg = messages[messages.length - 2]
+  if (userMsg?.role !== 'user') return
+
+  messages.pop()
+  messages.pop()
+
+  const text = typeof userMsg.content === 'string'
+    ? userMsg.content
+    : userMsg.content.find(p => p.type === 'text')?.text || ''
+  const imgs = typeof userMsg.content === 'string'
+    ? []
+    : userMsg.content
+      .filter(p => p.type === 'image_url')
+      .map(p => ({
+        file: new File([], 'image'),
+        preview: p.image_url!.url,
+        name: 'image',
+        base64: p.image_url!.url
+      }))
+
+  await sendMessage(text, imgs)
+  scrollToBottom(true)
+}
 
 onMounted(async () => {
-  // Sync immediately if store is already loaded (e.g. navigating from within the app)
-  if (!chatStore.isLoading) {
-    syncConversation()
-  }
-  try {
-    await loadAvailableModels()
-    chatStore.setLoadingComplete()
-    syncConversation()
-  } catch (error) {
-    console.error('Error during initialization:', error)
-    chatStore.setLoadingComplete()
-  }
+  await loadModels()
+  if (!chatStore.isLoading) syncConversation()
+  scrollToBottom()
 })
 </script>

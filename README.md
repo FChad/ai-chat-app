@@ -19,9 +19,9 @@ A modern AI chat application built with Nuxt and Vue, featuring OpenRouter integ
 
 ## Tech Stack
 
-**Core**: Nuxt, Vue, TypeScript, TailwindCSS  
+**Core**: Nuxt 4, Vue 3, TypeScript, Tailwind CSS 4, Nuxt UI 4  
 **State**: Pinia  
-**Features**: Dark Mode, Markdown (marked, highlight.js)  
+**Features**: Dark Mode, Markdown (Comark + Shiki)  
 **Services**: OpenRouter API
 
 ## Getting Started

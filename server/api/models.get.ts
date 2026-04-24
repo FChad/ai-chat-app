@@ -1,6 +1,6 @@
 import type { AIModel } from '../../types/chat'
 import type { OpenRouterModel, OpenRouterModelsResponse } from '../../types/openrouter'
-import { DEFAULT_MODEL } from '../../app/config/constants'
+import { DEFAULT_MODEL } from '../../shared/constants'
 
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()

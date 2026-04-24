@@ -9,10 +9,8 @@ export const useChatStore = defineStore('chat', () => {
   const conversations = ref<Conversation[]>([])
   const currentConversationId = ref<string | null>(null)
   const isTyping = ref(false)
-  const isAtBottom = ref(true)
   const activeSessions = ref<Map<string, ActiveChatSession>>(new Map())
   const isLoading = ref(true)
-  const apiError = ref<{ title: string; detail: string } | null>(null)
   const availableModels = ref<AIModel[]>([])
 
   // App Settings with defaults
@@ -31,9 +29,6 @@ export const useChatStore = defineStore('chat', () => {
     if (!currentConversation.value?.sessionId) return false
     return activeSessions.value.has(currentConversation.value.sessionId)
   })
-
-  // Settings getters
-  const isTimeFormat12h = computed(() => settings.value.timeFormat === '12h')
 
   // Actions
   const generateConversationTitle = (messageContent: MessageContent): string => {
@@ -187,12 +182,6 @@ export const useChatStore = defineStore('chat', () => {
     isTyping.value = typing
   }
 
-
-
-  const setIsAtBottom = (atBottom: boolean) => {
-    isAtBottom.value = atBottom
-  }
-
   const setAvailableModels = (models: AIModel[]) => {
     availableModels.value = models
   }
@@ -314,34 +303,19 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  const setLoadingComplete = () => {
-    isLoading.value = false
-  }
-
-  const setApiError = (title: string, detail: string) => {
-    apiError.value = { title, detail }
-  }
-
-  const clearApiError = () => {
-    apiError.value = null
-  }
-
   return {
     // State
     conversations,
     currentConversationId,
     isTyping,
-    isAtBottom,
     settings,
     isLoading,
-    apiError,
     availableModels,
 
     // Getters
     currentConversation,
     currentMessages,
     isConversationTyping,
-    isTimeFormat12h,
 
     // Actions
     createNewConversation,
@@ -351,12 +325,8 @@ export const useChatStore = defineStore('chat', () => {
     deleteConversation,
     clearAllConversations,
     setTyping,
-    setIsAtBottom,
     setAvailableModels,
     loadFromLocalStorage,
-    setLoadingComplete,
-    setApiError,
-    clearApiError,
 
     // Settings Actions
     updateSettings,

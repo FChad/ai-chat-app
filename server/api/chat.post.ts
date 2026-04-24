@@ -1,5 +1,5 @@
 import type { ChatRequest } from '../../types/chat'
-import { DEFAULT_MODEL } from '../../app/config/constants'
+import { DEFAULT_MODEL } from '../../shared/constants'
 
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()

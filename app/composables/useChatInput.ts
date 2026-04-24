@@ -109,11 +109,11 @@ export const useChatInput = () => {
         images.value = []
         // Note: we don't revoke previews here — they are attached to the user message and still displayed.
 
-        const wasNew = !chatStore.currentConversation
-        await sendMessage(text, imgs, selectedModel.value)
-        if (wasNew && chatStore.currentConversation) {
-            opts?.onNewConversation?.(chatStore.currentConversation.id)
+        if (!chatStore.currentConversation) {
+            const id = chatStore.createNewConversation(selectedModel.value, text)
+            opts?.onNewConversation?.(id)
         }
+        await sendMessage(text, imgs, selectedModel.value)
     }
 
     const cancel = () => {

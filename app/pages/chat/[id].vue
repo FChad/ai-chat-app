@@ -1,5 +1,9 @@
 <template>
-  <UDashboardPanel id="chat-view">
+  <UDashboardPanel
+    id="chat-view"
+    class="relative min-h-0"
+    :ui="{ body: 'p-0 sm:p-0 overscroll-none' }"
+  >
     <template #header>
       <Navbar>
         <UButton
@@ -16,12 +20,11 @@
     </template>
 
     <template #body>
-      <div class="flex flex-1 min-h-0 relative">
-        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6 min-h-0">
+      <div class="flex flex-1">
+        <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6">
           <div
-            ref="scrollEl"
-            class="flex-1 overflow-y-auto pt-(--ui-header-height) pb-4 sm:pb-6 scrollbar-thin"
-            @scroll="onScroll"
+            ref="messagesEl"
+            class="flex-1 pt-(--ui-header-height) pb-4 sm:pb-6"
           >
             <div v-if="!currentConv && !chatStore.isLoading" class="flex-1 flex items-center justify-center h-full">
               <UEmpty
@@ -42,7 +45,7 @@
               </div>
             </div>
 
-            <div v-else class="flex flex-col gap-6 py-4">
+            <div v-else class="flex flex-col gap-6">
               <UChatMessage
                 v-for="(msg, i) in currentMessages"
                 :id="msg.id || String(i)"
@@ -162,10 +165,21 @@ const {
   cancel
 } = useChatInput()
 
-const scrollEl = ref<HTMLElement>()
+const messagesEl = ref<HTMLElement>()
+const scrollEl = shallowRef<HTMLElement | null>(null)
 const fileInput = ref<HTMLInputElement>()
 const showInfo = ref(false)
 const isAtBottom = ref(true)
+
+function findScrollParent(el: HTMLElement | null | undefined): HTMLElement | null {
+  let node: HTMLElement | null = el?.parentElement ?? null
+  while (node) {
+    const overflowY = getComputedStyle(node).overflowY
+    if (overflowY === 'auto' || overflowY === 'scroll') return node
+    node = node.parentElement
+  }
+  return null
+}
 
 const currentConv = computed(() => chatStore.currentConversation)
 const currentMessages = computed(() => chatStore.currentMessages)
@@ -289,8 +303,14 @@ const handleRegenerate = async () => {
 }
 
 onMounted(async () => {
+  scrollEl.value = findScrollParent(messagesEl.value)
+  scrollEl.value?.addEventListener('scroll', onScroll, { passive: true })
   await loadModels()
   if (!chatStore.isLoading) syncConversation()
   scrollToBottom()
+})
+
+onBeforeUnmount(() => {
+  scrollEl.value?.removeEventListener('scroll', onScroll)
 })
 </script>

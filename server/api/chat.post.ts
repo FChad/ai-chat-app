@@ -90,8 +90,8 @@ export default defineEventHandler(async (event) => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${openrouterApiKey}`,
-        'HTTP-Referer': 'https://github.com/FChad/nuxt-ollama-chat', // Optional: für OpenRouter Tracking
-        'X-OpenRouter-Title': 'AskChadAI' // Optional: für OpenRouter Tracking
+        'HTTP-Referer': 'https://github.com/FChad/ai-chat-app',
+        'X-OpenRouter-Title': 'AskChadAI'
       },
       body: JSON.stringify(requestBody)
     })

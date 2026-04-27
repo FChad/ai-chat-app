@@ -7,6 +7,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
+    // Edge cache for 5min, allow stale-while-revalidate for an hour.
+    // routeRules cache config doesn't take effect on Cloudflare Pages without an explicit header.
+    setHeader(event, 'Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
 
     // Get environment variables
     const openrouterApiKey = runtimeConfig.openrouterApiKey
@@ -26,7 +29,7 @@ export default defineEventHandler(async (event) => {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${openrouterApiKey}`,
-        'HTTP-Referer': 'https://github.com/FChad/nuxt-ollama-chat',
+        'HTTP-Referer': 'https://github.com/FChad/ai-chat-app',
         'X-OpenRouter-Title': 'AskChadAI'
       }
     })

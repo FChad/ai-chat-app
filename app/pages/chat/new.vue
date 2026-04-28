@@ -82,6 +82,7 @@
 useHead({ title: 'AskChadAI - New Chat' })
 
 const router = useRouter()
+const chatStore = useChatStore()
 const { loadModels } = useChat()
 const {
   input,
@@ -93,6 +94,10 @@ const {
   handlePaste,
   submit
 } = useChatInput()
+
+// Clear any previously selected conversation so submitting from this page
+// always creates a new chat instead of appending to the last-viewed one.
+chatStore.selectConversation('')
 
 const fileInput = ref<HTMLInputElement>()
 

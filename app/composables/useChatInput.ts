@@ -120,10 +120,6 @@ export const useChatInput = () => {
         if (chatStore.currentConversation) cancelMessage(chatStore.currentConversation.id)
     }
 
-    onBeforeUnmount(() => {
-        // Don't revoke — previews may be referenced from sent messages
-    })
-
     return {
         input,
         images,

@@ -42,12 +42,8 @@ export interface TopProvider {
 }
 
 export interface ModelDetails {
-  parent_model: string
-  format: string
   family: string
-  families: string[] | null
   parameter_size: string
-  quantization_level: string
   context_length?: number
   description?: string
   popularity?: number
@@ -63,10 +59,7 @@ export interface AIModel {
   name: string
   model: string
   modified_at: string
-  size: number
-  digest: string
   details: ModelDetails
-  canonical_slug?: string
 }
 
 // OpenRouter Chat API Request format

@@ -63,17 +63,10 @@ export default defineEventHandler(async (event) => {
           model: {
             name: model.name || model.id,
             model: model.id,
-            canonical_slug: model.canonical_slug || model.id,
             modified_at: model.created ? new Date(model.created * 1000).toISOString() : new Date().toISOString(),
-            size: 0,
-            digest: '',
             details: {
-              parent_model: '',
-              format: '',
               family: family,
-              families: [family],
               parameter_size: parameterSize,
-              quantization_level: '',
               context_length: model.context_length || 0,
               description: model.description || '',
               popularity,

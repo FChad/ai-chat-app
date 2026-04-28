@@ -41,7 +41,6 @@ const props = withDefaults(
   defineProps<{
     src: string
     name?: string
-    mimeType?: string
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
     removable?: boolean
   }>(),
@@ -55,10 +54,9 @@ const emit = defineEmits<{ remove: [] }>()
 
 const showZoom = ref(false)
 
-const isImage = computed(() => {
-  if (props.mimeType) return props.mimeType.startsWith('image/')
-  return /^data:image\/|\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(props.src)
-})
+const isImage = computed(() =>
+  /^data:image\/|\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(props.src)
+)
 
 onUnmounted(() => {
   showZoom.value = false

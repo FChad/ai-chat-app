@@ -111,29 +111,9 @@ export const useChatStore = defineStore('chat', () => {
     saveToLocalStorage()
   }
 
-  const updateLastMessage = (content: string, sessionId?: string) => {
-    // Always require sessionId for proper message routing
-    if (!sessionId) {
-      // Only update current conversation if no sessionId provided (legacy support)
-      if (!currentConversation.value) return
-
-      const messages = currentConversation.value.messages
-      if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1]
-        if (lastMessage && lastMessage.role === 'assistant') {
-          lastMessage.content = content
-          currentConversation.value.updatedAt = new Date().toISOString()
-          saveToLocalStorage()
-        }
-      }
-      return
-    }
-
-    // Find conversation by sessionId
+  const updateLastMessage = (content: string, sessionId: string) => {
     const conversation = conversations.value.find(c => c.sessionId === sessionId)
-    if (!conversation) {
-      return
-    }
+    if (!conversation) return
 
     const messages = conversation.messages
     if (messages.length > 0) {

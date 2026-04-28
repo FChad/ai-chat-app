@@ -40,14 +40,6 @@
             <p class="text-xl font-semibold tabular-nums text-highlighted">{{ formatNumber(model.details.top_provider.max_completion_tokens) }}</p>
             <p class="text-xs text-muted mt-0.5">completion tokens</p>
           </div>
-          <div class="rounded-lg ring ring-default bg-elevated/40 p-3">
-            <p class="text-xs text-muted mb-1">Format</p>
-            <p class="text-sm font-semibold font-mono text-highlighted">{{ model.details.format }}</p>
-          </div>
-          <div class="rounded-lg ring ring-default bg-elevated/40 p-3">
-            <p class="text-xs text-muted mb-1">Quantization</p>
-            <p class="text-sm font-semibold font-mono text-highlighted">{{ model.details.quantization_level }}</p>
-          </div>
         </div>
 
         <!-- Architecture -->

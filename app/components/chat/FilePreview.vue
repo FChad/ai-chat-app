@@ -1,7 +1,7 @@
 <template>
   <div class="group relative shrink-0">
     <UAvatar
-      :src="isImage ? src : undefined"
+      :src="isImage ? resolvedSrc : undefined"
       :icon="isImage ? undefined : 'i-lucide-image'"
       :size="size"
       class="rounded-lg"
@@ -25,7 +25,7 @@
       class="fixed inset-0 z-[100] flex items-center justify-center bg-default/75 backdrop-blur-sm p-4 cursor-zoom-out"
       @click="showZoom = false"
     >
-      <img :src="src" :alt="name || 'Image'" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
+      <img :src="resolvedSrc" :alt="name || 'Image'" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
       <UButton
         icon="i-lucide-x"
         color="neutral"
@@ -54,8 +54,13 @@ const emit = defineEmits<{ remove: [] }>()
 
 const showZoom = ref(false)
 
+// Resolve idb-blob:* markers into renderable object URLs. Pass-through for
+// data:, blob:, http(s):. Object URLs are revoked on src change / unmount.
+const resolvedSrc = useResolvedImageUrl(() => props.src)
+
 const isImage = computed(() =>
-  /^data:image\/|\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(props.src)
+  /^(blob:|idb-blob:)/i.test(props.src)
+  || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(props.src)
 )
 
 onUnmounted(() => {

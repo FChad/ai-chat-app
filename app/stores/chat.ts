@@ -3,6 +3,7 @@ import { debounce } from 'perfect-debounce'
 import { get, set, del } from 'idb-keyval'
 import { generateUUID } from '~/utils/uuid'
 import { SAVE_DEBOUNCE_MS } from '~/config/constants'
+import { deleteImage } from '~/utils/imageStorage'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
 
 // Conversations are persisted as one IDB key per id, listed in CONV_INDEX_KEY.
@@ -31,6 +32,25 @@ export const useChatStore = defineStore('chat', () => {
   let indexDirty = false
   let settingsDirty = false
   const markConvDirty = (id: string) => { dirtyConvIds.add(id) }
+
+  // When removing conversations we also drop the IDB blobs they reference,
+  // otherwise image storage grows forever. Fire-and-forget; failures are logged.
+  const deleteBlobsForConversations = (convs: Conversation[]) => {
+    if (typeof window === 'undefined') return
+    const markers: string[] = []
+    for (const conv of convs) {
+      for (const msg of conv.messages) {
+        if (typeof msg.content === 'string') continue
+        for (const part of msg.content) {
+          const url = part.image_url?.url
+          if (part.type === 'image_url' && url) markers.push(url)
+        }
+      }
+    }
+    if (markers.length === 0) return
+    void Promise.all(markers.map(m => deleteImage(m)))
+      .catch(err => console.error('Error deleting image blobs:', err))
+  }
 
   // Getters
   const currentConversation = computed(() =>
@@ -162,6 +182,10 @@ export const useChatStore = defineStore('chat', () => {
         cancelChatSession(conversation.sessionId)
       }
 
+      // Drop any image blobs the conversation referenced (before we remove it
+      // from the array — once removed we lose the references).
+      if (conversation) deleteBlobsForConversations([conversation])
+
       conversations.value.splice(index, 1)
       // No point saving a conversation we just removed.
       dirtyConvIds.delete(id)
@@ -187,6 +211,9 @@ export const useChatStore = defineStore('chat', () => {
       session.controller.abort()
     })
     activeSessions.value.clear()
+
+    // Drop all referenced image blobs before we clear the array.
+    deleteBlobsForConversations(conversations.value)
 
     const idsToDelete = conversations.value.map(c => c.id)
     conversations.value = []

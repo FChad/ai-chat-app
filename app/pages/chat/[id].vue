@@ -296,15 +296,17 @@ const handleRegenerate = async () => {
   const text = typeof userMsg.content === 'string'
     ? userMsg.content
     : userMsg.content.find(p => p.type === 'text')?.text || ''
+  // For regenerate we don't re-upload; we hand the existing idb-blob: markers
+  // straight through. The composer's preview field is set to the same value —
+  // FilePreview resolves markers via useResolvedImageUrl.
   const imgs = typeof userMsg.content === 'string'
     ? []
     : userMsg.content
       .filter(p => p.type === 'image_url')
       .map(p => ({
-        file: new File([], 'image'),
+        existingUrl: p.image_url!.url,
         preview: p.image_url!.url,
-        name: 'image',
-        base64: p.image_url!.url
+        name: 'image'
       }))
 
   await sendMessage(text, imgs)

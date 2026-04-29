@@ -2,6 +2,7 @@ import type { ChatRequest, Message, AIModel, MessageContent } from '../../types/
 import type { OpenRouterStreamChunk } from '../../types/openrouter'
 import type { UploadedImage } from './useChatInput'
 import { generateUUID } from '~/utils/uuid'
+import { persistImage, toDataUrl } from '~/utils/imageStorage'
 
 export const useChat = () => {
   const chatStore = useChatStore()
@@ -29,11 +30,13 @@ export const useChat = () => {
     // Create AbortController for this session
     const controller = new AbortController()
 
-    // Build message content
+    // Build message content. Persist any new image File as a Blob in IDB and
+    // store an `idb-blob:{uuid}` marker in the message. For regenerate, an
+    // UploadedImage carries an `existingUrl` (the existing marker) that we
+    // just pass through.
     let messageContent: MessageContent = userMessage
 
     if (images && images.length > 0) {
-      // Multi-modal message with text and images
       const contentParts: Array<{ type: 'text' | 'image_url'; text?: string; image_url?: { url: string; detail?: 'low' | 'high' | 'auto' } }> = []
 
       if (userMessage) {
@@ -44,10 +47,20 @@ export const useChat = () => {
       }
 
       for (const img of images) {
+        let url: string
+        if (img.file) {
+          // New upload — persist the Blob, store only the marker on the message.
+          url = await persistImage(img.file)
+        } else if (img.existingUrl) {
+          // Regenerate path — reuse the previously persisted reference.
+          url = img.existingUrl
+        } else {
+          continue
+        }
         contentParts.push({
           type: 'image_url',
           image_url: {
-            url: img.base64,
+            url,
             detail: 'auto'
           }
         })
@@ -68,12 +81,28 @@ export const useChat = () => {
     chatStore.setTyping(true)
 
     try {
-      // Prepare messages array for OpenRouter Chat API
-      // Convert stored messages to the format expected by OpenRouter
-      const messages = chatStore.currentConversation.messages.map((msg: Message) => ({
-        role: msg.role,
-        content: msg.content
-      }))
+      // Prepare messages array for OpenRouter Chat API.
+      // OpenRouter accepts data: and https: URLs but not idb-blob:, so resolve every
+      // persisted marker back to a data: URL right before fetch. Resolution runs in
+      // parallel; for typical conversations (few images, few MB each) the overhead is
+      // single-digit milliseconds.
+      const messages = await Promise.all(
+        chatStore.currentConversation.messages.map(async (msg: Message) => {
+          if (typeof msg.content === 'string') {
+            return { role: msg.role, content: msg.content }
+          }
+          const resolvedParts = await Promise.all(
+            msg.content.map(async (part) => {
+              if (part.type === 'image_url' && part.image_url?.url) {
+                const url = await toDataUrl(part.image_url.url)
+                return { ...part, image_url: { ...part.image_url, url } }
+              }
+              return part
+            })
+          )
+          return { role: msg.role, content: resolvedParts }
+        })
+      )
 
       const requestBody: ChatRequest = {
         model: chatStore.currentConversation.model,
@@ -187,18 +216,12 @@ export const useChat = () => {
 
     } catch (error: any) {
 
-      // Remove the last assistant message if it was empty (streaming error case)
+      // Remove the last assistant message if it was empty (streaming error case).
+      // The user message stays in the conversation — losing typed input on a transient
+      // network error is worse UX than leaving it visible so the user can retry.
       if (chatStore.currentConversation) {
         const messages = chatStore.currentConversation.messages
         if (messages && messages.length > 0 && messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content) {
-          messages.pop()
-        }
-      }
-
-      // Remove the last user message if there was an error
-      if (chatStore.currentConversation) {
-        const messages = chatStore.currentConversation.messages
-        if (messages && messages.length > 0 && messages[messages.length - 1]?.role === 'user') {
           messages.pop()
         }
       }

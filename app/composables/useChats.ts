@@ -1,4 +1,4 @@
-import { isToday, isYesterday, subMonths } from 'date-fns'
+import { isToday, isYesterday, subDays, subMonths } from 'date-fns'
 import type { Conversation } from '../../types/chat'
 
 export interface ChatGroup {
@@ -19,7 +19,7 @@ export function useChats(chats: Ref<Conversation[]>) {
         const lastMonth: Conversation[] = []
         const older: Record<string, Conversation[]> = {}
 
-        const oneWeekAgo = subMonths(new Date(), 0.25) // ~7 days
+        const oneWeekAgo = subDays(new Date(), 7)
         const oneMonthAgo = subMonths(new Date(), 1)
 
         // Sort newest first by updatedAt before bucketing

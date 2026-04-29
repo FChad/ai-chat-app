@@ -2,23 +2,19 @@ import { useDropZone } from '@vueuse/core'
 import { MAX_IMAGE_SIZE } from '~/config/constants'
 import type { AIModel } from '../../types/chat'
 
+/**
+ * Pending image attachment in the composer.
+ * - `file` is set for fresh uploads (new Blob → persisted on submit).
+ * - `existingUrl` is set when regenerating: an existing idb-blob:{uuid} marker
+ *   that should be reused without re-uploading the bytes.
+ * Exactly one of `file` / `existingUrl` is set per item.
+ */
 export interface UploadedImage {
-    file: File
+    file?: File
+    existingUrl?: string
     preview: string
     name: string
-    base64: string
 }
-
-const fileToBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-            if (typeof reader.result === 'string') resolve(reader.result)
-            else reject(new Error('Failed to read file'))
-        }
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-    })
 
 /**
  * Centralized composer state + logic: text input, image attachments (paste/upload),
@@ -68,9 +64,10 @@ export const useChatInput = () => {
                 toast.add({ color: 'warning', title: 'Image too large', description: 'Max 20 MB per image.' })
                 continue
             }
+            // Keep the File in memory and only persist on submit. No base64 read here —
+            // that doubled the work and the result was thrown away anyway.
             const preview = URL.createObjectURL(file)
-            const base64 = await fileToBase64(file)
-            images.value.push({ file, preview, name: file.name, base64 })
+            images.value.push({ file, preview, name: file.name })
         }
     }
 
@@ -110,7 +107,11 @@ export const useChatInput = () => {
         const imgs = [...images.value]
         input.value = ''
         images.value = []
-        // Note: we don't revoke previews here — they are attached to the user message and still displayed.
+        // The composer's preview URLs are object URLs we created in addFiles.
+        // We don't revoke them here: the persisted message references the image
+        // via an idb-blob:{uuid} marker (resolved separately by useResolvedImageUrl),
+        // so the previews are no longer needed but leaking them is bounded to the
+        // tab's lifetime.
 
         if (!chatStore.currentConversation) {
             const id = chatStore.createNewConversation(selectedModel.value, text)

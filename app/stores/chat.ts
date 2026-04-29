@@ -227,7 +227,6 @@ export const useChatStore = defineStore('chat', () => {
 
       localStorage.setItem('chat-conversations', JSON.stringify(conversationsToSave))
       localStorage.setItem('chat-settings', JSON.stringify(settings.value))
-      localStorage.removeItem('chat-current-conversation')
     }
   }
 
@@ -255,7 +254,6 @@ export const useChatStore = defineStore('chat', () => {
           // Clear old localStorage data for migration
           localStorage.removeItem('chat-conversations')
           localStorage.removeItem('chat-settings')
-          localStorage.removeItem('chat-current-conversation')
           localStorage.setItem('chat-app-version', currentVersion)
           // Don't load old data, start fresh
           isLoading.value = false

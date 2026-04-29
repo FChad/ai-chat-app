@@ -1,19 +1,13 @@
-import type { ChatRequest, Conversation, Message, AIModel, MessageContent } from '../../types/chat'
+import type { ChatRequest, Message, AIModel, MessageContent } from '../../types/chat'
 import type { OpenRouterStreamChunk } from '../../types/openrouter'
+import type { UploadedImage } from './useChatInput'
 import { generateUUID } from '~/utils/uuid'
-
-interface ImageFile {
-  file: File
-  preview: string
-  name: string
-  base64: string
-}
 
 export const useChat = () => {
   const chatStore = useChatStore()
   const toast = useToast()
 
-  const sendMessage = async (message: string, images?: ImageFile[], model?: string): Promise<void> => {
+  const sendMessage = async (message: string, images?: UploadedImage[], model?: string): Promise<void> => {
     if (!message.trim() && (!images || images.length === 0)) return
 
     const userMessage = message.trim()
@@ -259,7 +253,7 @@ export const useChat = () => {
 
   const cancelMessage = (conversationId: string) => {
     // Find the session for this conversation
-    const conversation = chatStore.conversations.find((c: Conversation) => c.id === conversationId)
+    const conversation = chatStore.conversations.find(c => c.id === conversationId)
     if (conversation?.sessionId) {
       chatStore.cancelChatSession(conversation.sessionId)
     }

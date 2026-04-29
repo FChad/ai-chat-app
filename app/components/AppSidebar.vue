@@ -54,14 +54,7 @@ const sortedConversations = computed(() =>
 const isSessionTyping = (conv: Conversation) =>
   !!conv.sessionId && chatStore.isSessionActive(conv.sessionId)
 
-const modal = overlay.create(ModalConfirm, {
-  props: {
-    title: 'Delete conversation',
-    description: '',
-    confirmLabel: 'Delete',
-    destructive: true
-  }
-})
+const modal = overlay.create(ModalConfirm)
 
 const confirmDelete = async (conv: Conversation) => {
   const instance = modal.open({

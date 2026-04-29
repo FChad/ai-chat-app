@@ -128,7 +128,6 @@ export const useChatInput = () => {
         currentModelDetails,
         addFiles,
         removeImage,
-        clearImages,
         handlePaste,
         submit,
         cancel

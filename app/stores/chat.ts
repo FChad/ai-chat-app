@@ -294,7 +294,6 @@ export const useChatStore = defineStore('chat', () => {
   return {
     // State
     conversations,
-    currentConversationId,
     isTyping,
     settings,
     isLoading,

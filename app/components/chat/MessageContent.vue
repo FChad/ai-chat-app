@@ -1,77 +1,22 @@
 <template>
-  <div v-if="images.length" class="flex flex-wrap gap-2 mb-2">
-    <ChatFilePreview
-      v-for="(img, i) in images"
-      :key="i"
-      :src="img.url"
-      size="xl"
-    />
-  </div>
+  <ChatFilePreview
+    v-for="(img, i) in images"
+    :key="i"
+    :src="img.url"
+    size="xl"
+    class="mb-2"
+  />
 
-  <!-- User: plain text -->
   <p v-if="role === 'user'" class="whitespace-pre-wrap">{{ text }}</p>
 
-  <!-- Assistant: markdown via Comark -->
-  <div
-    v-else
-    class="prose prose-sm sm:prose-base max-w-none dark:prose-invert prose-headings:text-highlighted prose-strong:text-highlighted prose-a:text-primary prose-code:text-highlighted prose-code:font-normal prose-code:before:content-none prose-code:after:content-none"
-  >
-    <Suspense v-if="text">
-      <Comark :markdown="safeText" :plugins="plugins" />
-    </Suspense>
+  <template v-else>
+    <ChatComark v-if="safeText" :markdown="safeText" :streaming="streaming" />
     <span v-if="tailText" class="streaming-tail">{{ tailText }}</span>
-  </div>
+  </template>
 </template>
 
 <script setup lang="ts">
-import { Comark } from '@comark/vue'
-import highlight from '@comark/vue/plugins/highlight'
-import githubLight from '@shikijs/themes/github-light'
-import githubDark from '@shikijs/themes/github-dark'
-import js from '@shikijs/langs/javascript'
-import ts from '@shikijs/langs/typescript'
-import tsx from '@shikijs/langs/tsx'
-import jsx from '@shikijs/langs/jsx'
-import vue from '@shikijs/langs/vue'
-import html from '@shikijs/langs/html'
-import css from '@shikijs/langs/css'
-import scss from '@shikijs/langs/scss'
-import json from '@shikijs/langs/json'
-import yaml from '@shikijs/langs/yaml'
-import md from '@shikijs/langs/markdown'
-import bash from '@shikijs/langs/bash'
-import shell from '@shikijs/langs/shellscript'
-import php from '@shikijs/langs/php'
-import python from '@shikijs/langs/python'
-import go from '@shikijs/langs/go'
-import rust from '@shikijs/langs/rust'
-import java from '@shikijs/langs/java'
-import csharp from '@shikijs/langs/csharp'
-import cpp from '@shikijs/langs/cpp'
-import c from '@shikijs/langs/c'
-import sql from '@shikijs/langs/sql'
-import dockerfile from '@shikijs/langs/dockerfile'
-import xml from '@shikijs/langs/xml'
-import diff from '@shikijs/langs/diff'
 import type { Message } from '../../../types/chat'
-
-const plugins = [
-  highlight({
-    themes: {
-      light: githubLight,
-      dark: githubDark,
-    },
-    // Emit light-theme bg/fg as inline styles on <pre>, plus --shiki-dark-bg / --shiki-dark
-    // CSS vars for the dark-mode override in main.css. Without this, prose's default dark
-    // <pre> background bleeds through in light mode and clashes with the light text colors.
-    preStyles: true,
-    languages: [
-      js, ts, tsx, jsx, vue, html, css, scss, json, yaml, md,
-      bash, shell, php, python, go, rust, java, csharp, cpp, c,
-      sql, dockerfile, xml, diff,
-    ],
-  }),
-]
 
 const props = defineProps<{
   message: Message
@@ -94,9 +39,9 @@ const images = computed(() => {
     .map(p => ({ url: p.image_url!.url }))
 })
 
-// Split assistant streaming content into safe (parse with markdown) and tail (render plain).
+// Split assistant streaming content into safe (parse with markdown) and tail (plain text).
 // Heuristic: if there's an unclosed fenced code block, or the last line has no newline, treat as tail.
-const splitStreamingSafe = (input: string): { safe: string; tail: string } => {
+const splitStreamingSafe = (input: string): { safe: string, tail: string } => {
   if (!input) return { safe: '', tail: '' }
   let cut = input.length
   const fences = input.match(/```/g) || []

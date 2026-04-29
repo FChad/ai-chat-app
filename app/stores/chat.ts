@@ -133,6 +133,14 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  const renameConversation = (id: string, title: string) => {
+    const conversation = conversations.value.find(c => c.id === id)
+    if (!conversation) return
+    conversation.title = title
+    conversation.updatedAt = new Date().toISOString()
+    saveToStorage(true)
+  }
+
   const deleteConversation = (id: string) => {
     const index = conversations.value.findIndex(c => c.id === id)
     if (index !== -1) {
@@ -265,7 +273,7 @@ export const useChatStore = defineStore('chat', () => {
         localStorage.removeItem('chat-settings')
         localStorage.removeItem('chat-app-version')
         localStorage.removeItem('chat-selected-model')
-      } catch {}
+      } catch { }
 
       const savedVersion = await get<string>(VERSION_KEY)
       if (savedVersion !== STORAGE_VERSION) {
@@ -309,6 +317,7 @@ export const useChatStore = defineStore('chat', () => {
     selectConversation,
     addMessage,
     updateLastMessage,
+    renameConversation,
     deleteConversation,
     clearAllConversations,
     setTyping,

@@ -1,5 +1,3 @@
-import tailwindcss from '@tailwindcss/vite'
-
 export default defineNuxtConfig({
   compatibilityDate: '2026-04-29',
   devtools: { enabled: false },
@@ -12,7 +10,43 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        'idb-keyval',
+        'perfect-debounce',
+        '@vueuse/core',
+        'date-fns',
+        '@comark/vue',
+        '@comark/vue/plugins/highlight',
+        '@shikijs/themes/github-light',
+        '@shikijs/themes/github-dark',
+        '@shikijs/langs/javascript',
+        '@shikijs/langs/typescript',
+        '@shikijs/langs/tsx',
+        '@shikijs/langs/jsx',
+        '@shikijs/langs/vue',
+        '@shikijs/langs/html',
+        '@shikijs/langs/css',
+        '@shikijs/langs/scss',
+        '@shikijs/langs/json',
+        '@shikijs/langs/yaml',
+        '@shikijs/langs/markdown',
+        '@shikijs/langs/bash',
+        '@shikijs/langs/shellscript',
+        '@shikijs/langs/php',
+        '@shikijs/langs/python',
+        '@shikijs/langs/go',
+        '@shikijs/langs/rust',
+        '@shikijs/langs/java',
+        '@shikijs/langs/csharp',
+        '@shikijs/langs/cpp',
+        '@shikijs/langs/c',
+        '@shikijs/langs/sql',
+        '@shikijs/langs/dockerfile',
+        '@shikijs/langs/xml',
+        '@shikijs/langs/diff',
+      ],
+    },
   },
 
   nitro: {

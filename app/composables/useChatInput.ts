@@ -1,3 +1,4 @@
+import { useDropZone } from '@vueuse/core'
 import { MAX_IMAGE_SIZE } from '~/config/constants'
 import type { AIModel } from '../../types/chat'
 
@@ -31,6 +32,8 @@ export const useChatInput = () => {
 
     const input = ref('')
     const images = ref<UploadedImage[]>([])
+    const dropzoneRef = ref<HTMLElement | null>(null)
+    const dragging = ref(false)
 
     const currentModelDetails = computed<AIModel | null>(() => {
         const modelId = chatStore.currentConversation?.model || selectedModel.value
@@ -120,12 +123,34 @@ export const useChatInput = () => {
         if (chatStore.currentConversation) cancelMessage(chatStore.currentConversation.id)
     }
 
+    // Drag & drop: only image files are accepted; gated by vision support.
+    useDropZone(dropzoneRef, {
+        dataTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'],
+        onDrop(files) {
+            dragging.value = false
+            if (!files || files.length === 0) return
+            if (!supportsImages.value) {
+                toast.add({ color: 'warning', title: 'Selected model does not support images' })
+                return
+            }
+            void addFiles(files)
+        },
+        onEnter() {
+            if (supportsImages.value) dragging.value = true
+        },
+        onLeave() {
+            dragging.value = false
+        }
+    })
+
     return {
         input,
         images,
         status,
         supportsImages,
         currentModelDetails,
+        dropzoneRef,
+        dragging,
         addFiles,
         removeImage,
         handlePaste,

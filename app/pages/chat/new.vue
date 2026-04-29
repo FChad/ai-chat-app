@@ -5,7 +5,10 @@
     </template>
 
     <template #body>
-      <UContainer class="flex-1 flex flex-col justify-center gap-4 sm:gap-6 py-8">
+      <div ref="dropzoneRef" class="relative flex flex-1">
+        <DragDropOverlay :show="dragging" />
+
+        <UContainer class="flex-1 flex flex-col justify-center gap-4 sm:gap-6 py-8">
         <h1 class="text-3xl sm:text-4xl text-highlighted font-bold">
           {{ greeting }}
         </h1>
@@ -73,7 +76,8 @@
             @click="runSuggestion(q.prompt)"
           />
         </div>
-      </UContainer>
+        </UContainer>
+      </div>
     </template>
   </UDashboardPanel>
 </template>
@@ -89,6 +93,8 @@ const {
   images,
   status,
   supportsImages,
+  dropzoneRef,
+  dragging,
   removeImage,
   addFiles,
   handlePaste,

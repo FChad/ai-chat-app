@@ -6,6 +6,13 @@
   >
     <template #header>
       <Navbar>
+        <template v-if="currentConv" #title>
+          <ChatTitle
+            :conversation-id="currentConv.id"
+            :title="currentConv.title"
+          />
+        </template>
+
         <UButton
           v-if="currentModelDetails"
           color="neutral"
@@ -20,7 +27,8 @@
     </template>
 
     <template #body>
-      <div class="flex flex-1">
+      <div ref="dropzoneRef" class="relative flex flex-1">
+        <DragDropOverlay :show="dragging" />
         <UContainer class="flex-1 flex flex-col gap-4 sm:gap-6">
           <div
             ref="messagesEl"
@@ -158,6 +166,8 @@ const {
   status,
   supportsImages,
   currentModelDetails,
+  dropzoneRef,
+  dragging,
   addFiles,
   removeImage,
   handlePaste,

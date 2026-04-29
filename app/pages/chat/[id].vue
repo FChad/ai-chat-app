@@ -62,7 +62,6 @@
                 :parts="[]"
                 :side="msg.role === 'user' ? 'right' : 'left'"
                 :variant="msg.role === 'user' ? 'soft' : 'naked'"
-                :icon="msg.role === 'assistant' ? 'i-lucide-sparkles' : undefined"
                 :avatar="msg.role === 'user' ? { icon: 'i-lucide-user' } : undefined"
               >
                 <template #content>

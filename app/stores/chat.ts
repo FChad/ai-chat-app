@@ -5,11 +5,11 @@ import { generateUUID } from '~/utils/uuid'
 import { SAVE_DEBOUNCE_MS } from '~/config/constants'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
 
-const CONVERSATIONS_KEY = 'chat-conversations'
+// Conversations are persisted as one IDB key per id, listed in CONV_INDEX_KEY.
+// Streaming updates only rewrite the active conversation's key.
+const CONV_INDEX_KEY = 'chat-conv-index'
+const CONV_PREFIX = 'chat-conv-'
 const SETTINGS_KEY = 'chat-settings'
-const VERSION_KEY = 'chat-app-version'
-// Bump when persisted shape changes — triggers a fresh start.
-const STORAGE_VERSION = '0.0.2'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -24,6 +24,13 @@ export const useChatStore = defineStore('chat', () => {
   const settings = ref<AppSettings>({
     timeFormat: '24h'
   })
+
+  // Dirty tracking — saveToStorageImmediate only writes the keys that actually changed.
+  // Module-level (not reactive) on purpose: this is plumbing, not UI state.
+  const dirtyConvIds = new Set<string>()
+  let indexDirty = false
+  let settingsDirty = false
+  const markConvDirty = (id: string) => { dirtyConvIds.add(id) }
 
   // Getters
   const currentConversation = computed(() =>
@@ -79,6 +86,8 @@ export const useChatStore = defineStore('chat', () => {
 
     conversations.value.unshift(conversation)
     currentConversationId.value = id
+    markConvDirty(id)
+    indexDirty = true
     saveToStorage(true) // Immediate save for user action
 
     return id
@@ -115,6 +124,7 @@ export const useChatStore = defineStore('chat', () => {
       conversation.title = generateConversationTitle(message.content)
     }
 
+    markConvDirty(conversation.id)
     saveToStorage()
   }
 
@@ -128,6 +138,7 @@ export const useChatStore = defineStore('chat', () => {
       if (lastMessage && lastMessage.role === 'assistant') {
         lastMessage.content = content
         conversation.updatedAt = new Date().toISOString()
+        markConvDirty(conversation.id)
         saveToStorage()
       }
     }
@@ -138,6 +149,7 @@ export const useChatStore = defineStore('chat', () => {
     if (!conversation) return
     conversation.title = title
     conversation.updatedAt = new Date().toISOString()
+    markConvDirty(id)
     saveToStorage(true)
   }
 
@@ -151,6 +163,14 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       conversations.value.splice(index, 1)
+      // No point saving a conversation we just removed.
+      dirtyConvIds.delete(id)
+      indexDirty = true
+
+      // Drop the per-conversation key. Fire-and-forget; the index update is the source of truth.
+      if (typeof window !== 'undefined') {
+        void del(`${CONV_PREFIX}${id}`).catch(err => console.error('Error deleting conversation:', err))
+      }
 
       // If we deleted the current conversation, select another one or clear
       if (currentConversationId.value === id) {
@@ -168,8 +188,18 @@ export const useChatStore = defineStore('chat', () => {
     })
     activeSessions.value.clear()
 
+    const idsToDelete = conversations.value.map(c => c.id)
     conversations.value = []
     currentConversationId.value = null
+    dirtyConvIds.clear()
+    indexDirty = true
+
+    // Drop all per-conversation keys. Fire-and-forget.
+    if (typeof window !== 'undefined' && idsToDelete.length > 0) {
+      void Promise.all(idsToDelete.map(id => del(`${CONV_PREFIX}${id}`)))
+        .catch(err => console.error('Error clearing conversations:', err))
+    }
+
     saveToStorage(true) // Immediate save for user action
   }
 
@@ -183,6 +213,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     settings.value = { ...settings.value, ...newSettings }
+    settingsDirty = true
     saveToStorage(true) // Immediate save for user action
   }
 
@@ -232,17 +263,43 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // Persistence (IndexedDB via idb-keyval)
+  // Snapshot the dirty sets at the start so concurrent mutations during the await
+  // get picked up by the next save instead of being lost.
   const saveToStorageImmediate = async () => {
     if (typeof window === 'undefined') return
+
+    const idsToSave = Array.from(dirtyConvIds)
+    dirtyConvIds.clear()
+    const shouldWriteIndex = indexDirty
+    indexDirty = false
+    const shouldWriteSettings = settingsDirty
+    settingsDirty = false
+
+    const writes: Promise<unknown>[] = []
+
     // sessionId is runtime-only; everything else (incl. base64 image content) is persisted.
     // JSON round-trip strips Vue's reactive proxies — IDB's structured clone chokes on them.
-    const conversationsToSave = JSON.parse(JSON.stringify(
-      conversations.value.map(conv => ({ ...conv, sessionId: undefined })),
-    ))
-    const settingsToSave = JSON.parse(JSON.stringify(settings.value))
+    for (const id of idsToSave) {
+      const conv = conversations.value.find(c => c.id === id)
+      if (!conv) continue
+      const data = JSON.parse(JSON.stringify({ ...conv, sessionId: undefined }))
+      writes.push(set(`${CONV_PREFIX}${id}`, data))
+    }
+
+    if (shouldWriteIndex) {
+      const ids = conversations.value.map(c => c.id)
+      writes.push(set(CONV_INDEX_KEY, ids))
+    }
+
+    if (shouldWriteSettings) {
+      const settingsToSave = JSON.parse(JSON.stringify(settings.value))
+      writes.push(set(SETTINGS_KEY, settingsToSave))
+    }
+
+    if (writes.length === 0) return
+
     try {
-      await set(CONVERSATIONS_KEY, conversationsToSave)
-      await set(SETTINGS_KEY, settingsToSave)
+      await Promise.all(writes)
     } catch (error) {
       console.error('Error saving to IndexedDB:', error)
     }
@@ -267,25 +324,24 @@ export const useChatStore = defineStore('chat', () => {
     }
     isLoading.value = true
     try {
-      // One-time cleanup of legacy localStorage keys (storage backend moved to IndexedDB).
+      // Cleanup: drop any keys from previous storage layouts. del() and removeItem
+      // are no-ops when the key is missing, so this is cheap to run every load.
       try {
         localStorage.removeItem('chat-conversations')
         localStorage.removeItem('chat-settings')
         localStorage.removeItem('chat-app-version')
         localStorage.removeItem('chat-selected-model')
       } catch { }
+      void del('chat-conversations')
+      void del('chat-app-version')
 
-      const savedVersion = await get<string>(VERSION_KEY)
-      if (savedVersion !== STORAGE_VERSION) {
-        await del(CONVERSATIONS_KEY)
-        await del(SETTINGS_KEY)
-        await set(VERSION_KEY, STORAGE_VERSION)
-        return
-      }
-
-      const savedConversations = await get<Conversation[]>(CONVERSATIONS_KEY)
-      if (savedConversations) {
-        conversations.value = savedConversations
+      // Load via index → fan out per-conversation reads in parallel.
+      const ids = await get<string[]>(CONV_INDEX_KEY)
+      if (ids && ids.length > 0) {
+        const loaded = await Promise.all(
+          ids.map(id => get<Conversation>(`${CONV_PREFIX}${id}`))
+        )
+        conversations.value = loaded.filter((c): c is Conversation => !!c)
       }
 
       const savedSettings = await get<AppSettings>(SETTINGS_KEY)

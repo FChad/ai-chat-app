@@ -41,6 +41,12 @@ html.dark .shiki span {
     text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
+/* Github-light's editor background is pure white, which matches our chat surface.
+   Tint the codeblock so it stands out as a distinct block in light mode. */
+.shiki {
+    background-color: #f6f8fa !important;
+}
+
 /* Prose code block wrapper cleanup */
 .prose pre.shiki {
     padding: 0.875rem 1rem;

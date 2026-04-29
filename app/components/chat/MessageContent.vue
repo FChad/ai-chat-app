@@ -61,6 +61,10 @@ const plugins = [
       light: githubLight,
       dark: githubDark,
     },
+    // Emit light-theme bg/fg as inline styles on <pre>, plus --shiki-dark-bg / --shiki-dark
+    // CSS vars for the dark-mode override in main.css. Without this, prose's default dark
+    // <pre> background bleeds through in light mode and clashes with the light text colors.
+    preStyles: true,
     languages: [
       js, ts, tsx, jsx, vue, html, css, scss, json, yaml, md,
       bash, shell, php, python, go, rust, java, csharp, cpp, c,

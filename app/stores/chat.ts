@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
 import { debounce } from 'perfect-debounce'
+import { get, set, del } from 'idb-keyval'
 import { generateUUID } from '~/utils/uuid'
 import { SAVE_DEBOUNCE_MS } from '~/config/constants'
 import type { Message, AIModel, Conversation, ActiveChatSession, AppSettings, MessageContent } from '../../types/chat'
+
+const CONVERSATIONS_KEY = 'chat-conversations'
+const SETTINGS_KEY = 'chat-settings'
+const VERSION_KEY = 'chat-app-version'
+// Bump when persisted shape changes — triggers a fresh start.
+const STORAGE_VERSION = '0.0.2'
 
 export const useChatStore = defineStore('chat', () => {
   // State
@@ -72,7 +79,7 @@ export const useChatStore = defineStore('chat', () => {
 
     conversations.value.unshift(conversation)
     currentConversationId.value = id
-    saveToLocalStorage(true) // Immediate save for user action
+    saveToStorage(true) // Immediate save for user action
 
     return id
   }
@@ -108,7 +115,7 @@ export const useChatStore = defineStore('chat', () => {
       conversation.title = generateConversationTitle(message.content)
     }
 
-    saveToLocalStorage()
+    saveToStorage()
   }
 
   const updateLastMessage = (content: string, sessionId: string) => {
@@ -121,7 +128,7 @@ export const useChatStore = defineStore('chat', () => {
       if (lastMessage && lastMessage.role === 'assistant') {
         lastMessage.content = content
         conversation.updatedAt = new Date().toISOString()
-        saveToLocalStorage()
+        saveToStorage()
       }
     }
   }
@@ -142,7 +149,7 @@ export const useChatStore = defineStore('chat', () => {
         currentConversationId.value = conversations.value.length > 0 ? conversations.value[0]?.id ?? null : null
       }
 
-      saveToLocalStorage(true) // Immediate save for user action
+      saveToStorage(true) // Immediate save for user action
     }
   }
 
@@ -155,7 +162,7 @@ export const useChatStore = defineStore('chat', () => {
 
     conversations.value = []
     currentConversationId.value = null
-    saveToLocalStorage(true) // Immediate save for user action
+    saveToStorage(true) // Immediate save for user action
   }
 
   const setTyping = (typing: boolean) => {
@@ -168,7 +175,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     settings.value = { ...settings.value, ...newSettings }
-    saveToLocalStorage(true) // Immediate save for user action
+    saveToStorage(true) // Immediate save for user action
   }
 
   // Session Management
@@ -186,7 +193,7 @@ export const useChatStore = defineStore('chat', () => {
     const conversation = conversations.value.find(c => c.id === conversationId)
     if (conversation) {
       conversation.sessionId = sessionId
-      saveToLocalStorage(true) // Immediate save for session start
+      saveToStorage(true) // Immediate save for session start
     }
   }
 
@@ -194,13 +201,13 @@ export const useChatStore = defineStore('chat', () => {
     activeSessions.value.delete(sessionId)
 
     // Flush any pending debounced saves to ensure all streamed content is saved
-    saveToLocalStorageDebounced.flush()
+    saveToStorageDebounced.flush()
 
     // Remove sessionId from conversation
     const conversation = conversations.value.find(c => c.sessionId === sessionId)
     if (conversation) {
       conversation.sessionId = undefined
-      saveToLocalStorage(true) // Immediate save for session end
+      saveToStorage(true) // Immediate save for session end
     }
   }
 
@@ -216,67 +223,70 @@ export const useChatStore = defineStore('chat', () => {
     return activeSessions.value.has(sessionId)
   }
 
-  // Local Storage
-  const saveToLocalStorageImmediate = () => {
-    if (typeof window !== 'undefined') {
-      // Don't save sessionId to localStorage as it's session-specific
-      const conversationsToSave = conversations.value.map(conv => ({
-        ...conv,
-        sessionId: undefined
-      }))
-
-      localStorage.setItem('chat-conversations', JSON.stringify(conversationsToSave))
-      localStorage.setItem('chat-settings', JSON.stringify(settings.value))
+  // Persistence (IndexedDB via idb-keyval)
+  const saveToStorageImmediate = async () => {
+    if (typeof window === 'undefined') return
+    // sessionId is runtime-only; everything else (incl. base64 image content) is persisted.
+    // JSON round-trip strips Vue's reactive proxies — IDB's structured clone chokes on them.
+    const conversationsToSave = JSON.parse(JSON.stringify(
+      conversations.value.map(conv => ({ ...conv, sessionId: undefined })),
+    ))
+    const settingsToSave = JSON.parse(JSON.stringify(settings.value))
+    try {
+      await set(CONVERSATIONS_KEY, conversationsToSave)
+      await set(SETTINGS_KEY, settingsToSave)
+    } catch (error) {
+      console.error('Error saving to IndexedDB:', error)
     }
   }
 
-  const saveToLocalStorageDebounced = debounce(saveToLocalStorageImmediate, SAVE_DEBOUNCE_MS)
+  const saveToStorageDebounced = debounce(saveToStorageImmediate, SAVE_DEBOUNCE_MS)
 
-  // Smart save function: uses debounced save for streaming updates, immediate for user actions
-  const saveToLocalStorage = (immediate = false) => {
+  // Smart save: debounced for streaming updates, immediate for user actions
+  const saveToStorage = (immediate = false) => {
     if (immediate) {
-      saveToLocalStorageDebounced.cancel()
-      saveToLocalStorageImmediate()
+      saveToStorageDebounced.cancel()
+      void saveToStorageImmediate()
     } else {
-      saveToLocalStorageDebounced()
+      void saveToStorageDebounced()
     }
   }
 
-  const loadFromLocalStorage = () => {
-    if (typeof window !== 'undefined') {
-      isLoading.value = true
+  const loadFromStorage = async () => {
+    if (typeof window === 'undefined') {
+      isLoading.value = false
+      return
+    }
+    isLoading.value = true
+    try {
+      // One-time cleanup of legacy localStorage keys (storage backend moved to IndexedDB).
       try {
-        // Check for version and migrate if necessary
-        const currentVersion = '0.0.1' // Update this when making breaking changes
-        const savedVersion = localStorage.getItem('chat-app-version')
+        localStorage.removeItem('chat-conversations')
+        localStorage.removeItem('chat-settings')
+        localStorage.removeItem('chat-app-version')
+        localStorage.removeItem('chat-selected-model')
+      } catch {}
 
-        if (!savedVersion || savedVersion !== currentVersion) {
-          // Clear old localStorage data for migration
-          localStorage.removeItem('chat-conversations')
-          localStorage.removeItem('chat-settings')
-          localStorage.setItem('chat-app-version', currentVersion)
-          // Don't load old data, start fresh
-          isLoading.value = false
-          return
-        }
-
-        const savedConversations = localStorage.getItem('chat-conversations')
-        if (savedConversations) {
-          conversations.value = JSON.parse(savedConversations)
-        }
-
-        const savedSettings = localStorage.getItem('chat-settings')
-        if (savedSettings) {
-          const parsedSettings = JSON.parse(savedSettings)
-          settings.value = { ...settings.value, ...parsedSettings }
-        }
-      } catch (error) {
-        console.error('Error loading conversations from localStorage:', error)
-      } finally {
-        isLoading.value = false
+      const savedVersion = await get<string>(VERSION_KEY)
+      if (savedVersion !== STORAGE_VERSION) {
+        await del(CONVERSATIONS_KEY)
+        await del(SETTINGS_KEY)
+        await set(VERSION_KEY, STORAGE_VERSION)
+        return
       }
-    } else {
-      // On server-side, immediately set loading to false
+
+      const savedConversations = await get<Conversation[]>(CONVERSATIONS_KEY)
+      if (savedConversations) {
+        conversations.value = savedConversations
+      }
+
+      const savedSettings = await get<AppSettings>(SETTINGS_KEY)
+      if (savedSettings) {
+        settings.value = { ...settings.value, ...savedSettings }
+      }
+    } catch (error) {
+      console.error('Error loading from IndexedDB:', error)
+    } finally {
       isLoading.value = false
     }
   }
@@ -304,7 +314,7 @@ export const useChatStore = defineStore('chat', () => {
     clearAllConversations,
     setTyping,
     setAvailableModels,
-    loadFromLocalStorage,
+    loadFromStorage,
 
     // Settings Actions
     updateSettings,

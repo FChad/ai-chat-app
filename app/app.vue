@@ -21,6 +21,6 @@ useHead({
 })
 
 onMounted(() => {
-  chatStore.loadFromLocalStorage()
+  void chatStore.loadFromStorage()
 })
 </script>

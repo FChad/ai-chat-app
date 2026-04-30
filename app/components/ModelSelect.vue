@@ -7,10 +7,22 @@
     value-key="value"
     :search-input="{ placeholder: 'Search models...', icon: 'i-lucide-search' }"
     class="data-[state=open]:bg-elevated"
-    :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200', content: 'max-w-sm' }"
+    :ui="{
+      trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200',
+      // Let the popover expand to fit the longest item (instead of being clamped
+      // to the trigger width via the default `w-(--reka-combobox-trigger-width)`),
+      // while capping it so it never overflows the viewport.
+      content: 'min-w-(--reka-combobox-trigger-width) w-fit max-w-[min(32rem,calc(100vw-1rem))]'
+    }"
   >
     <template #default>
       <span class="truncate">{{ selectedLabel || 'Select model' }}</span>
+    </template>
+    <template #item-label="{ item }">
+      <span :title="item.label">{{ item.label }}</span>
+    </template>
+    <template #item-description="{ item }">
+      <span :title="item.description">{{ item.description }}</span>
     </template>
   </USelectMenu>
 </template>

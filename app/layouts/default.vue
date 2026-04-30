@@ -17,7 +17,7 @@
 
       <template #default="{ collapsed }">
         <UButton
-          to="/chat/new"
+          to="/"
           icon="i-lucide-square-pen"
           :label="collapsed ? undefined : 'New chat'"
           color="neutral"

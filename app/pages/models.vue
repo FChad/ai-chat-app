@@ -7,54 +7,56 @@
     </template>
 
     <template #body>
-      <UContainer class="py-6 flex flex-col gap-6">
+      <UContainer class="py-8 sm:py-10 flex flex-col gap-8">
+        <!-- Page header -->
+        <div class="flex flex-col gap-2">
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-highlighted">
+            Models
+          </h1>
+          <p class="text-sm text-muted leading-relaxed max-w-2xl">
+            Browse the curated catalog of free AI models available through OpenRouter. Click any card to view full details.
+          </p>
+        </div>
+
         <!-- Search + Filters -->
         <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
             <UInput
               v-model="search"
               icon="i-lucide-search"
               placeholder="Search models..."
-              class="flex-1 max-w-sm"
+              variant="subtle"
+              class="flex-1 min-w-60"
               size="md"
             />
-            <UBadge color="neutral" variant="subtle" class="shrink-0">
-              {{ filteredModels.length }} model{{ filteredModels.length !== 1 ? 's' : '' }}
-            </UBadge>
-            <UButton
-              v-if="hasActiveFilters"
-              variant="ghost"
-              size="sm"
-              color="neutral"
-              icon="i-lucide-x"
-              label="Clear"
-              @click="clearFilters"
-            />
-          </div>
 
-          <div class="flex flex-wrap gap-2 items-center">
             <USelectMenu
               v-model="selectedFamily"
               :items="familyItems"
-              size="sm"
+              size="md"
+              variant="subtle"
               value-key="value"
-              class="min-w-40"
+              class="w-40"
             />
 
             <USelectMenu
               v-model="minContext"
               :items="contextItems"
-              size="sm"
+              size="md"
+              variant="subtle"
               value-key="value"
-              class="min-w-40"
+              class="w-40"
             />
+          </div>
 
+          <div class="flex flex-wrap gap-2 items-center">
             <UButton
               :color="capabilities.includes('vision') ? 'primary' : 'neutral'"
               :variant="capabilities.includes('vision') ? 'soft' : 'outline'"
               size="sm"
               icon="i-lucide-eye"
               label="Vision"
+              class="rounded-full"
               @click="toggleCapability('vision')"
             />
             <UButton
@@ -63,14 +65,36 @@
               size="sm"
               icon="i-lucide-wrench"
               label="Tools"
+              class="rounded-full"
               @click="toggleCapability('tools')"
+            />
+
+            <USeparator orientation="vertical" class="h-5 mx-1" />
+
+            <span class="text-xs text-muted tabular-nums">
+              {{ filteredModels.length }} model{{ filteredModels.length !== 1 ? 's' : '' }}
+            </span>
+
+            <UButton
+              v-if="hasActiveFilters"
+              variant="ghost"
+              size="sm"
+              color="neutral"
+              icon="i-lucide-x"
+              label="Clear filters"
+              class="ml-auto"
+              @click="clearFilters"
             />
           </div>
         </div>
 
         <!-- Loading -->
-        <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="n in 6" :key="n" class="ring ring-default rounded-lg bg-default p-5 flex flex-col gap-3">
+        <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="ring ring-default rounded-xl bg-elevated/40 p-5 flex flex-col gap-3"
+          >
             <USkeleton class="h-5 w-3/4" />
             <USkeleton class="h-3 w-1/2" />
             <USkeleton class="h-12 w-full" />
@@ -93,36 +117,94 @@
         />
 
         <!-- Empty -->
-        <div v-else-if="filteredModels.length === 0" class="text-center py-16 text-muted">
-          <UIcon name="i-lucide-filter" class="size-10 mx-auto mb-3 opacity-40" />
-          <p class="text-sm font-medium">No models match the current filters</p>
-          <UButton variant="ghost" size="sm" color="neutral" class="mt-3" label="Clear filters" @click="clearFilters" />
-        </div>
+        <UEmpty
+          v-else-if="filteredModels.length === 0"
+          icon="i-lucide-filter-x"
+          title="No models match the current filters"
+          description="Try clearing some filters or adjusting your search."
+        >
+          <template #actions>
+            <UButton
+              variant="outline"
+              size="sm"
+              color="neutral"
+              icon="i-lucide-x"
+              label="Clear filters"
+              @click="clearFilters"
+            />
+          </template>
+        </UEmpty>
 
         <!-- Models grid -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <button
             v-for="model in filteredModels"
             :key="model.model"
-            class="text-left ring ring-default rounded-lg bg-default p-5 flex flex-col gap-3 transition-colors hover:bg-elevated/50 hover:ring-accented cursor-pointer"
+            class="group text-left ring ring-default rounded-xl bg-elevated/40 p-5 flex flex-col gap-3 transition-all hover:bg-elevated hover:ring-accented hover:-translate-y-0.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             @click="openModel(model)"
           >
             <div class="flex items-start justify-between gap-2">
-              <h3 class="text-sm font-semibold leading-tight line-clamp-2 flex-1 text-highlighted">
+              <h3 class="text-sm font-semibold leading-snug line-clamp-2 flex-1 text-highlighted">
                 {{ model.name }}
               </h3>
-              <UBadge color="primary" variant="soft" class="shrink-0 text-xs capitalize">{{ model.details.family }}</UBadge>
+              <UBadge
+                color="primary"
+                variant="subtle"
+                size="sm"
+                class="shrink-0 capitalize rounded-full"
+              >
+                {{ model.details.family }}
+              </UBadge>
             </div>
-            <code class="text-xs text-muted font-mono truncate block">{{ model.model }}</code>
-            <p v-if="model.details.description" class="text-xs text-muted leading-relaxed line-clamp-3">
+
+            <code class="text-xs text-dimmed font-mono truncate block">{{ model.model }}</code>
+
+            <p
+              v-if="model.details.description"
+              class="text-xs text-muted leading-relaxed line-clamp-3"
+            >
               {{ model.details.description }}
             </p>
-            <div class="flex flex-wrap gap-1.5 mt-auto">
-              <UBadge color="neutral" variant="soft" icon="i-lucide-cpu">
+
+            <div class="flex flex-wrap gap-1.5 mt-auto pt-1">
+              <UBadge
+                color="neutral"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-cpu"
+                class="rounded-full"
+              >
                 {{ model.details.parameter_size }}
               </UBadge>
-              <UBadge v-if="model.details.context_length" color="neutral" variant="outline" icon="i-lucide-file-text">
+              <UBadge
+                v-if="model.details.context_length"
+                color="neutral"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-file-text"
+                class="rounded-full"
+              >
                 {{ formatContext(model.details.context_length) }} ctx
+              </UBadge>
+              <UBadge
+                v-if="model.details.architecture?.input_modalities?.includes('image')"
+                color="info"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-eye"
+                class="rounded-full"
+              >
+                Vision
+              </UBadge>
+              <UBadge
+                v-if="model.details.supported_parameters?.includes('tools')"
+                color="success"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-wrench"
+                class="rounded-full"
+              >
+                Tools
               </UBadge>
             </div>
           </button>

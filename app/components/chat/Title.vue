@@ -34,7 +34,7 @@ async function remove() {
   const confirmed = await instance.result
   if (!confirmed) return
   chatStore.deleteConversation(props.conversationId)
-  router.replace('/chat/new')
+  router.replace('/')
 }
 
 const items = computed<DropdownMenuItem[][]>(() => [

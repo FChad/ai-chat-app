@@ -41,7 +41,7 @@
                 description="This conversation no longer exists."
               >
                 <template #actions>
-                  <UButton to="/chat/new" label="Start a new chat" />
+                  <UButton to="/" label="Start a new chat" />
                 </template>
               </UEmpty>
             </div>
@@ -218,7 +218,7 @@ const syncConversation = () => {
   if (exists) {
     chatStore.selectConversation(id)
   } else if (!chatStore.isLoading) {
-    router.replace('/chat/new')
+    router.replace('/')
   }
 }
 
@@ -233,7 +233,7 @@ watch(() => route.params.id, () => {
 watch(() => chatStore.conversations, (list) => {
   const id = route.params.id as string
   if (!list.find(c => c.id === id) && !chatStore.isLoading) {
-    router.replace('/chat/new')
+    router.replace('/')
   }
 }, { deep: true })
 

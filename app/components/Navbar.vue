@@ -12,7 +12,7 @@
       <slot />
       <UColorModeButton />
       <UButton
-        to="/chat/new"
+        to="/"
         icon="i-lucide-square-pen"
         color="neutral"
         variant="ghost"

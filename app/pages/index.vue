@@ -1,86 +1,150 @@
 <template>
-  <UDashboardPanel id="home">
+  <UDashboardPanel id="chat-new">
     <template #header>
-      <Navbar>
-        <span class="font-medium">Home</span>
-      </Navbar>
+      <Navbar />
     </template>
 
     <template #body>
-      <UContainer class="flex-1 flex flex-col">
-        <!-- Hero -->
-        <div class="flex-1 flex flex-col items-center justify-center py-12 sm:py-20 text-center gap-6">
-          <UBadge
-            color="warning"
-            variant="subtle"
-            icon="i-lucide-triangle-alert"
-            size="md"
-            class="rounded-full"
-          >
-            Demo, for demonstration purposes only
-          </UBadge>
+      <div ref="dropzoneRef" class="relative flex flex-1">
+        <DragDropOverlay :show="dragging" />
 
-          <h1 class="text-4xl sm:text-6xl font-bold tracking-tight text-highlighted">
-            AskChadAI
+        <UContainer class="flex-1 flex flex-col justify-center gap-4 sm:gap-6 py-8">
+          <h1 class="text-3xl sm:text-4xl text-highlighted font-bold">
+            {{ greeting }}
           </h1>
-          <p class="text-muted text-base sm:text-lg leading-relaxed max-w-xl">
-            Chat with state-of-the-art AI models — free, open source, no account required.
-          </p>
 
-          <div class="flex flex-col sm:flex-row items-center gap-3">
+          <UChatPrompt
+            v-model="input"
+            :status="status"
+            variant="subtle"
+            class="[view-transition-name:chat-prompt]"
+            :ui="{ base: 'px-1.5' }"
+            placeholder="Ask anything..."
+            @submit="handleSubmit"
+            @paste.capture="handlePaste"
+          >
+            <template v-if="images.length" #header>
+              <div class="flex flex-wrap gap-2">
+                <ChatFilePreview
+                  v-for="(img, i) in images"
+                  :key="i"
+                  :src="img.preview"
+                  :name="img.name"
+                  removable
+                  @remove="removeImage(i)"
+                />
+              </div>
+            </template>
+
+            <template #footer>
+              <div class="flex items-center gap-1.5">
+                <UButton
+                  icon="i-lucide-paperclip"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :disabled="!supportsImages"
+                  @click="fileInput?.click()"
+                />
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="hidden"
+                  @change="onFileChange"
+                />
+                <ModelSelect />
+              </div>
+
+              <div class="ml-auto flex items-center gap-1.5">
+                <UChatPromptSubmit color="neutral" size="sm" />
+              </div>
+            </template>
+          </UChatPrompt>
+
+          <div class="flex flex-wrap gap-2">
             <UButton
-              to="/chat/new"
-              size="xl"
-              color="primary"
-              icon="i-lucide-sparkles"
-              label="Start chatting"
-            />
-            <UButton
-              to="/models"
-              size="xl"
+              v-for="q in quickChats"
+              :key="q.label"
+              size="sm"
               color="neutral"
               variant="outline"
-              icon="i-lucide-cpu"
-              label="Browse models"
+              class="rounded-full"
+              :icon="q.icon"
+              :label="q.label"
+              @click="runSuggestion(q.prompt)"
             />
           </div>
-        </div>
-
-        <!-- Features -->
-        <div class="border-t border-default py-12 sm:py-16">
-          <p class="text-xs font-semibold uppercase tracking-widest text-muted text-center mb-8">
-            What's included
-          </p>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-3xl mx-auto">
-            <div
-              v-for="f in features"
-              :key="f.title"
-              class="flex flex-col gap-3 rounded-xl ring ring-default bg-elevated/40 p-5"
-            >
-              <div class="size-9 flex items-center justify-center bg-primary/10 rounded-lg shrink-0">
-                <UIcon :name="f.icon" class="size-4.5 text-primary" />
-              </div>
-              <div>
-                <p class="text-sm font-semibold leading-snug text-highlighted">{{ f.title }}</p>
-                <p class="text-xs text-muted mt-1 leading-relaxed">{{ f.description }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </UContainer>
+        </UContainer>
+      </div>
     </template>
   </UDashboardPanel>
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'AskChadAI - Home' })
+useHead({ title: 'AskChadAI - New Chat' })
 
-const features = [
-  { icon: 'i-lucide-cpu', title: 'Free AI Models', description: 'Curated free models via OpenRouter, no API costs.' },
-  { icon: 'i-lucide-zap', title: 'Streaming', description: 'Responses appear in real-time as they generate.' },
-  { icon: 'i-lucide-archive', title: 'Local History', description: 'Conversations saved in your browser, no server needed.' },
-  { icon: 'i-lucide-download', title: 'Export', description: 'Download all your chats as a JSON file anytime.' },
-  { icon: 'i-lucide-image', title: 'Image Input', description: 'Attach images for models that support vision.' },
-  { icon: 'i-lucide-moon', title: 'Dark Mode', description: 'Light and dark themes with system preference support.' }
+const router = useRouter()
+const chatStore = useChatStore()
+const { loadModels } = useChat()
+const {
+  input,
+  images,
+  status,
+  supportsImages,
+  dropzoneRef,
+  dragging,
+  removeImage,
+  addFiles,
+  handlePaste,
+  submit
+} = useChatInput()
+
+// Clear any previously selected conversation so submitting from this page
+// always creates a new chat instead of appending to the last-viewed one.
+chatStore.selectConversation('')
+
+const fileInput = ref<HTMLInputElement>()
+
+const onFileChange = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    await addFiles(target.files)
+  }
+  if (target) target.value = ''
+}
+
+const handleSubmit = async () => {
+  await submit({
+    onNewConversation: (id) => {
+      router.replace(`/chat/${id}`)
+    }
+  })
+}
+
+const runSuggestion = async (prompt: string) => {
+  input.value = prompt
+  await nextTick()
+  await handleSubmit()
+}
+
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 18) return 'Good afternoon'
+  return 'Good evening'
+})
+
+const quickChats = [
+  { icon: 'i-lucide-sparkles', label: 'Explain a concept', prompt: 'Explain quantum entanglement in simple terms.' },
+  { icon: 'i-lucide-code-2', label: 'Write TypeScript', prompt: 'Write a TypeScript utility type that makes all properties optional and nullable.' },
+  { icon: 'i-lucide-component', label: 'Vue tip', prompt: 'Share a useful Vue 3 Composition API tip.' },
+  { icon: 'i-lucide-line-chart', label: 'Analyze data', prompt: 'How would you approach analyzing a CSV dataset of 1M rows in Python?' },
+  { icon: 'i-lucide-sun', label: 'Creative idea', prompt: 'Give me a creative weekend project idea.' }
 ]
+
+onMounted(async () => {
+  await loadModels()
+})
 </script>

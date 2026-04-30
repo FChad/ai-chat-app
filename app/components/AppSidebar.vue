@@ -87,7 +87,7 @@ const confirmDelete = async (conv: Conversation) => {
   if (!confirmed) return
   chatStore.deleteConversation(conv.id)
   if (currentId.value === conv.id) {
-    await navigateTo('/chat/new')
+    await navigateTo('/')
   }
 }
 

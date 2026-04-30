@@ -1,5 +1,5 @@
 <template>
-  <div class="group relative shrink-0">
+  <div class="group relative shrink-0" :class="$attrs.class as any">
     <UAvatar
       :src="isImage ? resolvedSrc : undefined"
       :icon="isImage ? undefined : 'i-lucide-image'"
@@ -37,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(
   defineProps<{
     src: string

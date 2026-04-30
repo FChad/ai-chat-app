@@ -2,12 +2,32 @@ import type { AIModel } from '../../types/chat'
 import type { OpenRouterModel, OpenRouterModelsResponse } from '../../types/openrouter'
 import { DEFAULT_MODEL } from '#shared/constants'
 
+// Edge-cache /api/models responses per Cloudflare PoP. The OpenRouter model
+// list barely changes, so a 5-minute fresh window with another 10 minutes of
+// stale-while-revalidate keeps the worker invocation off the hot path almost
+// entirely. Without this the previous `swr: 300` route rule had no effect on
+// `cloudflare-pages` (no persistent storage bound), so every request still
+// re-ran the upstream fetch.
+const EDGE_CACHE_MAX_AGE = 300
+const EDGE_CACHE_SWR = 600
+
 export default defineEventHandler(async (event) => {
   const runtimeConfig = useRuntimeConfig()
 
-  try {
-    setHeader(event, 'Content-Type', 'application/json; charset=utf-8')
+  // `caches.default` is the Cloudflare Workers per-PoP cache. It is only
+  // available at runtime on Workers/Pages — during local `nuxt dev` it's
+  // undefined and we transparently skip the edge cache layer.
+  const edgeCache = (globalThis as unknown as { caches?: { default: Cache } }).caches?.default
+  const cacheKey = new Request(getRequestURL(event).toString(), { method: 'GET' })
 
+  if (edgeCache) {
+    const cached = await edgeCache.match(cacheKey)
+    if (cached) {
+      return sendWebResponse(event, cached)
+    }
+  }
+
+  try {
     // Get environment variables
     const openrouterApiKey = runtimeConfig.openrouterApiKey
 
@@ -102,9 +122,27 @@ export default defineEventHandler(async (event) => {
       })
       .map(({ model }) => model)
 
-    return {
-      models: freeModels
+    const fresh = new Response(JSON.stringify({ models: freeModels }), {
+      status: 200,
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        // s-maxage drives the edge cache lifetime; stale-while-revalidate lets
+        // the next request after expiry serve the stale copy while we refresh.
+        'cache-control': `public, s-maxage=${EDGE_CACHE_MAX_AGE}, stale-while-revalidate=${EDGE_CACHE_SWR}`
+      }
+    })
+
+    if (edgeCache) {
+      // Don't block the user response on the cache write. On Cloudflare Pages
+      // we can hand the promise to waitUntil so it survives past the response.
+      const waitUntil = (event.context as { cloudflare?: { context?: { waitUntil?: (p: Promise<unknown>) => void } } })
+        .cloudflare?.context?.waitUntil
+      const put = edgeCache.put(cacheKey, fresh.clone())
+      if (waitUntil) waitUntil(put)
+      else void put
     }
+
+    return sendWebResponse(event, fresh)
 
   } catch (error: any) {
     console.error('Models API error:', error)

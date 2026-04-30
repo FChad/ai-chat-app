@@ -49,11 +49,10 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // Edge-cache the OpenRouter model list. swr keeps a stale copy serving while
-    // a background revalidation runs, so the user-visible latency is ~0 after the
-    // first hit per region. Nitro's cloudflare-pages preset wires this into the
-    // Workers Cache API — a plain Cache-Control header alone wouldn't be honored.
-    '/api/models': { swr: 300 },
+    // /api/models is edge-cached directly via the Cloudflare Cache API inside
+    // the route handler — see server/api/models.get.ts. We deliberately don't
+    // use Nitro's `swr` here because the cloudflare-pages preset has no
+    // persistent cache storage bound by default, so swr would be a no-op.
     // Apply robots headers to every response (HTML + API). The previous
     // server/middleware/robots.ts did the same thing per-invocation.
     '/**': {

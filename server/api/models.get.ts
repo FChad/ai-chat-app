@@ -16,14 +16,20 @@ export default defineEventHandler(async (event) => {
 
   // `caches.default` is the Cloudflare Workers per-PoP cache. It is only
   // available at runtime on Workers/Pages — during local `nuxt dev` it's
-  // undefined and we transparently skip the edge cache layer.
+  // undefined and we transparently skip the edge cache layer. Any failure
+  // interacting with the Cache API must be non-fatal: returning 500 to the
+  // user just because we couldn't read/write the edge cache would be silly.
   const edgeCache = (globalThis as unknown as { caches?: { default: Cache } }).caches?.default
   const cacheKey = new Request(getRequestURL(event).toString(), { method: 'GET' })
 
   if (edgeCache) {
-    const cached = await edgeCache.match(cacheKey)
-    if (cached) {
-      return sendWebResponse(event, cached)
+    try {
+      const cached = await edgeCache.match(cacheKey)
+      if (cached) {
+        return sendWebResponse(event, cached)
+      }
+    } catch (err) {
+      console.error('Edge cache match failed:', err)
     }
   }
 
@@ -135,11 +141,19 @@ export default defineEventHandler(async (event) => {
     if (edgeCache) {
       // Don't block the user response on the cache write. On Cloudflare Pages
       // we can hand the promise to waitUntil so it survives past the response.
-      const waitUntil = (event.context as { cloudflare?: { context?: { waitUntil?: (p: Promise<unknown>) => void } } })
-        .cloudflare?.context?.waitUntil
-      const put = edgeCache.put(cacheKey, fresh.clone())
-      if (waitUntil) waitUntil(put)
-      else void put
+      // Swallow errors — failing to populate the edge cache must never turn
+      // a successful upstream fetch into a 500.
+      try {
+        const waitUntil = (event.context as { cloudflare?: { context?: { waitUntil?: (p: Promise<unknown>) => void } } })
+          .cloudflare?.context?.waitUntil
+        const put = edgeCache.put(cacheKey, fresh.clone()).catch((err) => {
+          console.error('Edge cache put failed:', err)
+        })
+        if (waitUntil) waitUntil(put)
+        else void put
+      } catch (err) {
+        console.error('Edge cache put threw synchronously:', err)
+      }
     }
 
     return sendWebResponse(event, fresh)

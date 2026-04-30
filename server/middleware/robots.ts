@@ -1,3 +1,0 @@
-export default defineEventHandler((event) => {
-    setHeader(event, 'X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate')
-})

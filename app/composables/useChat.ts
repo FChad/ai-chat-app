@@ -3,6 +3,7 @@ import type { OpenRouterStreamChunk } from '../../types/openrouter'
 import type { UploadedImage } from './useChatInput'
 import { generateUUID } from '~/utils/uuid'
 import { persistImage, toDataUrl } from '~/utils/imageStorage'
+import { resizeImage } from '~/utils/imageResize'
 
 export const useChat = () => {
   const chatStore = useChatStore()
@@ -49,8 +50,10 @@ export const useChat = () => {
       for (const img of images) {
         let url: string
         if (img.file) {
-          // New upload — persist the Blob, store only the marker on the message.
-          url = await persistImage(img.file)
+          // New upload — scale large photos down, then persist. Resize is a no-op
+          // for already-small images and for non-raster types (gif/svg).
+          const blob = await resizeImage(img.file)
+          url = await persistImage(blob)
         } else if (img.existingUrl) {
           // Regenerate path — reuse the previously persisted reference.
           url = img.existingUrl

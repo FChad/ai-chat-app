@@ -43,18 +43,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-
-  nitro: {
-    preset: 'cloudflare-pages',
-  },
-
   routeRules: {
-    // /api/models is edge-cached directly via the Cloudflare Cache API inside
-    // the route handler — see server/api/models.get.ts. We deliberately don't
-    // use Nitro's `swr` here because the cloudflare-pages preset has no
-    // persistent cache storage bound by default, so swr would be a no-op.
-    // Apply robots headers to every response (HTML + API). The previous
-    // server/middleware/robots.ts did the same thing per-invocation.
     '/**': {
       headers: {
         'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate'
@@ -72,7 +61,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    openrouterApiKey: process.env.OPENROUTER_API_KEY,
+    openrouterApiKey: '',
   },
 
   app: {

@@ -1,5 +1,5 @@
 import { get, set } from 'idb-keyval'
-import { DEFAULT_MODEL } from '~/config/constants'
+import { DEFAULT_MODEL } from '#shared/constants'
 
 const KEY = 'chat-selected-model'
 

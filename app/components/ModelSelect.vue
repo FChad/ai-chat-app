@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_MODEL } from '~/config/constants'
+import { DEFAULT_MODEL } from '#shared/constants'
 
 const chatStore = useChatStore()
 const selectedModel = useSelectedModel()

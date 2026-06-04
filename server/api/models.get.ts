@@ -75,27 +75,9 @@ export default defineEventHandler(async (event) => {
               description: model.description || '',
               popularity,
               canonical_slug: model.canonical_slug || model.id,
-              architecture: model.architecture ? {
-                input_modalities: model.architecture.input_modalities || [],
-                output_modalities: model.architecture.output_modalities || [],
-                tokenizer: model.architecture.tokenizer || '',
-                instruct_type: model.architecture.instruct_type || null
-              } : undefined,
-              pricing: model.pricing ? {
-                prompt: model.pricing.prompt || '0',
-                completion: model.pricing.completion || '0',
-                request: model.pricing.request || '0',
-                image: model.pricing.image || '0',
-                web_search: model.pricing.web_search || '0',
-                internal_reasoning: model.pricing.internal_reasoning || '0',
-                input_cache_read: model.pricing.input_cache_read || '0',
-                input_cache_write: model.pricing.input_cache_write || '0'
-              } : undefined,
-              top_provider: model.top_provider ? {
-                context_length: model.top_provider.context_length || 0,
-                max_completion_tokens: model.top_provider.max_completion_tokens || 0,
-                is_moderated: model.top_provider.is_moderated || false
-              } : undefined,
+              architecture: model.architecture,
+              pricing: model.pricing,
+              top_provider: model.top_provider,
               supported_parameters: model.supported_parameters || []
             }
           },

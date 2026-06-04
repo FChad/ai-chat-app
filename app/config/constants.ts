@@ -9,5 +9,3 @@ export const MAX_IMAGE_DIMENSION = 2048
 
 /** JPEG quality used when re-encoding scaled images. */
 export const IMAGE_QUALITY = 0.85
-
-export { DEFAULT_MODEL } from '#shared/constants'

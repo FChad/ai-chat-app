@@ -74,6 +74,11 @@ if exist "*.log" (
     echo No log files found.
 )
 
+REM Delete empty folders (recursively)
+echo Removing empty folders...
+for /f "delims=" %%d in ('dir /ad /b /s ^| sort /r') do rd "%%d" 2>nul
+echo Empty folders removed.
+
 echo.
 echo Cleanup completed!
 echo.
